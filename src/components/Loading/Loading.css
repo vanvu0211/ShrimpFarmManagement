@@ -1,0 +1,20 @@
+.spin {
+    display: inline-block;
+    width: 150px;
+    height: 150px;
+    border: 10px solid #0f2c59;
+    border-radius: 50%;
+    border-top-color: #fff;
+    -webkit-animation: spin 1s ease-in-out infinite;
+    animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
