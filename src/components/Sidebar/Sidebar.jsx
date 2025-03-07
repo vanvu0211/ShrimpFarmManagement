@@ -6,7 +6,7 @@ import { BsGrid, BsDroplet, BsBox, BsSearch, BsFileText } from 'react-icons/bs';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleSidebar } from '../../store/sidebarSlice';
 import { FaBox, FaExchangeAlt, FaTrash } from 'react-icons/fa';
-import { FaTablets } from "react-icons/fa6";
+import { FaShrimp, FaTablets } from "react-icons/fa6";
 import { PiFanDuotone } from "react-icons/pi";
 function Sidebar() {
   const menuItems = [
@@ -14,8 +14,9 @@ function Sidebar() {
     { name: "Thông số môi trường", icon: <BsDroplet />, lnk: "/evista" },
     { name: "Thu hoạch", icon: <BsBox />, lnk: "/harvest" },
     { name: "Chuyển ao", icon: <FaExchangeAlt />, lnk: "/transfer" },
-    { name: "Quản lí thực phẩm", icon: <FaTablets />, lnk: "/food" },
-    { name: "Quản lí máy móc", icon: <PiFanDuotone />, lnk: "/machinesmanager" },
+    { name: "Thông tin tôm", icon: <FaShrimp />, lnk: "/shrimpmanagement" },
+    { name: "Danh mục thực phẩm", icon: <FaTablets />, lnk: "/food" },
+    { name: "Danh mục máy móc", icon: <PiFanDuotone />, lnk: "/machinesmanager" },
     { name: "Truy xuất nguồn gốc", icon: <BsSearch />, lnk: "/access" },
     { name: "Thông tin trang trại", icon: <BsFileText />, lnk: "/farm" },
   ];
@@ -105,7 +106,7 @@ function Sidebar() {
                 navigate(item.lnk);
                 document.title = item.name;
               }}
-              className={`flex items-center relative py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${
+              className={`flex items-center relative py-2 px-3 my-1  font-medium rounded-md cursor-pointer transition-colors group ${
                 active === item.name
                   ? "bg-gradient-to-tr from-indigo-100 to-indigo-100 text-white"
                   : "hover:bg-indigo-50 text-white"

@@ -58,6 +58,11 @@ const routes = [
         component: Pages.MachinesManager, //dữ liệu
 
     },
+    {
+        path: paths.shrimpmanagement, //đường link
+        component: Pages.ShrimpManagement, //dữ liệu
+
+    },
 ]
 
 export default routes
