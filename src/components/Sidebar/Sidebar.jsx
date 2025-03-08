@@ -11,14 +11,14 @@ import { PiFanDuotone } from "react-icons/pi";
 function Sidebar() {
   const menuItems = [
     { name: "Dashboard", icon: <BsGrid />, lnk: "/dashboard" },
-    { name: "Thông số môi trường", icon: <BsDroplet />, lnk: "/evista" },
-    { name: "Thu hoạch", icon: <BsBox />, lnk: "/harvest" },
-    { name: "Chuyển ao", icon: <FaExchangeAlt />, lnk: "/transfer" },
-    { name: "Thông tin tôm", icon: <FaShrimp />, lnk: "/shrimpmanagement" },
-    { name: "Danh mục thực phẩm", icon: <FaTablets />, lnk: "/food" },
-    { name: "Danh mục máy móc", icon: <PiFanDuotone />, lnk: "/machinesmanager" },
-    { name: "Truy xuất nguồn gốc", icon: <BsSearch />, lnk: "/access" },
-    { name: "Thông tin trang trại", icon: <BsFileText />, lnk: "/farm" },
+{ name: "Environment Report", icon: <BsDroplet />, lnk: "/evista" },
+{ name: "Harvest", icon: <BsBox />, lnk: "/harvest" },
+{ name: "Pond Transfer", icon: <FaExchangeAlt />, lnk: "/transfer" },
+{ name: "Shrimp Information", icon: <FaShrimp />, lnk: "/shrimpmanagement" },
+{ name: "Food Catalog", icon: <FaTablets />, lnk: "/food" },
+{ name: "Machinery Catalog", icon: <PiFanDuotone />, lnk: "/machinesmanager" },
+{ name: "Traceability", icon: <BsSearch />, lnk: "/access" },
+{ name: "Farm Information", icon: <BsFileText />, lnk: "/farm" },
   ];
 
   const navigate = useNavigate();

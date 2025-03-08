@@ -129,16 +129,16 @@ function Dashboard() {
       <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
         <div className="flex w-[90%] h-32 rounded-xl gap-3 justify-around mt-3">
           <div className="flex flex-col items-center justify-center w-[18%] h-full max-w-[90%] max-h-[90%] rounded-lg  shadow-md   bg-white">
-            <h1 className="uppercase text-xl font-semibold  font-sans">Tổng số ao</h1>
+            <h1 className="uppercase text-xl font-semibold  font-sans">Total</h1>
             <span className="font-bold text-5xl">{ponds?.length || 0}</span>
           </div>
           <div className="flex flex-col items-center justify-center w-[20%] h-full max-w-[90%] max-h-[90%] rounded-lg  shadow-md bg-white">
-            <h1 className="uppercase text-xl font-semibold font-sans md:text-xl">Số ao nuôi</h1>
+            <h1 className="uppercase text-xl font-semibold font-sans md:text-xl">Active</h1>
             <span className="font-bold text-5xl text-green-600/[.86]">{activePonds}</span>
           </div>
           <div className="flex flex-col items-center justify-center w-[20%] h-full max-w-[90%] max-h-[90%] rounded-lg shadow-md bg-white">
           <div className="text-sm text-gray-700">
-            <p className="font-semibold font-sans ">Số ngày đã vận hành: {daysOperated}</p>
+            <p className="font-semibold font-sans ">Operating Days: {daysOperated}</p>
             {needsCleaning ? (
               <>
                 <p className="text-red-500 font-bold">Cần vệ sinh cảm biến</p>
@@ -148,7 +148,7 @@ function Dashboard() {
                 ></button>
               </>
             ) : (
-                <p className="text-green-500">Cảm biến đang hoạt động tốt</p>            
+                <p className="text-green-500 text-xl font-sans font-semibold">The sensor is operating well</p>            
             )}
           </div>
 

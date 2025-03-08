@@ -70,8 +70,8 @@ function Card({ pondId, status, onDeleteCardSuccess, onPutSucces }) {
       >
         <h1 className="text-white text-xl font-bold">{pondId}</h1>
         <div className="text-white text-right">
-          <p className="text-lg font-semibold">{daysSinceStart} ngày</p>
-          <p className="text-sm">{harvestTime} vụ</p>
+          <p className="text-lg font-semibold">{daysSinceStart} days</p>
+          <p className="text-sm">{harvestTime} crop</p>
         </div>
       </div>
 

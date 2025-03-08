@@ -153,11 +153,11 @@ const HarvestForm = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-auto mt-5">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Thu hoạch</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Harvest</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <SelectField
-            label="Chọn ao"
+            label="Select Pond"
             id="pondId"
             value={formData.pondId}
             onChange={handleInputChange('pondId')}
@@ -166,20 +166,20 @@ const HarvestForm = () => {
             required
           />
           <InputField
-            label="Lần thu hoạch"
+            label="HarvestTime"
             id="harvestTime"
             value={formData.harvestTime}
             readOnly
             disabled={true}
-            placeholder="Số lần thu hoạch"
+            placeholder="Number of Harvests"
           />
           <SelectField
-            label="Loại thu hoạch"
+            label="Harvest Type"
             id="harvestType"
             value={formData.harvestType}
             onChange={handleInputChange('harvestType')}
             options={[
-              { value: '0', label: 'Thu tỉa' },
+              { value: '0', label: 'Partial Harvest' },
               { value: '1', label: 'Thu toàn bộ' },
             ]}
             disabled={isLoading}
@@ -187,7 +187,7 @@ const HarvestForm = () => {
           />
           <div className="relative">
             <label htmlFor="harvestDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Ngày thu hoạch
+              Harvest Date
             </label>
             <div className="relative">
               <input
@@ -207,22 +207,22 @@ const HarvestForm = () => {
             </div>
           </div>
           <InputField
-            label="Size tôm (cm)"
+            label="Shrimp Size (cm)"
             id="size"
             type="text"
             value={formData.size}
             onChange={handleNumericChange('size')}
-            placeholder="Nhập kích cỡ tôm"
+            placeholder="Enter Shrimp Size"
             disabled={isLoading}
             required
           />
           <InputField
-            label="Sinh khối (kg)"
+            label="Biomass(kg)"
             id="amount"
             type="text"
             value={formData.amount}
             onChange={handleNumericChange('amount')}
-            placeholder="Nhập sinh khối thu hoạch"
+            placeholder="Enter Harvest Biomass"
             disabled={isLoading}
             required
           />
@@ -231,7 +231,7 @@ const HarvestForm = () => {
         <div className="grid grid-cols-1 gap-4">
           <div>
             <label htmlFor="certificates" className="block text-sm font-medium text-gray-700 mb-1">
-              Giấy xét nghiệm kháng sinh
+            Certificate
             </label>
             <input
               type="file"
@@ -265,7 +265,7 @@ const HarvestForm = () => {
                 Đang xử lý...
               </span>
             ) : (
-              'Xác nhận'
+              'Save'
             )}
           </button>
         </div>

@@ -117,12 +117,12 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
                 >
                     <IoCloseSharp />
                 </i>
-                <header className="text-xl font-bold text-center uppercase mb-4">Thiết Lập Thời Gian</header>
+                <header className="text-xl font-bold text-center uppercase mb-4">Time Setting</header>
 
                 <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
                     {timeFields.map((time, index) => (
                         <div className="flex mb-2 items-center space-x-2" key={index}>
-                            <h2 className="font-semibold">Lần đo {index + 1}</h2>
+                            <h2 className="font-semibold">Measurement Time {index + 1}</h2>
                             
                             {/* Dropdown giờ */}
                             <div className="relative flex-1">
@@ -191,7 +191,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
                             className="bg-blue-300 hover:bg-blue-400 text-black py-2 px-4 rounded-md shadow-md"
                             onClick={handleAddTimeField}
                         >
-                            Thêm Thời Gian Đo
+                            Add
                         </button>
                         <button 
                             type="submit" 
@@ -200,7 +200,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
                             })}
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Đang xử lý...' : 'Lưu'}
+                            {isLoading ? 'Đang xử lý...' : 'Save'}
                         </button>
                     </div>
                 </form>

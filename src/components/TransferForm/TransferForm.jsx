@@ -170,24 +170,22 @@ function TransferForm() {
                                 ...ponds.map((pond) => ({ value: pond.pondId, label: pond.pondId }))
                             ]}
                         />
-                        {/* <InputField
-                            label="Lần thu hoạch"
+                        <InputField
+                            label="Size tôm"
                             id="harvestTime"
                             value={harvestTime}
                             onChange={() => {}}
                             placeholder="Nhập lần thu hoạch"
                             readOnly
                         />
-                        <SelectField
-                            label="Loại thu hoạch"
-                            id="harvestType"
-                            value={harvestType}
-                            onChange={handleInputChange(setHarvestType)}
-                            options={[
-                                { value: 0, label: 'Thu tỉa' },
-                                { value: 1, label: 'Thu toàn bộ' }
-                            ]}
-                        /> */}
+                        <InputField
+                            label="Sinh khối"
+                            id="harvestTime"
+                            value={harvestTime}
+                            onChange={() => {}}
+                            placeholder="Nhập lần thu hoạch"
+                            readOnly
+                        />
                         <div className="relative">
                             <label htmlFor="harvestDate" className="block text-gray-700">
                                 Ngày chuyển ao:
