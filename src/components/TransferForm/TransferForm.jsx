@@ -44,6 +44,7 @@ const TransferForm = () => {
     callApi(
       [HarvestRequest.HarvestRequestApi.getHarvestTime(formData.pondId)],
       (res) => {
+        console.log(res);
         setFormData((prev) => ({ ...prev, harvestTime: String(res[0].harvestTime + 1) }));
       },
       null,
@@ -152,126 +153,110 @@ const TransferForm = () => {
   const handleCalendarClick = useCallback(() => dateInputRef.current?.focus(), []);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-auto mt-5">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Harvest</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SelectField
-            label="Select Pond"
-            id="pondId"
-            value={formData.pondId}
-            onChange={handleInputChange('pondId')}
-            options={[{ value: '', label: 'Chọn ao' }, ...pondOptions]}
-            disabled={isLoading}
-            required
-          />
-          <InputField
-            label="HarvestTime"
-            id="harvestTime"
-            value={formData.harvestTime}
-            readOnly
-            disabled={true}
-            placeholder="Number of Harvests"
-          />
-          <SelectField
-            label="Harvest Type"
-            id="harvestType"
-            value={formData.harvestType}
-            onChange={handleInputChange('harvestType')}
-            options={[
-              { value: '0', label: 'Partial Harvest' },
-              { value: '1', label: 'Thu toàn bộ' },
-            ]}
-            disabled={isLoading}
-            required
-          />
+    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl mx-auto mt-6">
+    <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Chuyển ao</h1>
+  
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SelectField
+          label="Chọn ao"
+          id="pondId"
+          value={formData.pondId}
+          onChange={handleInputChange('pondId')}
+          options={[{ value: '', label: 'Chọn ao' }, ...pondOptions]}
+          disabled={isLoading}
+          required
+        />
+       <SelectField
+          label="Chọn ao chuyển đến"
+          id="pondId"
+          value={formData.pondId}
+          onChange={handleInputChange('pondId')}
+          options={[{ value: '', label: 'Chọn ao' }, ...pondOptions]}
+          disabled={isLoading}
+          required
+        />
+      
+      
+        <InputField
+          label="Size tôm (cm)"
+          id="size"
+          type="text"
+          value={formData.size}
+          onChange={handleNumericChange('size')}
+          placeholder="Nhập size tôm"
+          disabled={isLoading}
+          required
+          className="text-lg"
+        />
+        <InputField
+          label="Sinh khối (kg)"
+          id="amount"
+          type="text"
+          value={formData.amount}
+          onChange={handleNumericChange('amount')}
+          placeholder="Nhập sinh khối"
+          disabled={isLoading}
+          required
+          className="text-lg"
+        />
+      </div>
+  
+      <div className="grid grid-cols-1 gap-4">
+      <div className="relative">
+          <label htmlFor="harvestDate" className="block text-base font-medium text-gray-700 mb-2">
+            Ngày thu hoạch
+          </label>
           <div className="relative">
-            <label htmlFor="harvestDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Harvest Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                id="harvestDate"
-                ref={dateInputRef}
-                value={formData.harvestDate}
-                onChange={handleInputChange('harvestDate')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
-                disabled={isLoading}
-                required
-              />
-              <IoCalendar
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
-                onClick={handleCalendarClick}
-              />
-            </div>
-          </div>
-          <InputField
-            label="Shrimp Size (cm)"
-            id="size"
-            type="text"
-            value={formData.size}
-            onChange={handleNumericChange('size')}
-            placeholder="Enter Shrimp Size"
-            disabled={isLoading}
-            required
-          />
-          <InputField
-            label="Biomass(kg)"
-            id="amount"
-            type="text"
-            value={formData.amount}
-            onChange={handleNumericChange('amount')}
-            placeholder="Enter Harvest Biomass"
-            disabled={isLoading}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <label htmlFor="certificates" className="block text-sm font-medium text-gray-700 mb-1">
-            Certificate
-            </label>
             <input
-              type="file"
-              id="certificates"
-              onChange={handleFileChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
+              type="date"
+              id="harvestDate"
+              ref={dateInputRef}
+              value={formData.harvestDate}
+              onChange={handleInputChange('harvestDate')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 text-lg"
               disabled={isLoading}
+              required
             />
+            {/* <IoCalendar
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
+              onClick={handleCalendarClick}
+            /> */}
           </div>
         </div>
-
-        {errorMessage && (
-          <p className="text-red-600 text-center animate-shake">{errorMessage}</p>
-        )}
-
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className={cl(
-              'px-6 py-2 bg-green-600 text-white font-medium rounded-md shadow-sm transition-all',
-              { 'opacity-50 cursor-not-allowed': isLoading || !isFormValid() }
-            )}
-            disabled={isLoading || !isFormValid()}
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>
-                Đang xử lý...
-              </span>
-            ) : (
-              'Save'
-            )}
-          </button>
-        </div>
-      </form>
-      {isLoading && <Loading />}
-    </div>
+      </div>
+  
+      {errorMessage && (
+        <p className="text-red-600 text-center text-lg animate-shake">{errorMessage}</p>
+      )}
+  
+      <div className="flex justify-center mt-6">
+        <button
+          type="submit"
+          className={cl(
+            'px-8 py-3 bg-green-600 text-white font-medium text-lg rounded-md shadow-sm transition-all',
+            { 'opacity-50 cursor-not-allowed': isLoading || !isFormValid() }
+          )}
+          disabled={isLoading || !isFormValid()}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Đang xử lý...
+            </span>
+          ) : (
+            'Lưu'
+          )}
+        </button>
+      </div>
+    </form>
+  
+    
+  </div>
+  
   );
 };
 

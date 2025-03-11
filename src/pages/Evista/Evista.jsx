@@ -306,7 +306,7 @@ function Evista() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          Environment Report
+          Thông số môi trường
         </motion.h1>
         
         <motion.div 
@@ -317,27 +317,27 @@ function Evista() {
         >
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">PondType</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Loại ao</label>
               <Select 
                 options={pondTypes} 
                 onChange={handlePondTypeChange} 
-                placeholder="Select PondType" 
+                placeholder="Chọn loại ao" 
                 value={selectedPondType}
                 className="text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pond</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ao</label>
               <Select 
                 options={pondOptions} 
                 onChange={handlePondChange} 
-                placeholder="Select Pond" 
+                placeholder="Chọn ao" 
                 value={pondOptions.find((option) => option.value === selectedPond)}
                 className="text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
               <DatePicker 
                 selected={startDate} 
                 onChange={handleStartDateChange} 
@@ -346,7 +346,7 @@ function Evista() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
               <DatePicker 
                 selected={endDate} 
                 onChange={(date) => setEndDate(date)} 
@@ -360,20 +360,20 @@ function Evista() {
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
                 data-tooltip-id="one-day-tooltip"
               >
-                1 Day
+                1 Ngày
               </button>
               <button
                 onClick={handle7DaysClick}
                 className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors text-sm"
                 data-tooltip-id="seven-day-tooltip"
               >
-                7 Day
+                7 Ngày
               </button>
               <button 
                 onClick={addPond} 
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center text-sm"
               >
-                <FaPlus className="mr-2" /> Find
+                <FaPlus className="mr-2" /> Tìm kiếm
               </button>
             </div>
           </div>
