@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import { ToastContainer, toast } from "react-toastify";
+import Sidebar from '../../components/Sidebar'; // Giả sử bạn có component Sidebar
 import Select from 'react-select';
 import { components } from 'react-select'; // Để tùy chỉnh giao diện
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Tùy chỉnh Option để hiển thị checkbox
+// Tùy chỉnh Option để hiển thị checkbox trong Select
 const Option = (props) => {
   return (
     <components.Option {...props}>
@@ -19,66 +20,55 @@ const Option = (props) => {
 };
 
 const MachinesManager = () => {
-  const [machines, setMachines] = useState([]);
-  const [newMachine, setNewMachine] = useState({ id: '', name: '', pond: [] });
-  const [editingMachine, setEditingMachine] = useState(null);
-  const ponds = [
+  // Danh sách 5 loại máy cố định
+  const machineTypes = [
+    { id: 'oxyFan', name: 'Máy quạt oxy', ponds: [] },
+    { id: 'filter', name: 'Máy lọc phân', ponds: [] },
+    { id: 'fan1', name: 'Máy quạt 1', ponds: [] },
+    { id: 'fan2', name: 'Máy quạt 2', ponds: [] },
+    { id: 'fan3', name: 'Máy quạt 3', ponds: [] },
+  ];
+
+  // Danh sách ao cố định
+  const pondsOptions = [
     { value: 'Ao 1', label: 'Ao 1' },
     { value: 'Ao 2', label: 'Ao 2' },
     { value: 'Ao 3', label: 'Ao 3' },
     { value: 'Ao 4', label: 'Ao 4' },
+    { value: 'Ao 5', label: 'Ao 5' },
+    { value: 'Ao 5', label: 'Ao 5' },
+    { value: 'Ao 5', label: 'Ao 5' },
+    { value: 'Ao 5', label: 'Ao 5' },
+    { value: 'Ao 5', label: 'Ao 5' },
+    { value: 'Ao 5', label: 'Ao 5' },
   ];
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewMachine(prev => ({ ...prev, [name]: value }));
+  // Trạng thái quản lý danh sách máy, máy được chọn và ao tạm thời
+  const [machines, setMachines] = useState(machineTypes);
+  const [selectedMachine, setSelectedMachine] = useState(null); // Máy được chọn để mở modal
+  const [tempPonds, setTempPonds] = useState([]); // Lưu tạm thời các ao được chọn trong modal
+
+  // Xử lý khi click vào một máy
+  const handleMachineClick = (machine) => {
+    setSelectedMachine(machine);
+    setTempPonds(machine.ponds); // Khởi tạo tempPonds với danh sách ao hiện tại của máy
   };
 
+  // Xử lý khi chọn ao trong modal (chỉ lưu tạm thời)
   const handlePondChange = (selectedOptions) => {
     const selectedPonds = selectedOptions ? selectedOptions.map(option => option.value) : [];
-    setNewMachine(prev => ({ ...prev, pond: selectedPonds }));
+    setTempPonds(selectedPonds); // Cập nhật danh sách ao tạm thời
   };
 
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditingMachine(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditPondChange = (selectedOptions) => {
-    const selectedPonds = selectedOptions ? selectedOptions.map(option => option.value) : [];
-    setEditingMachine(prev => ({ ...prev, pond: selectedPonds }));
-  };
-
-  const handleAddMachine = (e) => {
-    e.preventDefault();
-    if (!newMachine.id || !newMachine.name) {
-      alert('Vui lòng nhập mã máy và tên máy!');
-      return;
-    }
-    setMachines(prev => [...prev, newMachine]);
-    setNewMachine({ id: '', name: '', pond: [] });
-  };
-
-  const handleDeleteMachine = (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa máy này?')) {
-      setMachines(prev => prev.filter(machine => machine.id !== id));
-    }
-  };
-
-  const handleEditMachine = (machine) => {
-    setEditingMachine({ ...machine, pond: machine.pond || [] });
-  };
-
-  const handleSaveEdit = (e) => {
-    e.preventDefault();
-    setMachines(prev => prev.map(machine => 
-      machine.id === editingMachine.id ? editingMachine : machine
-    ));
-    setEditingMachine(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingMachine(null);
+  // Xử lý khi nhấn nút "Lưu" để áp dụng thay đổi
+  const handleSave = () => {
+    setMachines(prevMachines =>
+      prevMachines.map(machine =>
+        machine.id === selectedMachine.id ? { ...machine, ponds: tempPonds } : machine
+      )
+    );
+    toast.success(`Đã gắn ${tempPonds.join(', ')} cho ${selectedMachine.name}!`);
+    setSelectedMachine(null); // Đóng modal sau khi lưu
   };
 
   return (
@@ -86,157 +76,75 @@ const MachinesManager = () => {
       <aside className="h-full">
         <Sidebar />
       </aside>
-      <div className="grow pt-5">
-        <main className="p-6 max-w-4xl mx-auto">
-          {/* Form thêm máy mới */}
-          <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Thêm máy mới</h2>
-            <form onSubmit={handleAddMachine} className="bg-white p-6 rounded-lg shadow-md">
-              <div className="flex items-center gap-4 mb-4">
-                <label className="w-24 font-medium text-gray-700">Mã máy:</label>
-                <input
-                  type="text"
-                  name="id"
-                  value={newMachine.id}
-                  onChange={handleInputChange}
-                  className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <label className="w-24 font-medium text-gray-700">Tên máy:</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newMachine.name}
-                  onChange={handleInputChange}
-                  className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex gap-4 mb-4">
-                <label className="w-24 font-medium text-gray-700">Ao lắp đặt:</label>
-                <div className="flex-1">
-                  <Select
-                    isMulti
-                    options={ponds}
-                    value={ponds.filter(pond => newMachine.pond.includes(pond.value))}
-                    onChange={handlePondChange}
-                    placeholder="Chọn ao..."
-                    components={{ Option }} // Sử dụng Option tùy chỉnh
-                    closeMenuOnSelect={false} // Giữ menu mở khi chọn nhiều
-                    hideSelectedOptions={false} // Hiển thị các tùy chọn đã chọn trong danh sách
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
-              >
-                Thêm máy
-              </button>
-            </form>
-          </section>
+      <div className="grow pt-5 overflow-y-auto">
+        <main className="p-6 max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">Quản lý máy móc ao tôm</h1>
 
-          {/* Danh sách máy */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Danh sách máy</h2>
-            {machines.length === 0 ? (
-              <p className="text-gray-500">Chưa có máy nào trong danh sách</p>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-blue-600 text-white">
-                      <th className="p-3 text-left">Mã máy</th>
-                      <th className="p-3 text-left">Tên máy</th>
-                      <th className="p-3 text-left">Ao</th>
-                      <th className="p-3 text-left">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {machines.map((machine) => (
-                      <tr key={machine.id} className="border-t hover:bg-gray-50">
-                        {editingMachine && editingMachine.id === machine.id ? (
-                          <>
-                            <td className="p-3">
-                              <input
-                                value={editingMachine.id}
-                                disabled
-                                className="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
-                              />
-                            </td>
-                            <td className="p-3">
-                              <input
-                                type="text"
-                                name="name"
-                                value={editingMachine.name}
-                                onChange={handleEditChange}
-                                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                            <td className="p-3">
-                              <Select
-                                isMulti
-                                options={ponds}
-                                value={ponds.filter(pond => editingMachine.pond.includes(pond.value))}
-                                onChange={handleEditPondChange}
-                                placeholder="Chọn ao..."
-                                components={{ Option }} // Sử dụng Option tùy chỉnh
-                                closeMenuOnSelect={false}
-                                hideSelectedOptions={false}
-                              />
-                            </td>
-                            <td className="p-3 flex gap-2">
-                              <button
-                                onClick={handleSaveEdit}
-                                className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
-                              >
-                                Lưu
-                              </button>
-                              <button
-                                onClick={handleCancelEdit}
-                                className="bg-gray-500 text-white px-3 py-1 rounded-md hover:bg-gray-600 transition"
-                              >
-                                Hủy
-                              </button>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td className="p-3">{machine.id}</td>
-                            <td className="p-3">{machine.name}</td>
-                            <td className="p-3">{machine.pond.length > 0 ? machine.pond.join(', ') : 'Chưa chọn'}</td>
-                            <td className="p-3 flex gap-2">
-                              <button
-                                onClick={() => handleEditMachine(machine)}
-                                className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition"
-                              >
-                                Sửa
-                              </button>
-                              <button
-                                onClick={() => handleDeleteMachine(machine.id)}
-                                className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition"
-                              >
-                                Xóa
-                              </button>
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Danh sách máy hiển thị dưới dạng hình khối */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {machines.map((machine) => (
+              <div
+                key={machine.id}
+                onClick={() => handleMachineClick(machine)}
+                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer flex flex-col items-center justify-center h-64 w-full"
+              >
+                <div className="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-blue-600 font-semibold text-lg">Máy</span>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 text-center">{machine.name}</h3>
+                <p className="text-base text-gray-600 mt-2 text-center">
+                  Ao: {machine.ponds.length > 0 ? machine.ponds.join(', ') : 'Chưa gắn'}
+                </p>
               </div>
-            )}
-          </section>
+            ))}
+          </div>
+
+          {/* Modal chỉ hiển thị phần chọn ao */}
+          {selectedMachine && (
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg flex flex-col h-[400px]">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                Gắn ao cho {selectedMachine.name}
+              </h2>
+              <div className="flex-grow">
+                <Select
+                  isMulti
+                  options={pondsOptions}
+                  value={pondsOptions.filter(pond => tempPonds.includes(pond.value))}
+                  onChange={handlePondChange}
+                  placeholder="Chọn ao..."
+                  components={{ Option }}
+                  closeMenuOnSelect={false}
+                  hideSelectedOptions={false}
+                  className="mb-4"
+                />
+              </div>
+              <div className="pt-4 border-t flex justify-end gap-4">
+                <button
+                  onClick={handleSave}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                >
+                  Lưu
+                </button>
+                <button
+                  onClick={() => setSelectedMachine(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
         </main>
       </div>
-      <ToastContainer 
-        position="top-right" 
-        autoClose={3000} 
-        hideProgressBar={false} 
-        newestOnTop={false} 
-        closeOnClick 
-        pauseOnHover 
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
       />
     </div>
   );
