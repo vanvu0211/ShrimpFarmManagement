@@ -126,7 +126,7 @@ function Dashboard() {
       <aside>
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
+      <div className="flex-1  flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
         <div className="flex w-[90%] h-32 rounded-xl gap-3 justify-around mt-3">
           <div className="flex flex-col items-center justify-center w-[18%] h-full max-w-[90%] max-h-[90%] rounded-lg  shadow-md   bg-white">
             <h1 className="uppercase text-xl font-semibold  font-sans">Tổng</h1>
@@ -155,7 +155,7 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="w-[90%] max-h-[80%] overflow-hidden oscrollverflow-y- no-scrollbar rounded-lg p-4 gap-y-3">
+        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden oscrollverflow-y- no-scrollbar rounded-lg p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName

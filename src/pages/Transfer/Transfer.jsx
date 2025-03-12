@@ -19,7 +19,7 @@ function Transfer() {
             <aside className="h-full">
                 <Sidebar />
             </aside>
-            <div className="grow pt-5">
+            <div className="flex-1 overflow-y-auto">
                 
                 <main className="scroll-y h-[calc(100vh-50px)] p-5">
                    <  TransferForm 
