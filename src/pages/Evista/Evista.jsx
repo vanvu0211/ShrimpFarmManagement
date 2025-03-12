@@ -28,25 +28,27 @@ function Evista() {
     options: {
       chart: { 
         type: 'line', 
-        height: 350, 
+        height: '100%', // Sử dụng phần trăm để responsive
         zoom: { enabled: true, type: 'x' },
         animations: {
           enabled: true,
           easing: 'easeinout',
           speed: 800,
-        }
+        },
+        toolbar: { show: true }, // Hiển thị toolbar để zoom trên mobile
       },
       xaxis: { 
         type: 'datetime', 
         labels: { 
           rotate: -45, 
           rotateAlways: true,
-          style: { colors: '#64748b' }
-        }
+          style: { colors: '#64748b', fontSize: '12px' }, // Giảm kích thước font cho mobile
+          trim: true, // Cắt ngắn nhãn nếu quá dài
+        },
       },
       yaxis: { 
         title: { text: '' },
-        labels: { style: { colors: '#64748b' } }
+        labels: { style: { colors: '#64748b', fontSize: '12px' } }, // Giảm kích thước font
       },
       colors: ['#3b82f6', '#10b981', '#f59e0b'],
       stroke: { curve: 'smooth', width: 2 },
@@ -54,8 +56,8 @@ function Evista() {
       annotations: { yaxis: [] },
       tooltip: {
         theme: 'dark',
-        x: { show: true }
-      }
+        x: { show: true },
+      },
     },
   });
 
@@ -222,7 +224,7 @@ function Evista() {
             <FaTrash size={16} />
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {Object.keys(pondData[pond] || {}).map((param) => {
             const data = pondData[pond][param].map((d) => ({
               x: `${new Date(d.timestamp).getDate().toString().padStart(2, '0')}/${(new Date(d.timestamp).getMonth() + 1).toString().padStart(2, '0')}-${new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
@@ -233,7 +235,7 @@ function Evista() {
             const unit = param === 'Temperature' ? '℃' : param === 'O2' ? 'mg/L' : '';
 
             return (
-              <div key={param} className="parameter-chart">
+              <div key={param} className="parameter-chart w-full">
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-lg font-medium text-gray-700">{formattedParam}</h3>
                   <button
@@ -250,18 +252,27 @@ function Evista() {
                 <Chart
                   options={{
                     ...chartData.options,
-                    xaxis: { categories: data.map((d) => d.x) },
+                    xaxis: { 
+                      categories: data.map((d) => d.x),
+                      labels: { 
+                        rotate: -45, 
+                        rotateAlways: true,
+                        style: { fontSize: '10px' }, // Font nhỏ hơn cho mobile
+                        trim: true,
+                      },
+                    },
                     annotations: getAnnotations(param),
                     yaxis: {
                       title: {
                         text: unit,
-                        style: { fontSize: '14px', fontWeight: 600, color: '#475569' }
-                      }
-                    }
+                        style: { fontSize: '14px', fontWeight: 600, color: '#475569' },
+                      },
+                    },
                   }}
                   series={[{ name: formattedParam, data: data.map((d) => d.y) }]}
                   type="line"
                   height={250}
+                  width="100%" // Responsive width
                 />
               </div>
             );
@@ -295,149 +306,136 @@ function Evista() {
   };
 
   return (
-    <div className="flex w-full min-h-screen bg-gray-100">
-      <aside className="fixed h-screen">
+    <div className="flex min-h-screen bg-[#F2F4F7] overflow-hidden">
+      <aside className="h-screen sticky top-0">
         <Sidebar />
       </aside>
-      <main className="flex-grow p-8 ml-64">
-        <motion.h1 
-          className="text-3xl font-bold text-gray-800 mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          Thông số môi trường
-        </motion.h1>
-        
-        <motion.div 
-          className="bg-white rounded-xl shadow-md p-6 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Loại ao</label>
-              <Select 
-                options={pondTypes} 
-                onChange={handlePondTypeChange} 
-                placeholder="Chọn loại ao" 
-                value={selectedPondType}
-                className="text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ao</label>
-              <Select 
-                options={pondOptions} 
-                onChange={handlePondChange} 
-                placeholder="Chọn ao" 
-                value={pondOptions.find((option) => option.value === selectedPond)}
-                className="text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
-              <DatePicker 
-                selected={startDate} 
-                onChange={handleStartDateChange} 
-                dateFormat="yyyy-MM-dd" 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
-              <DatePicker 
-                selected={endDate} 
-                onChange={(date) => setEndDate(date)} 
-                dateFormat="yyyy-MM-dd" 
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handle1DayClick}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
-                data-tooltip-id="one-day-tooltip"
-              >
-                1 Ngày
-              </button>
-              <button
-                onClick={handle7DaysClick}
-                className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors text-sm"
-                data-tooltip-id="seven-day-tooltip"
-              >
-                7 Ngày
-              </button>
-              <button 
-                onClick={addPond} 
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors flex items-center text-sm"
-              >
-                <FaPlus className="mr-2" /> Tìm kiếm
-              </button>
-            </div>
-          </div>
-          <ReactTooltip id="one-day-tooltip" content="Dữ liệu hôm nay" />
-          <ReactTooltip id="seven-day-tooltip" content="Dữ liệu của 7 ngày trước (không tính hôm nay)" />
-        </motion.div>
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1 overflow-y-auto p-5">
+          <div className="bg-gray-100 p-4">
+            {/* Form nhập liệu */}
+            <form className="bg-white p-6 rounded-lg shadow-md mb-6 max-w-4xl mx-auto">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Loại ao</label>
+                  <Select
+                    options={pondTypes}
+                    onChange={handlePondTypeChange}
+                    placeholder="Chọn loại ao"
+                    value={selectedPondType}
+                    className="mt-1"
+                  />
+                </div>
 
-        <div className="space-y-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-          {renderCharts()}
-        </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Tên ao</label>
+                  <Select
+                    options={pondOptions}
+                    onChange={handlePondChange}
+                    placeholder="Chọn tên ao"
+                    value={pondOptions.find((option) => option.value === selectedPond)}
+                    className="mt-1"
+                  />
+                </div>
 
-        <Modal
-          isOpen={isModalOpen}
-          onRequestClose={() => setIsModalOpen(false)}
-          style={{ 
-            content: { 
-              width: '80%', 
-              maxWidth: '800px', 
-              height: '80vh', 
-              margin: 'auto',
-              borderRadius: '12px',
-              padding: '24px'
-            }
-          }}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {activePondName} - {activeChart?.param}
-            </h2>
-            <button 
-              onClick={() => setIsModalOpen(false)} 
-              className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Ngày bắt đầu</label>
+                  <DatePicker 
+                    selected={startDate} 
+                    onChange={handleStartDateChange} 
+                    dateFormat="yyyy-MM-dd" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700">Ngày kết thúc</label>
+                  <DatePicker 
+                    selected={endDate} 
+                    onChange={(date) => setEndDate(date)} 
+                    dateFormat="yyyy-MM-dd" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <button
+                  onClick={addPond} 
+                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 h-10 w-full md:w-auto px-6"
+                  disabled={loading}
+                >
+                  {loading ? 'Đang tải...' : 'Xem dữ liệu'}
+                </button>
+              </div>
+            </form>
+
+            {/* Hiển thị các card ao */}
+            <div className="space-y-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 150px)' }}>
+              {renderCharts()}
+            </div>
+           
+            <Modal
+              isOpen={isModalOpen}
+              onRequestClose={() => setIsModalOpen(false)}
+              style={{ 
+                content: { 
+                  width: '90%', // Giảm chiều rộng để vừa với mobile
+                  maxWidth: '800px', 
+                  height: '80vh', 
+                  margin: 'auto',
+                  borderRadius: '12px',
+                  padding: '24px',
+                },
+              }}
             >
-              <FaTrash size={16} />
-            </button>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {activePondName} - {activeChart?.param}
+                </h2>
+                <button 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                >
+                  <FaTrash size={16} />
+                </button>
+              </div>
+              <Chart
+                options={{
+                  ...chartData.options,
+                  xaxis: { 
+                    categories: activeChart?.data.map((d) => d.x),
+                    labels: { 
+                      rotate: -45, 
+                      rotateAlways: true,
+                      style: { fontSize: '10px' }, // Font nhỏ hơn cho modal trên mobile
+                      trim: true,
+                    },
+                  },
+                  annotations: getAnnotations(activeChart?.param),
+                  yaxis: {
+                    title: {
+                      text: activeChart?.param === 'Temperature' ? '℃' : activeChart?.param === 'O2' ? 'mg/L' : '',
+                      style: { fontSize: '14px', fontWeight: 600, color: '#475569' },
+                    },
+                  },
+                }}
+                series={[{ name: activeChart?.param, data: activeChart?.data.map((d) => d.y) }]}
+                type="line"
+                height="90%"
+                width="100%" // Responsive width cho modal
+              />
+            </Modal>
           </div>
-          <Chart
-            options={{
-              ...chartData.options,
-              xaxis: { categories: activeChart?.data.map((d) => d.x) },
-              annotations: getAnnotations(activeChart?.param),
-              yaxis: {
-                title: {
-                  text: activeChart?.param === 'Temperature' ? '℃' : activeChart?.param === 'O2' ? 'mg/L' : '',
-                  style: { fontSize: '16px', fontWeight: 600, color: '#475569' }
-                }
-              }
-            }}
-            series={[{ name: activeChart?.param, data: activeChart?.data.map((d) => d.y) }]}
-            type="line"
-            height="90%"
-          />
-        </Modal>
-
-        <ToastContainer 
-          position="top-right" 
-          autoClose={3000} 
-          hideProgressBar={false} 
-          newestOnTop={false} 
-          closeOnClick 
-          pauseOnHover 
-          theme="colored"
-        />
-      </main>
+        </main>
+      </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 }
