@@ -33,7 +33,8 @@ function Dashboard() {
   const [activePonds, setActivePonds] = useState(0);
   const [pondTypes, setPondTypes] = useState([]);
   const [ponds, setPonds] = useState([]);
-  const [selectedPondTypeName, setSelectedPondTypeName] = useState('');
+  const [selectedPondTypeId, setselectedPondTypeId] = useState('');
+  const [selectedPondTypeName, setselectedPondTypeName] = useState('');
   const [daysOperated, setDaysOperated] = useState(0);
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -41,7 +42,8 @@ function Dashboard() {
   // Lấy farmName và username từ localStorage
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
-  
+  const farmId = Number(localStorage.getItem('farmId'));
+
   const fetchData = useCallback(() => {
     // Kiểm tra nếu farmName hoặc username không tồn tại
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
@@ -51,14 +53,14 @@ function Dashboard() {
 
     callApi(
         [
-            DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFarmName(farmName),
-            DashboardRequestApi.pondRequest.getPondRequestByUsernameAndFarmName(username, farmName),
-            DashboardRequestApi.pondRequest.getPondRequestByStatus(username, farmName, 1),
-            DashboardRequestApi.timeRequest.getTimeCleaning(),
+            DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId),
+            DashboardRequestApi.pondRequest.getPondRequestByFarmId(farmId),
+            DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1),
+            DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
         ],
         (res) => {
-            setPondTypes(res[0]); // Loại hình ao
-            setPonds(res[1]);
+            setPondTypes(res[0] || []); // Loại hình ao
+            setPonds(res[1] || []);
             setActivePonds(res[2]?.length || 0);
 
             const lastCleaningTime = new Date(res[3].cleanTime);
@@ -80,7 +82,7 @@ function Dashboard() {
             console.error(err);
         }
     );
-}, [callApi, farmName, username]);
+  }, [callApi, farmId]);
   
   useEffect(() => {
     fetchData();
@@ -95,8 +97,9 @@ function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSelected = (pondTypeName) => {
-    setSelectedPondTypeName(pondTypeName); 
+  const handleSelected = (pondTypeId, pondTypeName) => {
+    setselectedPondTypeId(pondTypeId); 
+    setselectedPondTypeName(pondTypeName);
   };
 
   const handleCleanSensor = () => {
@@ -122,40 +125,41 @@ function Dashboard() {
   };  
 
   return (
-    <div className="flex max-h-screen bg-[#F2F4F7]">
+    <div className="flex max-h-screen bg-gradient-to-br from-teal-100 to-gray-100/40">
       <aside>
         <Sidebar />
       </aside>
-      <div className="flex-1  flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
-        <div className="flex w-[90%] h-32 rounded-xl gap-3 justify-around mt-3">
-          <div className="flex flex-col items-center justify-center w-[18%] h-full max-w-[90%] max-h-[90%] rounded-lg  shadow-md   bg-white">
-            <h1 className="uppercase text-xl font-semibold  font-sans">Tổng</h1>
-            <span className="font-bold text-5xl">{ponds?.length || 0}</span>
-          </div>
-          <div className="flex flex-col items-center justify-center w-[20%] h-full max-w-[90%] max-h-[90%] rounded-lg  shadow-md bg-white">
-            <h1 className="uppercase text-xl font-semibold font-sans md:text-xl">Hoạt động</h1>
-            <span className="font-bold text-5xl text-green-600/[.86]">{activePonds}</span>
-          </div>
-          <div className="flex flex-col items-center justify-center w-[20%] h-full max-w-[90%] max-h-[90%] rounded-lg shadow-md bg-white">
-          <div className="text-sm text-gray-700">
-            <p className="font-semibold font-sans text-lg ">Số ngày vận hành: {daysOperated}</p>
-            {needsCleaning ? (
-              <>
-                <p className="text-red-500 font-bold">Cần vệ sinh cảm biến</p>
-                <button
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                  onClick={() => setIsConfirmModalOpen(true)}
-                ></button>
-              </>
-            ) : (
-                <p className="text-green-500 text-xl font-sans font-semibold">Tình trạng cảm biến: Tốt</p>            
-            )}
+      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
+        {/* Container cho 3 card trên cùng */}
+        <div className="w-[90%] h-auto rounded-xl flex p-4 gap-y-3 gap-4 ">
+          {/* Card Tổng số ao */}
+          <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
+            <h1 className="uppercase text-lg font-bold text-teal-800">Tổng số ao</h1>
+            <span className="text-4xl font-bold text-teal-600">{ponds?.length || 0}</span>
           </div>
 
+          {/* Card Ao hoạt động */}
+          <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
+            <h1 className="uppercase text-lg font-bold text-teal-800">Hoạt động</h1>
+            <span className="text-4xl font-bold text-teal-600">{activePonds}</span>
+          </div>
+
+          {/* Card Tình trạng cảm biến */}
+          <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
+            <h1 className="uppercase text-lg font-semibold font-sans text-gray-700">{farmName}</h1>
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-600">Số ngày vận hành: {daysOperated}</p>
+              {needsCleaning ? (
+                <p className="text-red-500 font-semibold text-sm mt-1">Cần vệ sinh cảm biến</p>
+              ) : (
+                <p className="text-green-500 font-semibold text-sm mt-1">Cảm biến: Tốt</p>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden oscrollverflow-y- no-scrollbar rounded-lg p-4 gap-y-3">
+        {/* Container cho PondSummary */}
+        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden no-scrollbar rounded-lg p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName
@@ -166,6 +170,7 @@ function Dashboard() {
                 onPutSucces={fetchData}
                 key={pondType.pondTypeId}
                 pondTypeName={pondType.pondTypeName}
+                pondTypeId={pondType.pondTypeId}
                 ponds={filteredPonds}
                 setIsDeleteModal={setIsDeleteModal}
                 setIsCreateModal={setIsCreateModal}
@@ -186,11 +191,11 @@ function Dashboard() {
           <div className="flex items-center justify-center text-black font-bold">
             <div
               className={`
-                      absolute right-full rounded-md -px-2 -py-1 ml-6 whitespace-nowrap
-                      bg-indigo-100 text-indigo-800
-                      invisible opacity-20 -translate-x-3 transition-all
-                      group-hover:visible group-hover:opacity-100 group-hover:translate-x-0 group-hover:z-50
-                    `}
+                absolute right-full rounded-md px-2 py-1 ml-6 whitespace-nowrap
+                bg-indigo-100 text-indigo-800
+                invisible opacity-20 -translate-x-3 transition-all
+                group-hover:visible group-hover:opacity-100 group-hover:translate-x-0 group-hover:z-50
+              `}
             >
               Tạo khối
             </div>
@@ -212,6 +217,7 @@ function Dashboard() {
         {isDeleteModal && (
           <DeleteModal
             setIsDeleteModal={setIsDeleteModal}
+            pondTypeId={selectedPondTypeId}
             pondTypeName={selectedPondTypeName}
             onDeleteSuccess={fetchData}
           />
@@ -221,7 +227,7 @@ function Dashboard() {
           <CreateModal
             setIsCreateModal={setIsCreateModal}
             onPostSuccess={fetchData}
-            pondTypeName={selectedPondTypeName}
+            pondTypeId={selectedPondTypeId}
           />
         )}
 
@@ -234,8 +240,8 @@ function Dashboard() {
           />
           <FaMapMarkerAlt
             onClick={() => setShowImage(true)}
-            className=" text-red-500"
-          ></FaMapMarkerAlt>
+            className="text-red-500"
+          />
         </div>
       </div>
       {isLoading && <Loading />}

@@ -1,7 +1,7 @@
 function SelectField({ label, id, value, onChange, options }) {
     return (
         <div className="flex flex-col">
-            <label htmlFor={id} className="text-gray-700 mb-1">
+            <label htmlFor={id} className="block text-left font-semibold mb-2">
                 {label}
             </label>
             <select

@@ -5,8 +5,8 @@ import useCallApi from '../../hooks/useCallApi';
 import { DashboardRequestApi } from '../../services/api';
 import PropTypes from 'prop-types';
 
-const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
-  const [confirmPondId, setConfirmPondId] = useState('');
+const DeleteCard = ({ setIsDeleteCard, pondId,pondName, onDeleteCardSuccess }) => {
+  const [confirmPondName, setconfirmPondName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const callApi = useCallApi();
@@ -14,7 +14,7 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
   // Memoized handlers
   const handleClose = useCallback(() => {
     setIsDeleteCard(false);
-    setConfirmPondId('');
+    setconfirmPondName('');
     setErrorMessage('');
   }, [setIsDeleteCard]);
 
@@ -25,19 +25,19 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
   }, [handleClose]);
 
   const handleInputChange = useCallback((e) => {
-    setConfirmPondId(e.target.value.trim());
+    setconfirmPondName(e.target.value.trim());
     setErrorMessage('');
   }, []);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
 
-    if (!confirmPondId) {
+    if (!confirmPondName) {
       setErrorMessage('Vui lòng nhập ID!');
       return;
     }
 
-    if (confirmPondId !== pondId) {
+    if (confirmPondName !== pondName) {
       setErrorMessage('ID không khớp!');
       return;
     }
@@ -56,7 +56,7 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
         console.error('Delete Pond Error:', err);
       }
     );
-  }, [confirmPondId, pondId, callApi, onDeleteCardSuccess, handleClose]);
+  }, [confirmPondName, pondId, callApi, onDeleteCardSuccess, handleClose]);
 
   // Handle Escape key
   useEffect(() => {
@@ -88,17 +88,17 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label
-              htmlFor="confirmPondId"
+              htmlFor="confirmPondName"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Nhập ID "{pondId}" để xác nhận:
+              Nhập "{pondName}" để xác nhận:
             </label>
             <input
               type="text"
-              id="confirmPondId"
-              value={confirmPondId}
+              id="confirmPondName"
+              value={confirmPondName}
               onChange={handleInputChange}
-              placeholder={pondId}
+              placeholder={pondName}
               disabled={isLoading}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent disabled:bg-gray-100 transition-all"
               autoFocus
@@ -119,12 +119,12 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !confirmPondId}
+              disabled={isLoading || !confirmPondName}
               className={cl(
                 'px-4 py-2 bg-red-600 text-white rounded-md shadow-sm transition-all',
                 {
-                  'opacity-50 cursor-not-allowed': isLoading || !confirmPondId,
-                  'hover:bg-red-700': !isLoading && confirmPondId
+                  'opacity-50 cursor-not-allowed': isLoading || !confirmPondName,
+                  'hover:bg-red-700': !isLoading && confirmPondName
                 }
               )}
             >
@@ -149,8 +149,9 @@ const DeleteCard = ({ setIsDeleteCard, pondId, onDeleteCardSuccess }) => {
 
 DeleteCard.propTypes = {
   setIsDeleteCard: PropTypes.func.isRequired,
-  pondId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  pondName: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   onDeleteCardSuccess: PropTypes.func.isRequired,
+  pondId: PropTypes.string.isRequired,
 };
 
 export default memo(DeleteCard);

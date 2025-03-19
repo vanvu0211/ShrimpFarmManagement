@@ -5,11 +5,12 @@ import useCallApi from '../../hooks/useCallApi';
 import { DashboardRequestApi } from '../../services/api';
 import PropTypes from 'prop-types';
 
-const DeleteModal = ({ setIsDeleteModal, pondTypeName, onDeleteSuccess }) => {
+const DeleteModal = ({ setIsDeleteModal, pondTypeId,pondTypeName, onDeleteSuccess }) => {
   const [confirmPondTypeName, setConfirmPondTypeName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const callApi = useCallApi();
+  const farmId = Number(localStorage.getItem('farmId'));
 
   // Handle input change
   const handleInputChange = useCallback((e) => {
@@ -33,7 +34,7 @@ const DeleteModal = ({ setIsDeleteModal, pondTypeName, onDeleteSuccess }) => {
 
     setIsLoading(true);
     callApi(
-      () => DashboardRequestApi.pondTypeRequest.deletePondTypeRequest(pondTypeName),
+      () => DashboardRequestApi.pondTypeRequest.deletePondTypeRequest(pondTypeId),
       () => {
         onDeleteSuccess();
         setIsDeleteModal(false);
@@ -42,11 +43,16 @@ const DeleteModal = ({ setIsDeleteModal, pondTypeName, onDeleteSuccess }) => {
       'Khối đã được xóa thành công!',
       (err) => {
         setIsLoading(false);
-        setErrorMessage(err?.message || 'Đã có lỗi xảy ra, vui lòng thử lại!');
-        console.error('Delete Pond Type Error:', err);
+        // Xử lý lỗi cụ thể từ server
+        if (err?.type === 'BadRequestException' && err?.title === 'Pond still on list') {
+          setErrorMessage('Không thể xóa khối này vì vẫn còn ao liên quan!');
+        } else {
+          setErrorMessage(err?.message || 'Đã có lỗi xảy ra, vui lòng thử lại!');
+        }
+        setErrorMessage('Không thể xóa khối này vì vẫn còn ao!');
       }
     );
-  }, [confirmPondTypeName, pondTypeName, callApi, onDeleteSuccess, setIsDeleteModal]);
+  }, [confirmPondTypeName,pondTypeId, pondTypeName, callApi, onDeleteSuccess, setIsDeleteModal]);
 
   // Handle modal close
   const handleClose = useCallback(() => {
@@ -150,6 +156,7 @@ const DeleteModal = ({ setIsDeleteModal, pondTypeName, onDeleteSuccess }) => {
 
 DeleteModal.propTypes = {
   setIsDeleteModal: PropTypes.func.isRequired,
+  pondTypeId: PropTypes.string.isRequired,
   pondTypeName: PropTypes.string.isRequired,
   onDeleteSuccess: PropTypes.func.isRequired,
 };

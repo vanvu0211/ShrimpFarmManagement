@@ -13,26 +13,27 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
     seedId: '',
     seedName: '',
     originPondId: '',
-    sizeShrimp: '',
-    amountShrimp: '',
+    sizeShrimp: '0',
+    amountShrimp: '0',
   });
   const [certificates, setCertificates] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [pondOptions, setPondOptions] = useState([]);
   const callApi = useCallApi();
+  const farmId = Number(localStorage.getItem('farmId'));
 
   // Fetch pond options
   useEffect(() => {
     callApi(
-      [DashboardRequestApi.pondRequest.getPondRequest()],
+      [DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId,1)],
       (res) => {
         const ponds = res[0];
         const options = ponds
           .filter((pond) => pond.pondId !== pondId)
           .map((pond) => ({
             value: pond.pondId,
-            label: pond.pondId,
+            label: pond.pondName,
           }));
         setPondOptions([{ value: '', label: 'Không có' }, ...options]);
       },
@@ -73,9 +74,8 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
     const { seedId, seedName, sizeShrimp, amountShrimp } = formData;
     return (
       seedId.trim() &&
-      seedName.trim() &&
-      parseFloat(sizeShrimp) > 0 &&
-      parseFloat(amountShrimp) > 0
+      seedName.trim() 
+      
     );
   }, [formData]);
 
@@ -90,7 +90,7 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
 
     setIsLoading(true);
     const submitData = {
-      pondId,
+      pondId: pondId,
       seedId: formData.seedId.trim(),
       seedName: formData.seedName.trim(),
       originPondId: formData.originPondId || '',
@@ -191,7 +191,6 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
               onChange={handleNumericChange('sizeShrimp')}
               placeholder="Nhập kích thước tôm"
               disabled={isLoading}
-              required
             />
             <InputField
               label="Số lượng Tôm (kg)"
@@ -201,7 +200,6 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
               onChange={handleNumericChange('amountShrimp')}
               placeholder="Nhập số lượng tôm"
               disabled={isLoading}
-              required
             />
           </div>
 

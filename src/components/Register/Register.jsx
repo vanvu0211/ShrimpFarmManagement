@@ -1,45 +1,41 @@
 import { useState, memo } from 'react';
 import { IoCloseSharp } from "react-icons/io5";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; // Icon hiển thị/ẩn mật khẩu
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import cl from 'classnames';
-import useCallApi from '../../hooks/useCallApi'; // Hook đã có sẵn
-import { DashboardRequestApi } from '../../services/api'; // API service đã có sẵn
+import useCallApi from '../../hooks/useCallApi';
+import { DashboardRequestApi } from '../../services/api';
 
 function Register({ setIsRegister, onRegisterSuccess }) { 
-    const [username, setUsername] = useState(''); // State lưu tài khoản
-    const [email, setEmail] = useState(''); // State lưu email
-    const [password, setPassword] = useState(''); // State lưu mật khẩu
-    const [confirmPassword, setConfirmPassword] = useState(''); // State lưu mật khẩu nhập lại
-    const [showPassword, setShowPassword] = useState(false); // Hiển thị/ẩn mật khẩu
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Hiển thị/ẩn mật khẩu nhập lại
-    const [errorMessage, setErrorMessage] = useState(''); // Lưu lỗi
-    const [isLoading, setIsLoading] = useState(false); // Xử lý trạng thái đang tải
-    const callApi = useCallApi(); // Hook gọi API
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const callApi = useCallApi();
 
-    // Đóng modal khi click ra ngoài
     const handleCloseModal = (e) => {
         if (e.target === e.currentTarget) {
             setIsRegister(false);
         }
     };
 
-    // Xử lý khi người dùng nhập
     const handleInputChange = (e, setter) => {
         setter(e.target.value);
         setErrorMessage('');
     };
 
-    // Kiểm tra email hợp lệ
     const isEmailValid = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
-    // Kiểm tra mật khẩu hợp lệ
     const isPasswordValid = (password) => {
-        const hasUppercase = /[A-Z]/.test(password); // Chứa ít nhất một chữ cái in hoa
-        const hasNumber = /\d/.test(password); // Chứa ít nhất một chữ số
-        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password); // Chứa ít nhất một ký tự đặc biệt
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
         return hasUppercase && hasNumber && hasSpecialChar;
     };
 
@@ -52,7 +48,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
         }
     
         if (!isPasswordValid(password)) {
-            setErrorMessage('Mật khẩu phải chứa ít nhất 1 chữ cái in hoa, 1 số và 1 ký tự đặc biệt.');
+            setErrorMessage('Mật khẩu cần chữ cái in hoa, số và ký tự đặc biệt.');
             return;
         }
     
@@ -62,21 +58,15 @@ function Register({ setIsRegister, onRegisterSuccess }) {
         }
     
         if (username.trim() && email.trim() && password.trim()) {
-            const data = {
-                username: username.trim(),
-                email: email.trim(),
-                password: password.trim(),
-            };
-    
+            const data = { username: username.trim(), email: email.trim(), password: password.trim() };
             setIsLoading(true);
-    
-            // Gọi API đăng ký
+
             callApi(
                 () => DashboardRequestApi.authRequest.register(data),
                 (res) => {
                     setIsLoading(false);
-                    onRegisterSuccess(); // Thông báo thành công
-                    setIsRegister(false); // Đóng modal
+                    onRegisterSuccess();
+                    setIsRegister(false);
                     setUsername('');
                     setEmail('');
                     setPassword('');
@@ -85,46 +75,48 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                 'Đăng ký thành công!',
                 (err) => {
                     setIsLoading(false);
-    
-                    // Kiểm tra lỗi từ server
-                    if (err?.response?.data && Array.isArray(err.response.data)) {
-                        const apiError = err.response.data[0]; // Lấy lỗi đầu tiên
-                        setErrorMessage(apiError.description || 'Đã có lỗi xảy ra!');
-                    } else {
-                        setErrorMessage('Đã có lỗi xảy ra, vui lòng thử lại!');
-                    }
-    
+                    const apiError = err?.response?.data?.[0];
+                    setErrorMessage(apiError?.description || 'Có lỗi xảy ra, thử lại sau!');
                     console.error('Error:', err);
                 }
             );
         } else {
-            setErrorMessage('Tài khoản, email và mật khẩu không được để trống!');
+            setErrorMessage('Vui lòng điền đầy đủ thông tin!');
         }
     };
-    
 
     return (
         <div 
-            className="fixed inset-0 flex items-center justify-center bg-gray-200 bg-opacity-30 z-20"
+            className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-100 z-20"
             onClick={handleCloseModal}
         >
-            <div className="relative bg-white p-6 rounded-lg shadow-lg w-[400px] min-h-[500px] border-2 border-black">
+            <div className="relative bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border-2 border-teal-200">
                 {/* Nút đóng */}
                 <i 
-                    className="absolute top-0 right-0 text-2xl p-3 cursor-pointer hover:bg-gray-400 rounded-full"
+                    className="absolute top-2 right-2 text-2xl p-2 cursor-pointer hover:bg-teal-100 rounded-full text-teal-600"
                     onClick={() => setIsRegister(false)}
                 >
                     <IoCloseSharp />
                 </i>
 
-                {/* Tiêu đề */}
-                <header className="text-xl font-bold text-center uppercase mb-4">Đăng ký tài khoản</header>
+                {/* Logo hoặc tiêu đề */}
+                <div className="flex justify-center items-center mb-6">
+          <img
+            src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
+            className="w-12 sm:w-16 transition-all duration-300"
+            alt="Logo"
+          />
+          <div className="ml-3 text-2xl sm:text-3xl font-bold tracking-tight">
+            <span className="text-teal-700">Shrimp</span>
+            <span className="text-teal-600">Pond</span>
+          </div>
+        </div>
 
                 {/* Form đăng ký */}
                 <form onSubmit={handleSubmit}>
                     {/* Tài khoản */}
                     <div className="mb-4">
-                        <label htmlFor="username" className="block text-left font-semibold mb-2">Tài khoản:</label>
+                        <label htmlFor="username" className="block text-left font-medium text-teal-800 mb-1">Tài khoản</label>
                         <input 
                             type="text" 
                             id="username" 
@@ -132,13 +124,13 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                             placeholder="Nhập tài khoản"
                             value={username}
                             onChange={(e) => handleInputChange(e, setUsername)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black" 
+                            className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50" 
                         />
                     </div>
 
                     {/* Email */}
                     <div className="mb-4">
-                        <label htmlFor="email" className="block text-left font-semibold mb-2">Email:</label>
+                        <label htmlFor="email" className="block text-left font-medium text-teal-800 mb-1">Email</label>
                         <input 
                             type="email" 
                             id="email" 
@@ -146,13 +138,13 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                             placeholder="Nhập email"
                             value={email}
                             onChange={(e) => handleInputChange(e, setEmail)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black" 
+                            className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50" 
                         />
                     </div>
 
                     {/* Mật khẩu */}
                     <div className="mb-4 relative">
-                        <label htmlFor="password" className="block text-left font-semibold mb-2">Mật khẩu:</label>
+                        <label htmlFor="password" className="block text-left font-medium text-teal-800 mb-1">Mật khẩu</label>
                         <input 
                             type={showPassword ? "text" : "password"}
                             id="password" 
@@ -160,11 +152,10 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                             placeholder="Nhập mật khẩu"
                             value={password}
                             onChange={(e) => handleInputChange(e, setPassword)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black" 
+                            className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50" 
                         />
-                        {/* Nút hiện/ẩn mật khẩu */}
                         <span
-                            className="absolute top-8 right-3 text-gray-500 cursor-pointer"
+                            className="absolute top-10 right-3 text-teal-600 cursor-pointer"
                             onClick={() => setShowPassword(!showPassword)}
                         >
                             {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -173,7 +164,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
 
                     {/* Nhập lại mật khẩu */}
                     <div className="mb-6 relative">
-                        <label htmlFor="confirmPassword" className="block text-left font-semibold mb-2">Nhập lại mật khẩu:</label>
+                        <label htmlFor="confirmPassword" className="block text-left font-medium text-teal-800 mb-1">Xác nhận mật khẩu</label>
                         <input 
                             type={showConfirmPassword ? "text" : "password"}
                             id="confirmPassword" 
@@ -181,11 +172,10 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                             placeholder="Nhập lại mật khẩu"
                             value={confirmPassword}
                             onChange={(e) => handleInputChange(e, setConfirmPassword)}
-                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black" 
+                            className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50" 
                         />
-                        {/* Nút hiện/ẩn mật khẩu nhập lại */}
                         <span
-                            className="absolute top-8 right-3 text-gray-500 cursor-pointer"
+                            className="absolute top-10 right-3 text-teal-600 cursor-pointer"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                             {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -194,22 +184,33 @@ function Register({ setIsRegister, onRegisterSuccess }) {
 
                     {/* Hiển thị lỗi */}
                     {errorMessage && (
-                        <p className="text-red-600 text-center mb-4">{errorMessage}</p>
+                        <p className="text-red-500 text-center mb-4 text-sm">{errorMessage}</p>
                     )}
 
                     {/* Nút đăng ký */}
                     <div className="flex justify-center">
                         <button 
                             type="submit" 
-                            className={cl("bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md shadow-md w-40", {
+                            className={cl("bg-teal-600 hover:bg-teal-700 text-white py-3 px-6 rounded-lg shadow-md w-full transition duration-200", {
                                 'opacity-50 cursor-not-allowed': (!username || !email || !password || !confirmPassword) || isLoading
                             })}
                             disabled={!username || !email || !password || !confirmPassword || isLoading}
                         >
-                            {isLoading ? 'Đang xử lý...' : 'Đăng ký'}
+                            {isLoading ? 'Đang xử lý...' : 'Đăng ký ngay'}
                         </button>
                     </div>
                 </form>
+
+                {/* Link chuyển sang đăng nhập */}
+                <p className="text-center text-teal-700 mt-4">
+                    Đã có tài khoản?{" "}
+                    <span 
+                        className="underline cursor-pointer hover:text-teal-900"
+                        onClick={() => setIsRegister(false)} // Giả sử có một hàm chuyển sang login
+                    >
+                        Đăng nhập
+                    </span>
+                </p>
             </div>
         </div>
     );

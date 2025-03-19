@@ -4,11 +4,10 @@ import cl from 'classnames';
 import useCallApi from '../../hooks/useCallApi';
 import { DashboardRequestApi } from '../../services/api';
 import PropTypes from 'prop-types';
+import {v4} from 'uuid'
 
 // Hàm tạo chuỗi ngẫu nhiên với prefix để tránh trùng lặp
-const generateRandomId = () => {
-  return `PT_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
-};
+
 
 const Modal = ({ setIsModal, onPostSuccess }) => {
   const [blockName, setBlockName] = useState('');
@@ -18,6 +17,7 @@ const Modal = ({ setIsModal, onPostSuccess }) => {
 
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
+  const farmId = Number(localStorage.getItem('farmId'));
 
   // Handle input change
   const handleInputChange = useCallback((e) => {
@@ -36,9 +36,9 @@ const Modal = ({ setIsModal, onPostSuccess }) => {
 
     setIsLoading(true);
     const data = {
-      pondTypeId: generateRandomId(),
+      pondTypeId: v4(),
       pondTypeName: blockName.trim(),
-      farmName: farmName.trim(),
+      farmId: farmId,
     };
 
     callApi(

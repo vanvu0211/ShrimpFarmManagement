@@ -19,20 +19,19 @@ function Farm() {
     const username = localStorage.getItem('username');
 
     const handleDeleteFarm = useCallback(
-        (farmName) => {
+        (farmId) => {
             if (!window.confirm('Bạn có chắc chắn muốn xóa trang trại này?')) {
                 return;
             }
-    
+
             setIsLoading(true);
-            console.log(farmName)
 
             callApi(
-                [FarmRequestApi.farmRequest.deleteFarm(username ,farmName)],
+                [FarmRequestApi.farmRequest.deleteFarm(farmId)],
                 () => {
                     setIsLoading(false);
                     toast.success('Xóa trang trại thành công!');
-                    setFarms(farms.filter((farm) => farm.farmName !== farmName));
+                    setFarms(farms.filter((farm) => farm.farmId !== farmId));
                 },
                 (err) => {
                     setIsLoading(false);
@@ -47,8 +46,8 @@ function Farm() {
         },
         [callApi, farms]
     );
-    
-    
+
+
 
     const fetchFarms = useCallback(() => {
         if (!username) {
@@ -82,7 +81,7 @@ function Farm() {
             const data = {
                 farmName: farmName.trim(),
                 address: farmAddress.trim(),
-                username, 
+                username,
             };
             console.log(data)
 
@@ -114,19 +113,21 @@ function Farm() {
     }, [fetchFarms]);
 
     return (
-        <div className="flex max-h-screen">
+        <div className="flex max-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
             {/* Sidebar */}
             <aside>
                 <Sidebar />
             </aside>
 
-            <div className="flex-1 p-6">
-                <h1 className="text-2xl font-bold mb-6">Thông tin trang trại</h1>
+            <main className="w-full mx-auto max-w-2xl overflow-y-auto overflow-hidden no-scrollbar  p-4 sm:p-6 lg:p-8 transition-all duration-300">
+                <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
+                    Thông tin trang trại
+                </h1>
 
                 {/* Form thêm trang trại */}
-                <form onSubmit={handleAddFarm} className="mb-6">
-                    <div className="mb-4">
-                        <label className="block text-gray-700 font-semibold mb-2" htmlFor="farmName">
+                <form onSubmit={handleAddFarm} className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                    <div className="mb-4 sm:mb-6">
+                        <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
                             Trang trại
                         </label>
                         <input
@@ -135,12 +136,12 @@ function Farm() {
                             value={farmName}
                             onChange={(e) => setFarmName(e.target.value)}
                             placeholder="Tên trang trại"
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                            className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                         />
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-700 font-semibold mb-2" htmlFor="farmAddress">
+                    <div className="mb-4 sm:mb-6">
+                        <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmAddress">
                             Địa chỉ
                         </label>
                         <input
@@ -149,47 +150,55 @@ function Farm() {
                             value={farmAddress}
                             onChange={(e) => setFarmAddress(e.target.value)}
                             placeholder="Địa chỉ trang trại"
-                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                            className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300"
+                        className="w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-300"
                     >
                         Thêm trang trại
                     </button>
                 </form>
 
-                <h2 className="text-lg font-bold mb-4">Danh sách trang trại</h2>
-                <ul className="list-none space-y-4">
-                    {farms.map((farm, index) => (
-                        <li
-                            key={index}
-                            className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg hover:shadow-lg"
-                        >
-                            <div
-                                className="cursor-pointer text-blue-600 hover:underline"
-                                onClick={() => {
-                                    localStorage.setItem('farmName', farm.farmName); // Lưu farmName vào localStorage
-                                    navigate('/dashboard');
-                                }}
+                {/* Danh sách trang trại */}
+                <h2 className="text-lg sm:text-xl font-bold text-teal-700 mb-4 sm:mb-6">
+                    Danh sách trang trại
+                </h2>
+                <ul className="space-y-4">
+                    {farms.length === 0 ? (
+                        <p className="text-gray-500 text-center">Chưa có trang trại nào.</p>
+                    ) : (
+                        farms.map((farm, index) => (
+                            <li
+                                key={index}
+                                className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
                             >
-                                <span className="font-semibold">{farm.farmName}</span> - {farm.address}
-                            </div>
-                            <button
-                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring focus:ring-red-300"
-                                onClick={() => handleDeleteFarm(farm.farmName)}
-                            >
-                                Xóa
-                            </button>
-                        </li>
-                    ))}
+                                <div
+                                    className="cursor-pointer text-teal-600 hover:text-teal-800 font-semibold hover:underline mb-2 sm:mb-0"
+                                    onClick={() => {
+                                        localStorage.setItem('farmName', farm.farmName);
+                                        localStorage.setItem('farmId', String(farm.farmId)); // Lưu farmName vào localStorage
+                                        navigate('/dashboard');
+                                    }}
+                                >
+                                    <span className="block sm:inline">{farm.farmName}</span>
+                                    <span className="block sm:inline sm:ml-2 text-gray-600 font-normal">
+                                        - {farm.address}
+                                    </span>
+                                </div>
+                                <button
+                                    className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg transition-all duration-300"
+                                    onClick={() => handleDeleteFarm(farm.farmName)}
+                                >
+                                    Xóa
+                                </button>
+                            </li>
+                        ))
+                    )}
                 </ul>
-
-
-            </div>
-
+            </main>
             {/* Hiển thị loading */}
             {isLoading && <Loading />}
 

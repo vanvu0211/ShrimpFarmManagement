@@ -6,7 +6,7 @@ import Card from '../Card/Card';
 import { IoMdAdd } from "react-icons/io";
 import { useSelector } from 'react-redux';
 
-const PondSummary = ({ ponds, pondTypeName, setIsDeleteModal, setIsCreateModal, onSelected, onDeleteCardSuccess, onPutSucces }) => {  // Nhận thêm pondTypeName từ props
+const PondSummary = ({ ponds, pondTypeName, pondTypeId, setIsDeleteModal, setIsCreateModal, onSelected, onDeleteCardSuccess, onPutSucces }) => {  // Nhận thêm pondTypeName từ props
   const expanded = useSelector((state) => state.sidebar.expanded);
   const [dragging, setDragging] = useState(false);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -60,21 +60,21 @@ const PondSummary = ({ ponds, pondTypeName, setIsDeleteModal, setIsCreateModal, 
   }, []);
 
   return (
-    <div className="relative flex flex-col w-full bg-white rounded-lg pb-1 border mt-4 ">
+    <div className="relative flex flex-col w-full bg-white rounded-xl pb-1 border mt-4 ">
       <div className="flex text-xl font-semibold font-sans   mb-1 justify-between p-1">
         
-        <h1 className ="px-4 mb-4  ">{pondTypeName}</h1>  
+        <h1 className ="px-4 mb-4 font-semibold text-teal-800  ">{pondTypeName}</h1>  
         <span className=" flex gap-x-3 pr-5">
           <FaTrashAlt 
             className = "mt-2 cursor-pointer"
             onClick={() => { setIsDeleteModal(true);
-              onSelected(pondTypeName) // Gọi hàm onSelected khi nhấn nút xóa
+              onSelected(pondTypeId, pondTypeName) // Gọi hàm onSelected khi nhấn nút xóa
             }}  
           />
           <IoMdAdd 
             className=" mt-1 text-3xl cursor-pointer"
             onClick={() => { setIsCreateModal(true);
-              onSelected(pondTypeName) // Gọi hàm onSelected khi nhấn nút xóa
+              onSelected(pondTypeId, pondTypeName) // Gọi hàm onSelected khi nhấn nút xóa
             }}   
           />
         </span>
@@ -103,6 +103,8 @@ const PondSummary = ({ ponds, pondTypeName, setIsDeleteModal, setIsCreateModal, 
             <Card
               onPutSucces = {onPutSucces} 
               pondId={res.pondId} 
+              pondTypeId={res.pondTypeId}
+              pondName={res.pondName} 
               status={res.status} 
               key={res.pondId}
               onDeleteCardSuccess={onDeleteCardSuccess} // Truyền hàm xuống component Card

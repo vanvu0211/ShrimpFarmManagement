@@ -16,6 +16,9 @@ const Food = () => {
   const [editingTreatment, setEditingTreatment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const callApi = useCallApi();
+  const farmName = localStorage.getItem('farmName') || '';
+  const username = localStorage.getItem('username') || '';
+  const farmId = Number(localStorage.getItem('farmId'));
 
   useEffect(() => {
     fetchFoods();
@@ -24,7 +27,7 @@ const Food = () => {
 
   const fetchFoods = useCallback(() => {
     callApi(
-      [FoodRequestApi.foodRequest.getAllFood()],
+      [FoodRequestApi.foodRequest.getAllFoodByFarmId(farmId)],
       (res) => {
         setFoods(res[0].flat());
       },
@@ -32,11 +35,11 @@ const Food = () => {
         console.error(err);
       }
     );
-  }, [callApi]);
+  }, [callApi,farmId]);
 
   const fetchTreatments = useCallback(() => {
     callApi(
-      [MedicineRequestApi.medicineRequest.getAllMedicine()],
+      [MedicineRequestApi.medicineRequest.getAllMedicineByFarmId(farmId)],
       (res) => {
         setTreatments(res[0].flat());
       },
@@ -45,7 +48,7 @@ const Food = () => {
         console.error(err);
       }
     );
-  }, [callApi]);
+  }, [callApi,farmId]);
 
   const LoadingSpinner = () => (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center z-50">
@@ -60,7 +63,10 @@ const Food = () => {
         toast.error('Tên thức ăn không được để trống!');
         return;
       }
-      const data = { type: 'Thức ăn', name: newFood.trim() };
+      const data = 
+      {   farmId:farmId,
+          name: newFood.trim() ,
+      };
       setIsLoading(true);
       callApi(
         [FoodRequestApi.foodRequest.createFood(data)],
@@ -94,7 +100,9 @@ const Food = () => {
         toast.error('Tên thuốc không được để trống!');
         return;
       }
-      const data = { type: 'Thuốc', name: newTreatment.trim() };
+      const data = 
+      { name: newTreatment.trim(),
+        farmId:farmId };
       setIsLoading(true);
       callApi(
         [MedicineRequestApi.medicineRequest.createMedicine(data)],
@@ -122,11 +130,11 @@ const Food = () => {
   );
 
   const handleDeleteFood = useCallback(
-    (foodName) => {
-      if (!window.confirm('Bạn có chắc chắn muốn xóa thức ăn này?')) return;
+    (foodId,foodName) => {
+      if (!window.confirm(`Bạn có chắc chắn muốn xóa thức ăn ${foodName}?`)) return;
       setIsLoading(true);
       callApi(
-        [FoodRequestApi.foodRequest.deleteFood(foodName)],
+        [FoodRequestApi.foodRequest.deleteFood(foodId)],
         () => {
           setIsLoading(false);
           toast.success('Xóa thức ăn thành công!');
@@ -142,11 +150,11 @@ const Food = () => {
   );
 
   const handleDeleteMedicine = useCallback(
-    (treatmentName) => {
-      if (!window.confirm('Bạn có chắc chắn muốn xóa thuốc này?')) return;
+    (treatmentId,treatmentName) => {
+      if (!window.confirm(`Bạn có chắc chắn muốn xóa thuốc ${treatmentName}?`)) return;
       setIsLoading(true);
       callApi(
-        [MedicineRequestApi.medicineRequest.deleteMedicine(treatmentName)],
+        [MedicineRequestApi.medicineRequest.deleteMedicine(treatmentId)],
         () => {
           setIsLoading(false);
           toast.success('Xóa thuốc thành công!');
@@ -158,7 +166,7 @@ const Food = () => {
         }
       );
     },
-    [callApi, treatments]
+    [callApi, treatments,username,farmName]
   );
 
   const handleEditItem = (type, item) => {
@@ -179,7 +187,10 @@ const Food = () => {
         toast.error('Tên thức ăn không được để trống!');
         return;
       }
-      const data = { oldName: foodName, newName: editingFood.name.trim() };
+      const data = 
+      { foodId : editingFood.foodId,
+        newName: editingFood.name.trim() ,
+      };
       setIsLoading(true);
       callApi(
         [FoodRequestApi.foodRequest.updateFood(data)],
@@ -207,7 +218,9 @@ const Food = () => {
         toast.error('Tên thuốc không được để trống!');
         return;
       }
-      const data = { oldName: treatmentName, newName: editingTreatment.name.trim() };
+      const data = { medicineId: editingTreatment.medicineId, 
+        newName: editingTreatment.name.trim(),
+       };
       setIsLoading(true);
       callApi(
         [MedicineRequestApi.medicineRequest.updateMedicine(data)],
@@ -322,7 +335,7 @@ const Food = () => {
                                 Sửa
                               </button>
                               <button
-                                onClick={() => handleDeleteFood(food.name)}
+                                onClick={() => handleDeleteFood(food.foodId, food.name)}
                                 className="bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
                                 disabled={isLoading}
                               >
@@ -427,7 +440,7 @@ const Food = () => {
                                 Sửa
                               </button>
                               <button
-                                onClick={() => handleDeleteMedicine(treatment.name)}
+                                onClick={() => handleDeleteMedicine(treatment.medicineId,treatment.name)}
                                 className="bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
                                 disabled={isLoading}
                               >

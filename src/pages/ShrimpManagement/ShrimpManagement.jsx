@@ -1,353 +1,363 @@
-import React, { useState } from 'react';
-import { ToastContainer, toast } from "react-toastify"; // Import thêm toast
+import { useState, useCallback, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
-import {
-  Tabs,
-  Tab,
-  Box,
-  TextField,
-  Select,
-  MenuItem,
-  Button,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Slider
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
+import { ShrimpRequestApi } from '../../services/api';
+import { FoodRequestApi } from '../../services/api';
+import { DashboardRequestApi } from '../../services/api';
+import useCallApi from '../../hooks/useCallApi';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import FeedingTab from '../../components/FeedingTab/FeedingTab';
+import TreatmentTab from '../../components/TreatmentTab';
 
 const ShrimpManagement = () => {
-  const [tabValue, setTabValue] = useState(0);
+  const [activeTab, setActiveTab] = useState(0);
+  const [pondTypes, setPondTypes] = useState([]);
+  const [pondOptions, setPondOptions] = useState([]);
+  const [selectedPondType, setSelectedPondType] = useState({});
+  const [selectedPond, setSelectedPond] = useState({});
+  const [foods, setFoods] = useState([]);
+  const [feedingList, setFeedingList] = useState([{ name: '', amount: 0 }]);
+  const [medicineList, setMedicineList] = useState([{ name: '', amount: 0 }]);
+  const [feedingDate, setFeedingDate] = useState('');
+  const [sizeValue, setSizeValue] = useState(0);
+  const [lossValue, setLossValue] = useState(0);
+  const [updateDate, setUpdateDate] = useState('');
+  const [historyData, setHistoryData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const callApi = useCallApi();
+  const farmId = Number(localStorage.getItem('farmId'));
 
-  // State cho tab Cho Ăn
-  const [feedingData, setFeedingData] = useState({
-    pond: '',
-    feedType: '',
-    feedAmount: '',
-    feedDate: null
-  });
-  const [feedingHistory, setFeedingHistory] = useState([]);
-  const [searchFeedDate, setSearchFeedDate] = useState(null);
+  useEffect(() => {
+    fetchPondTypes();
+    fetchFoods();
+  }, []);
 
-  // State cho tab Điều Trị
-  const [treatmentData, setTreatmentData] = useState({
-    pond: '',
-    treatmentType: '',
-    treatmentAmount: '',
-    treatmentDate: null
-  });
-  const [treatmentHistory, setTreatmentHistory] = useState([]);
-  const [searchTreatmentDate, setSearchTreatmentDate] = useState(null);
-
-  // State cho tab Thông Tin Tôm
-  const [shrimpInfo, setShrimpInfo] = useState({
-    pond: '',
-    shrimpSize: 0,
-    shrimpLoss: '',
-    updateDate: null
-  });
-  const [shrimpHistory, setShrimpHistory] = useState([]);
-  const [searchShrimpDate, setSearchShrimpDate] = useState(null);
-
-  const ponds = ['Ao 1', 'Ao 2', 'Ao 3', 'Ao 4'];
-  const feedTypes = ['Cám 1', 'Cám 2', 'Thức ăn tươi'];
-  const treatmentTypes = ['Thuốc A', 'Thuốc B', 'Hóa chất C'];
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  // Xử lý tab Cho Ăn
-  const handleFeedingSubmit = () => {
-    setFeedingHistory([...feedingHistory, { ...feedingData, id: Date.now() }]);
-    setFeedingData({ pond: '', feedType: '', feedAmount: '', feedDate: null });
-  };
-
-  // Xử lý tab Điều Trị
-  const handleTreatmentSubmit = () => {
-    setTreatmentHistory([...treatmentHistory, { ...treatmentData, id: Date.now() }]);
-    setTreatmentData({ pond: '', treatmentType: '', treatmentAmount: '', treatmentDate: null });
-  };
-
-  // Xử lý tab Thông Tin Tôm
-  const handleShrimpInfoSubmit = () => {
-    setShrimpHistory([...shrimpHistory, { ...shrimpInfo, id: Date.now() }]);
-    setShrimpInfo({ pond: '', shrimpSize: 0, shrimpLoss: '', updateDate: null });
-  };
-
-  const TabPanel = ({ children, value, index }) => {
-    return (
-      <div hidden={value !== index}>
-        {value === index && <Box p={3}>{children}</Box>}
-      </div>
+  const fetchPondTypes = useCallback(() => {
+    callApi(
+      [DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId)],
+      (res) => {
+        const pondTypes = res[0];
+        const options = pondTypes.map((pondType) => ({
+          value: pondType.pondTypeId,
+          label: pondType.pondTypeName,
+        }));
+        setPondTypes([...options]);
+        if (options.length > 0) setSelectedPondType(options[0]);
+      },
+      null,
+      (err) => console.error('Failed to fetch pondTypes:', err)
     );
-  };
+  }, [callApi, farmId]);
+
+  const fetchPonds = useCallback(() => {
+    if (!selectedPondType.value) return;
+    callApi(
+      [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(selectedPondType.value, farmId)],
+      (res) => {
+        const ponds = res[0];
+        const options = ponds
+          .filter((pond) => pond.pondTypeId === selectedPondType.value)
+          .map((pond) => ({
+            value: pond.pondId,
+            label: pond.pondName,
+          }));
+        setPondOptions([...options]);
+        if (options.length > 0) setSelectedPond(options[0]);
+      },
+      null,
+      (err) => console.error('Failed to fetch ponds:', err)
+    );
+  }, [callApi, selectedPondType, farmId]);
+
+  const fetchFoods = useCallback(() => {
+    callApi(
+      [FoodRequestApi.foodRequest.getAllFoodByFarmId(farmId)],
+      (res) => {
+        setFoods(res[0].flat());
+      },
+      (err) => console.error(err)
+    );
+  }, [callApi, farmId]);
+
+  useEffect(() => {
+    fetchPonds();
+  }, [selectedPondType]);
+
+  const handleFeedingSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (!selectedPond.value || !feedingDate || feedingList.some(item => !item.name || !item.amount)) {
+      toast.error('Vui lòng điền đầy đủ thông tin!');
+      return;
+    }
+    
+    const data = {
+      pondId: selectedPond.value,
+      foods: feedingList,
+      feedlingDate: feedingDate
+    };
+    
+    setIsLoading(true);
+    callApi(
+      [ShrimpRequestApi.ShrimpRequest.feedingFood(data)],
+      () => {
+        setIsLoading(false);
+        toast.success('Thêm lịch cho ăn thành công!');
+        setFeedingList([{ name: '', amount: 0 }]);
+        setFeedingDate('');
+      },
+      (err) => {
+        setIsLoading(false);
+        toast.error('Có lỗi xảy ra khi thêm lịch cho ăn!');
+      }
+    );
+  }, [callApi, selectedPond, feedingDate, feedingList]);
+
+  const handleMedicineSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (!selectedPond.value || !feedingDate || medicineList.some(item => !item.name || !item.amount)) {
+      toast.error('Vui lòng điền đầy đủ thông tin!');
+      return;
+    }
+    
+    const data = {
+      pondId: selectedPond.value,
+      medicines: medicineList,
+      feedlingDate: feedingDate
+    };
+    
+    setIsLoading(true);
+    callApi(
+      [ShrimpRequestApi.ShrimpRequest.feedingMedicine(data)],
+      () => {
+        setIsLoading(false);
+        toast.success('Thêm lịch điều trị thành công!');
+        setMedicineList([{ name: '', amount: 0 }]);
+        setFeedingDate('');
+      },
+      (err) => {
+        setIsLoading(false);
+        toast.error('Có lỗi xảy ra khi thêm lịch điều trị!');
+      }
+    );
+  }, [callApi, selectedPond, feedingDate, medicineList]);
+
+  const handleShrimpInfoSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (!selectedPond.value || !updateDate) {
+      toast.error('Vui lòng điền đầy đủ thông tin!');
+      return;
+    }
+    
+    const lossData = {
+      pondId: selectedPond.value,
+      lossValue,
+      updateDate
+    };
+    
+    const sizeData = {
+      pondId: selectedPond.value,
+      sizeValue,
+      updateDate
+    };
+    
+    setIsLoading(true);
+    callApi(
+      [
+        ShrimpRequestApi.ShrimpRequest.updateLossShrimp(lossData),
+        ShrimpRequestApi.ShrimpRequest.updateSizeShrimp(sizeData)
+      ],
+      () => {
+        setIsLoading(false);
+        toast.success('Cập nhật thông tin tôm thành công!');
+        setLossValue(0);
+        setSizeValue(0);
+        setUpdateDate('');
+      },
+      (err) => {
+        setIsLoading(false);
+        toast.error('Có lỗi xảy ra khi cập nhật thông tin tôm!');
+      }
+    );
+  }, [callApi, selectedPond, lossValue, sizeValue, updateDate]);
+
+  const handleHistorySearch = useCallback((type) => {
+    if (!selectedPond.value || !feedingDate) {
+      toast.error('Vui lòng chọn ao và ngày!');
+      return;
+    }
+    
+    setIsLoading(true);
+    let apiCall;
+    switch(type) {
+      case 'feeding':
+        apiCall = ShrimpRequestApi.ShrimpRequest.getFeedingFood(selectedPond.value, feedingDate);
+        break;
+      case 'medicine':
+        apiCall = ShrimpRequestApi.ShrimpRequest.getFeedingMedicine(selectedPond.value, feedingDate);
+        break;
+      case 'shrimp':
+        apiCall = Promise.all([
+          ShrimpRequestApi.ShrimpRequest.getLossShrimp(selectedPond.value, feedingDate),
+          ShrimpRequestApi.ShrimpRequest.getSizeShrimp(selectedPond.value, feedingDate)
+        ]);
+        break;
+    }
+    
+    callApi(
+      [apiCall],
+      (res) => {
+        setIsLoading(false);
+        setHistoryData(type === 'shrimp' ? res.flat() : res[0]);
+      },
+      (err) => {
+        setIsLoading(false);
+        toast.error('Không tìm thấy lịch sử!');
+      }
+    );
+  }, [callApi, selectedPond, feedingDate]);
+
+  const LoadingSpinner = () => (
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center z-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+    </div>
+  );
+
+  const tabs = [
+    {
+      title: 'Cho ăn',
+      content: (
+     <FeedingTab/>
+      ),
+    },
+    {
+      title: 'Điều trị',
+      content: (
+       <TreatmentTab/>
+      ),
+    },
+    {
+      title: 'Thông tin tôm',
+      content: (
+        <main className="p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
+          <section className="mb-6 bg-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Cập nhật thông tin tôm</h2>
+            <form onSubmit={handleShrimpInfoSubmit} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select
+                  value={selectedPondType.value || ''}
+                  onChange={(e) => setSelectedPondType(pondTypes.find(pt => pt.value === Number(e.target.value)))}
+                  className="p-2 border rounded-lg"
+                >
+                  {pondTypes.map(pt => (
+                    <option key={pt.value} value={pt.value}>{pt.label}</option>
+                  ))}
+                </select>
+                <select
+                  value={selectedPond.value || ''}
+                  onChange={(e) => setSelectedPond(pondOptions.find(p => p.value === e.target.value))}
+                  className="p-2 border rounded-lg"
+                >
+                  {pondOptions.map(p => (
+                    <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={sizeValue}
+                  onChange={(e) => setSizeValue(Number(e.target.value))}
+                  className="w-full"
+                />
+                <span>{sizeValue} mm</span>
+                <input
+                  type="number"
+                  value={lossValue}
+                  onChange={(e) => setLossValue(Number(e.target.value))}
+                  placeholder="Số lượng tôm hao"
+                  className="p-2 border rounded-lg"
+                />
+                <input
+                  type="datetime-local"
+                  value={updateDate}
+                  onChange={(e) => setUpdateDate(e.target.value)}
+                  className="p-2 border rounded-lg"
+                />
+              </div>
+              <button type="submit" className="bg-blue-600 text-white p-2 rounded-lg">
+                Cập nhật
+              </button>
+            </form>
+          </section>
+
+          <section className="bg-white p-6 rounded-xl shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Truy xuất thông tin tôm</h2>
+            <div className="flex gap-4 mb-4">
+              <select
+                value={selectedPond.value || ''}
+                onChange={(e) => setSelectedPond(pondOptions.find(p => p.value === e.target.value))}
+                className="p-2 border rounded-lg"
+              >
+                {pondOptions.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                  ))}
+              </select>
+              <input
+                type="date"
+                value={feedingDate}
+                onChange={(e) => setFeedingDate(e.target.value)}
+                className="p-2 border rounded-lg"
+              />
+              <button
+                onClick={() => handleHistorySearch('shrimp')}
+                className="bg-blue-600 text-white p-2 rounded-lg"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+            <div>{JSON.stringify(historyData)}</div>
+          </section>
+        </main>
+      ),
+    },
+  ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F2F4F7] ">
-    <aside className="h-full">
+    <div className="flex flex-col sm:flex-row h-screen overflow-hidden bg-gray-100">
+      <aside className="w-full sm:w-auto sm:h-full shrink-0">
         <Sidebar />
-    </aside>
-    <div className="grow pt-5">
-        
-        <main className="scroll-y h-[calc(100vh-50px)] p-5">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-<Box sx={{ width: '100%' }}>
-<Tabs value={tabValue} onChange={handleTabChange}>
-  <Tab label="Cho Ăn" />
-  <Tab label="Điều Trị" />
-  <Tab label="Thông Tin Tôm" />
-</Tabs>
-
-{/* Tab Cho Ăn */}
-<TabPanel value={tabValue} index={0}>
-  <Box sx={{ mb: 3 }}>
-    <Typography variant="h6">Nhập Thông Tin Cho Ăn</Typography>
-    <Select
-      value={feedingData.pond}
-      onChange={(e) => setFeedingData({ ...feedingData, pond: e.target.value })}
-      displayEmpty
-      sx={{ m: 1, minWidth: 120 }}
-    >
-      <MenuItem value="">Chọn ao</MenuItem>
-      {ponds.map((pond) => (
-        <MenuItem key={pond} value={pond}>{pond}</MenuItem>
-      ))}
-    </Select>
-    <Select
-      value={feedingData.feedType}
-      onChange={(e) => setFeedingData({ ...feedingData, feedType: e.target.value })}
-      displayEmpty
-      sx={{ m: 1, minWidth: 120 }}
-    >
-      <MenuItem value="">Chọn loại thức ăn</MenuItem>
-      {feedTypes.map((type) => (
-        <MenuItem key={type} value={type}>{type}</MenuItem>
-      ))}
-    </Select>
-    <TextField
-      label="Khối lượng (kg)"
-      value={feedingData.feedAmount}
-      onChange={(e) => setFeedingData({ ...feedingData, feedAmount: e.target.value })}
-      sx={{ m: 1 }}
-    />
-    <DatePicker
-      label="Ngày cho ăn"
-      value={feedingData.feedDate}
-      onChange={(newValue) => setFeedingData({ ...feedingData, feedDate: newValue })}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Button variant="contained" onClick={handleFeedingSubmit} sx={{ m: 1 }}>
-      Lưu
-    </Button>
-  </Box>
-
-  <Box>
-    <Typography variant="h6">Tra Cứu Lịch Sử</Typography>
-    <DatePicker
-      label="Chọn ngày tìm kiếm"
-      value={searchFeedDate}
-      onChange={(newValue) => setSearchFeedDate(newValue)}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Ao</TableCell>
-          <TableCell>Loại thức ăn</TableCell>
-          <TableCell>Khối lượng</TableCell>
-          <TableCell>Ngày</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {feedingHistory
-          .filter((item) => !searchFeedDate || 
-            dayjs(item.feedDate).isSame(searchFeedDate, 'day'))
-          .map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.pond}</TableCell>
-              <TableCell>{item.feedType}</TableCell>
-              <TableCell>{item.feedAmount}</TableCell>
-              <TableCell>{dayjs(item.feedDate).format('DD/MM/YYYY')}</TableCell>
-            </TableRow>
-          ))}
-      </TableBody>
-    </Table>
-  </Box>
-</TabPanel>
-
-{/* Tab Điều Trị */}
-<TabPanel value={tabValue} index={1}>
-  <Box sx={{ mb: 3 }}>
-    <Typography variant="h6">Nhập Thông Tin Điều Trị</Typography>
-    <Select
-      value={treatmentData.pond}
-      onChange={(e) => setTreatmentData({ ...treatmentData, pond: e.target.value })}
-      displayEmpty
-      sx={{ m: 1, minWidth: 120 }}
-    >
-      <MenuItem value="">Chọn ao</MenuItem>
-      {ponds.map((pond) => (
-        <MenuItem key={pond} value={pond}>{pond}</MenuItem>
-      ))}
-    </Select>
-    <Select
-      value={treatmentData.treatmentType}
-      onChange={(e) => setTreatmentData({ ...treatmentData, treatmentType: e.target.value })}
-      displayEmpty
-      sx={{ m: 1, minWidth: 120 }}
-    >
-      <MenuItem value="">Chọn loại điều trị</MenuItem>
-      {treatmentTypes.map((type) => (
-        <MenuItem key={type} value={type}>{type}</MenuItem>
-      ))}
-    </Select>
-    <TextField
-      label="Khối lượng (kg)"
-      value={treatmentData.treatmentAmount}
-      onChange={(e) => setTreatmentData({ ...treatmentData, treatmentAmount: e.target.value })}
-      sx={{ m: 1 }}
-    />
-    <DatePicker
-      label="Ngày điều trị"
-      value={treatmentData.treatmentDate}
-      onChange={(newValue) => setTreatmentData({ ...treatmentData, treatmentDate: newValue })}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Button variant="contained" onClick={handleTreatmentSubmit} sx={{ m: 1 }}>
-      Lưu
-    </Button>
-  </Box>
-
-  <Box>
-    <Typography variant="h6">Tra Cứu Lịch Sử</Typography>
-    <DatePicker
-      label="Chọn ngày tìm kiếm"
-      value={searchTreatmentDate}
-      onChange={(newValue) => setSearchTreatmentDate(newValue)}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Ao</TableCell>
-          <TableCell>Loại điều trị</TableCell>
-          <TableCell>Khối lượng</TableCell>
-          <TableCell>Ngày</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {treatmentHistory
-          .filter((item) => !searchTreatmentDate || 
-            dayjs(item.treatmentDate).isSame(searchTreatmentDate, 'day'))
-          .map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.pond}</TableCell>
-              <TableCell>{item.treatmentType}</TableCell>
-              <TableCell>{item.treatmentAmount}</TableCell>
-              <TableCell>{dayjs(item.treatmentDate).format('DD/MM/YYYY')}</TableCell>
-            </TableRow>
-          ))}
-      </TableBody>
-    </Table>
-  </Box>
-</TabPanel>
-
-{/* Tab Thông Tin Tôm */}
-<TabPanel value={tabValue} index={2}>
-  <Box sx={{ mb: 3 }}>
-    <Typography variant="h6">Cập Nhật Thông Tin Tôm</Typography>
-    <Select
-      value={shrimpInfo.pond}
-      onChange={(e) => setShrimpInfo({ ...shrimpInfo, pond: e.target.value })}
-      displayEmpty
-      sx={{ m: 1, minWidth: 120 }}
-    >
-      <MenuItem value="">Chọn ao</MenuItem>
-      {ponds.map((pond) => (
-        <MenuItem key={pond} value={pond}>{pond}</MenuItem>
-      ))}
-    </Select>
-    <Box sx={{ m: 1, width: 300 }}>
-      <Typography>Kích thước tôm (mm)</Typography>
-      <Slider
-        value={shrimpInfo.shrimpSize}
-        onChange={(e, newValue) => setShrimpInfo({ ...shrimpInfo, shrimpSize: newValue })}
-        min={0}
-        max={200}
-        valueLabelDisplay="auto"
-      />
-    </Box>
-    <TextField
-      label="Số lượng tôm hao"
-      value={shrimpInfo.shrimpLoss}
-      onChange={(e) => setShrimpInfo({ ...shrimpInfo, shrimpLoss: e.target.value })}
-      sx={{ m: 1 }}
-    />
-    <DatePicker
-      label="Ngày cập nhật"
-      value={shrimpInfo.updateDate}
-      onChange={(newValue) => setShrimpInfo({ ...shrimpInfo, updateDate: newValue })}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Button variant="contained" onClick={handleShrimpInfoSubmit} sx={{ m: 1 }}>
-      Lưu
-    </Button>
-  </Box>
-
-  <Box>
-    <Typography variant="h6">Tra Cứu Lịch Sử</Typography>
-    <DatePicker
-      label="Chọn ngày tìm kiếm"
-      value={searchShrimpDate}
-      onChange={(newValue) => setSearchShrimpDate(newValue)}
-      renderInput={(params) => <TextField {...params} sx={{ m: 1 }} />}
-    />
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Ao</TableCell>
-          <TableCell>Kích thước (mm)</TableCell>
-          <TableCell>Số lượng hao</TableCell>
-          <TableCell>Ngày</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {shrimpHistory
-          .filter((item) => !searchShrimpDate || 
-            dayjs(item.updateDate).isSame(searchShrimpDate, 'day'))
-          .map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.pond}</TableCell>
-              <TableCell>{item.shrimpSize}</TableCell>
-              <TableCell>{item.shrimpLoss}</TableCell>
-              <TableCell>{dayjs(item.updateDate).format('DD/MM/YYYY')}</TableCell>
-            </TableRow>
-          ))}
-      </TableBody>
-    </Table>
-  </Box>
-</TabPanel>
-</Box>
-</LocalizationProvider>
+      </aside>
+      <div className="flex-1 pt-0 sm:pt-5 overflow-y-auto">
+        <main className="p-4 sm:p-5 h-full">
+          <div className="flex flex-col sm:flex-row border-b border-gray-300 max-w-full sm:max-w-4xl mx-auto bg-white rounded-t-xl shadow-md">
+            {tabs.map((tab, index) => (
+              <button
+                key={index}
+                className={`${
+                  activeTab === index
+                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                } flex-1 py-2 sm:py-3 px-2 sm:px-4 text-center border-b-2 font-medium text-base sm:text-lg transition-all duration-200`}
+                onClick={() => setActiveTab(index)}
+              >
+                {tab.title}
+              </button>
+            ))}
+          </div>
+          {tabs[activeTab].content}
         </main>
+      </div>
+      {isLoading && <LoadingSpinner />}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+      />
     </div>
-    
-        <ToastContainer 
-                position="top-right" 
-                autoClose={3000} 
-                hideProgressBar={false} 
-                newestOnTop={false} 
-                closeOnClick 
-                pauseOnHover 
-            />
-</div>
   );
 };
 

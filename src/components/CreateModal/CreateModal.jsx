@@ -5,10 +5,11 @@ import useCallApi from '../../hooks/useCallApi';
 import { DashboardRequestApi } from '../../services/api';
 import InputField from '../InputField';
 import PropTypes from 'prop-types';
+import { v4 } from 'uuid';
 
-const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
+const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeId }) => {
   const [formData, setFormData] = useState({
-    pondId: '',
+    pondName: '',
     deep: '',
     diameter: '',
   });
@@ -36,9 +37,9 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
 
   // Form validation
   const isFormValid = useCallback(() => {
-    const { pondId, deep, diameter } = formData;
+    const { pondName, deep, diameter } = formData;
     return (
-      pondId.trim() &&
+      pondName.trim() &&
       parseFloat(deep) > 0 &&
       parseFloat(diameter) > 0
     );
@@ -55,11 +56,11 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
 
     setIsLoading(true);
     const submitData = {
-      pondId: formData.pondId.trim(),
-      pondTypeName: pondTypeName.trim(),
+      pondId : v4(),
+      pondName: formData.pondName.trim(),
+      pondTypeId: pondTypeId,
       deep: parseFloat(formData.deep),
       diameter: parseFloat(formData.diameter),
-      farmName: farmName.trim(),
     };
 
     callApi(
@@ -67,21 +68,21 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
       () => {
         onPostSuccess();
         setIsCreateModal(false);
-        setFormData({ pondId: '', deep: '', diameter: '' });
+        setFormData({ pondName: '', deep: '', diameter: '' });
       },
       'Ao đã được tạo thành công!',
       (err) => {
         setIsLoading(false);
-        setErrorMessage(err?.message || 'Đã có lỗi xảy ra, vui lòng thử lại!');
+        setErrorMessage( 'Tên ao đã tồn tại!');
         console.error('Create Pond Error:', err);
       }
     );
-  }, [formData, pondTypeName, farmName, callApi, onPostSuccess, setIsCreateModal, isFormValid]);
+  }, [formData, pondTypeId, farmName, callApi, onPostSuccess, setIsCreateModal, isFormValid]);
 
   // Handle modal close
   const handleClose = useCallback(() => {
     setIsCreateModal(false);
-    setFormData({ pondId: '', deep: '', diameter: '' });
+    setFormData({ pondName: '', deep: '', diameter: '' });
     setErrorMessage('');
   }, [setIsCreateModal]);
 
@@ -99,7 +100,7 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition-opacity duration-300"
-      onClick={handleOutsideClick}
+      // onClick={handleOutsideClick}
     >
       <div className="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-lg mx-4 border border-gray-200 animate-in fade-in">
         <button
@@ -116,11 +117,11 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <InputField
-            label="Pond ID"
-            id="pondId"
-            value={formData.pondId}
-            onChange={handleInputChange('pondId')}
-            placeholder="Nhập Pond ID"
+            label="Tên ao"
+            id="pondName"
+            value={formData.pondName}
+            onChange={handleInputChange('pondName')}
+            placeholder="Nhập tên ao"
             disabled={isLoading}
             required
           />
@@ -193,7 +194,7 @@ const CreateModal = ({ setIsCreateModal, onPostSuccess, pondTypeName }) => {
 CreateModal.propTypes = {
   setIsCreateModal: PropTypes.func.isRequired,
   onPostSuccess: PropTypes.func.isRequired,
-  pondTypeName: PropTypes.string.isRequired,
+  pondTypeId: PropTypes.string.isRequired,
 };
 
 export default memo(CreateModal);
