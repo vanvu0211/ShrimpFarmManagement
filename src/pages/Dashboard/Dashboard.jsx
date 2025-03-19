@@ -20,14 +20,14 @@ import { IoMdAdd } from "react-icons/io";
 function Dashboard() {
   const callApi = useCallApi();
   const expanded = useSelector((state) => state.sidebar.expanded);
-  
+
   // State quản lý modal và loading
   const [isModal, setIsModal] = useState(false);
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // State quản lý dữ liệu
   const [showImage, setShowImage] = useState(false);
   const [activePonds, setActivePonds] = useState(0);
@@ -38,7 +38,7 @@ function Dashboard() {
   const [daysOperated, setDaysOperated] = useState(0);
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  
+
   // Lấy farmName và username từ localStorage
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
@@ -47,47 +47,47 @@ function Dashboard() {
   const fetchData = useCallback(() => {
     // Kiểm tra nếu farmName hoặc username không tồn tại
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
-        toast.error('Vui lòng chọn trang trại!');
-        return; // Không gọi API nếu thiếu thông tin
+      toast.error('Vui lòng chọn trang trại!');
+      return; // Không gọi API nếu thiếu thông tin
     }
 
     callApi(
-        [
-            DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId),
-            DashboardRequestApi.pondRequest.getPondRequestByFarmId(farmId),
-            DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1),
-            DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
-        ],
-        (res) => {
-            setPondTypes(res[0] || []); // Loại hình ao
-            setPonds(res[1] || []);
-            setActivePonds(res[2]?.length || 0);
+      [
+        DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId),
+        DashboardRequestApi.pondRequest.getPondRequestByFarmId(farmId),
+        DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1),
+        DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
+      ],
+      (res) => {
+        setPondTypes(res[0] || []); // Loại hình ao
+        setPonds(res[1] || []);
+        setActivePonds(res[2]?.length || 0);
 
-            const lastCleaningTime = new Date(res[3].cleanTime);
-            const currentTime = new Date();
+        const lastCleaningTime = new Date(res[3].cleanTime);
+        const currentTime = new Date();
 
-            const days = Math.floor(
-                (currentTime - lastCleaningTime) / (1000 * 60 * 60 * 24)
-            );
-            setDaysOperated(days);
+        const days = Math.floor(
+          (currentTime - lastCleaningTime) / (1000 * 60 * 60 * 24)
+        );
+        setDaysOperated(days);
 
-            if (days >= 60) {
-                setNeedsCleaning(true);
-            } else {
-                setNeedsCleaning(false);
-            }
-        },
-        (err) => {
-            toast.error('Không thể tải dữ liệu từ API!');
-            console.error(err);
+        if (days >= 60) {
+          setNeedsCleaning(true);
+        } else {
+          setNeedsCleaning(false);
         }
+      },
+      (err) => {
+        toast.error('Không thể tải dữ liệu từ API!');
+        console.error(err);
+      }
     );
   }, [callApi, farmId]);
-  
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -98,13 +98,13 @@ function Dashboard() {
   }, []);
 
   const handleSelected = (pondTypeId, pondTypeName) => {
-    setselectedPondTypeId(pondTypeId); 
+    setselectedPondTypeId(pondTypeId);
     setselectedPondTypeName(pondTypeName);
   };
 
   const handleCleanSensor = () => {
     const currentTime = new Date().toISOString(); // Lấy thời gian hiện tại
-  
+
     callApi(
       [
         DashboardRequestApi.timeRequest.postCleaningTime({
@@ -122,14 +122,14 @@ function Dashboard() {
         console.error("API Error:", err);
       }
     );
-  };  
+  };
 
   return (
-    <div className="flex max-h-screen bg-gradient-to-br from-teal-100 to-gray-100/40">
-      <aside>
+    <div className="flex max-h-screen bg-gradient-to-br z-0 from-teal-100 to-gray-100/40">
+      <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
+      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full z-100 mr-2 overflow-hidden max-h-screen mb-2">
         {/* Container cho 3 card trên cùng */}
         <div className="w-[90%] h-auto rounded-xl flex p-4 gap-y-3 gap-4 ">
           {/* Card Tổng số ao */}
@@ -159,7 +159,7 @@ function Dashboard() {
         </div>
 
         {/* Container cho PondSummary */}
-        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden no-scrollbar rounded-lg p-4 gap-y-3">
+        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden no-scrollbar rounded-lg z-0 p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName

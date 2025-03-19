@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import Select from 'react-select';
 import axios from 'axios';
 import { FaPlus, FaTrash, FaExpand } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
 import Modal from 'react-modal';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
@@ -23,6 +20,7 @@ function Evista() {
   const [selectedPonds, setSelectedPonds] = useState([]);
   const [pondData, setPondData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Thêm state để theo dõi menu mobile
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
   const dateInputRef = useRef(null);
@@ -34,11 +32,7 @@ function Evista() {
         type: 'line',
         height: '100%',
         zoom: { enabled: true, type: 'x' },
-        animations: {
-          enabled: true,
-          easing: 'easeinout',
-          speed: 800,
-        },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 },
         toolbar: { show: true },
       },
       xaxis: {
@@ -58,10 +52,7 @@ function Evista() {
       stroke: { curve: 'smooth', width: 2 },
       grid: { borderColor: '#e2e8f0' },
       annotations: { yaxis: [] },
-      tooltip: {
-        theme: 'dark',
-        x: { show: true },
-      },
+      tooltip: { theme: 'dark', x: { show: true } },
     },
   });
 
@@ -102,7 +93,6 @@ function Evista() {
     Modal.setAppElement('#root');
     fetchPondTypes();
   }, []);
-
 
   useEffect(() => {
     if (selectedPondType) fetchPonds();
@@ -192,10 +182,8 @@ function Evista() {
     setSelectedPond(selectedOption);
   };
 
-
-  const handlePondChange1 = (selectedOption) => setSelectedPond(selectedOption);
-
-  const addPond = () => {
+  const addPond = (e) => {
+    e.preventDefault();
     if (!selectedPond) {
       toast.warning('Vui lòng chọn một ao!');
       return;
@@ -222,11 +210,11 @@ function Evista() {
     const limits = parameterLimits[parameter];
     return limits
       ? {
-        yaxis: [
-          { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
-          { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
-        ],
-      }
+          yaxis: [
+            { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
+            { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
+          ],
+        }
       : {};
   };
 
@@ -318,94 +306,110 @@ function Evista() {
     ));
   };
 
-  // const handleStartDateChange = (date) => {
-  //   setStartDate(date);
-  // };
+  // Callback để nhận trạng thái từ Sidebar
+  const handleMobileMenuToggle = (isOpen) => {
+    setIsMobileMenuOpen(isOpen);
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-      <aside className="h-screen sticky top-0">
-        <Sidebar />
+      <aside className="h-screen sticky top-0 sm:w-auto">
+        <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
       </aside>
       <div className="flex-1 flex flex-col">
-        <main className="flex-1 overflow-y-auto p-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-2 sm:mb-1 ">Thông số môi trường</h1>
-          <div>
-            <form className="bg-white rounded-lg shadow-md  max-w-4xl mx-auto space-y-4 sm:space-y-2 sm:mb-3  sm:p-3  hover:shadow-lg transition-all duration-300">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 sm:gap-6 " >
-                  <div className="mb-2 sm:mb-3 relative">
-                    <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
-                      Chọn loại ao
-                    </label>
-                    <select
-                      id="pondTypeId"
-                      value={selectedPondType?.value || ''} // Tránh lỗi null
-                      onChange={handlePondTypeChange}
-                      required
-                      className="w-full p-1 sm:p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                    >
-                      <option value="">Chọn loại ao</option>
-                      {pondTypes.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-1 sm:mb-2 relative">
-                    <label className="block text-teal-800 font-semibold mb-2">Tên ao</label>
-                    <select
-                      id="pondTypeId"
-                      value={selectedPond?.value || ''} // Tránh lỗi null
-                      onChange={handlePondChange}
-                      required
-                      className="w-full p-1 sm:p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                    >
-                      <option value="">Chọn ao</option>
-                      {pondOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mb-1 sm:mb-2 relative">
-                    <label className="block text-teal-800 font-semibold mb-2" htmlFor="starttDate">
-                      Ngày bắt đầu
-                    </label>
-                    <input
-                      type="date"
-                      id="starttDate"
-                      value={formatDateForInput(startDate)}
-                      onChange={handleStartDateChange}
-                      required
-                      className="w-full p-1 sm:p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                    />
-                  </div>
-                  <div className="mb-1 sm:mb-2 relative">
-                    <label className="block text-teal-800 font-semibold mb-2" htmlFor="endtDate">
-                      Ngày kết thúc
-                    </label>
-                    <input
-                      type="date"
-                      id="endtDate"
-                      value={formatDateForInput(endDate)}
-                      onChange={handleEndDateChange}
-                      required
-                      className="w-full p-1 sm:p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                    />
-                  </div>
-                  <button
-                  onClick={addPond}
-                  className="bg-teal-600 text-white p-4  items-cen rounded-lg hover:bg-teal-700  h-18 my-auto w-full md:w-auto transition-all duration-300"
-                  disabled={loading}
-                >
-                  {loading ? 'Đang tải...' : 'Xem dữ liệu'}
-                </button>   
+        <main
+          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 ${
+            isMobileMenuOpen ? "pt-40" : "" // Thêm padding-top khi menu mở
+          }`}
+        >
+          <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
+            Thông số môi trường
+          </h1>
+          <div className="max-w-6xl mx-auto relative z-10">
+            <form
+              onSubmit={addPond}
+              className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6 hover:shadow-lg transition-all duration-300"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 z-10 gap-4">
+                <div>
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
+                    Chọn loại ao
+                  </label>
+                  <select
+                    id="pondTypeId"
+                    value={selectedPondType?.value || ''}
+                    onChange={handlePondTypeChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  >
+                    <option value="">Chọn loại ao</option>
+                    {pondTypes.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                <div>
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
+                    Tên ao
+                  </label>
+                  <select
+                    id="pondId"
+                    value={selectedPond?.value || ''}
+                    onChange={handlePondChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  >
+                    <option value="">Chọn ao</option>
+                    {pondOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
+                    Ngày bắt đầu
+                  </label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    value={formatDateForInput(startDate)}
+                    onChange={handleStartDateChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
+                    Ngày kết thúc
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    value={formatDateForInput(endDate)}
+                    onChange={handleEndDateChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Đang tải...' : 'Xem dữ liệu'}
+                  </button>
+                </div>
+              </div>
             </form>
-            <div className="space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 21vh)' }}>
+            <div
+              className="space-y-6 mt-6 overflow-y-auto"
+              style={{ maxHeight: 'calc(100vh - 200px)' }}
+            >
               {renderCharts()}
             </div>
             <Modal
@@ -419,7 +423,9 @@ function Evista() {
                   margin: 'auto',
                   borderRadius: '12px',
                   padding: '24px',
+                  zIndex: 10,
                 },
+                overlay: { zIndex: 90 },
               }}
             >
               <div className="flex justify-between items-center mb-4">

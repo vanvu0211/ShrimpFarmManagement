@@ -120,71 +120,74 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
         </header>
 
         <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-          {timeFields.map((time, index) => (
-            <div className="flex items-center mb-4 space-x-3" key={index}>
-              <span className="text-sm font-medium text-teal-800 w-32">
-                Thời gian {index + 1}
-              </span>
+          {/* Thêm div với max-h và overflow-y-auto */}
+          <div className="max-h-64 overflow-y-auto mb-4">
+            {timeFields.map((time, index) => (
+              <div className="flex items-center mb-4 space-x-3" key={index}>
+                <span className="text-sm font-medium text-teal-800 w-32">
+                  Thời gian {index + 1}
+                </span>
 
-              {/* Dropdown giờ */}
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Giờ"
-                  value={time.hour}
-                  onClick={() => toggleDropdown(index, 'hour')}
-                  readOnly
-                  className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                />
-                {dropdownVisible.index === index && dropdownVisible.field === 'hour' && (
-                  <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
-                    {hourOptions.map((hour) => (
-                      <div
-                        key={hour}
-                        onClick={() => handleTimeChange(index, 'hour', hour)}
-                        className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
-                      >
-                        {hour}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Dropdown giờ */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Giờ"
+                    value={time.hour}
+                    onClick={() => toggleDropdown(index, 'hour')}
+                    readOnly
+                    className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                  />
+                  {dropdownVisible.index === index && dropdownVisible.field === 'hour' && (
+                    <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
+                      {hourOptions.map((hour) => (
+                        <div
+                          key={hour}
+                          onClick={() => handleTimeChange(index, 'hour', hour)}
+                          className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
+                        >
+                          {hour}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Dropdown phút */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Phút"
+                    value={time.minute}
+                    onClick={() => toggleDropdown(index, 'minute')}
+                    readOnly
+                    className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                  />
+                  {dropdownVisible.index === index && dropdownVisible.field === 'minute' && (
+                    <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
+                      {minuteOptions.map((minute) => (
+                        <div
+                          key={minute}
+                          onClick={() => handleTimeChange(index, 'minute', minute)}
+                          className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
+                        >
+                          {minute}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTimeField(index)}
+                  className="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-all duration-200"
+                >
+                  <FaTrashAlt className="w-4 h-4" />
+                </button>
               </div>
-
-              {/* Dropdown phút */}
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Phút"
-                  value={time.minute}
-                  onClick={() => toggleDropdown(index, 'minute')}
-                  readOnly
-                  className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                />
-                {dropdownVisible.index === index && dropdownVisible.field === 'minute' && (
-                  <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
-                    {minuteOptions.map((minute) => (
-                      <div
-                        key={minute}
-                        onClick={() => handleTimeChange(index, 'minute', minute)}
-                        className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
-                      >
-                        {minute}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleRemoveTimeField(index)}
-                className="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-all duration-200"
-              >
-                <FaTrashAlt className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
 
           {errorMessage && (
             <p className="text-red-500 text-sm text-center mb-4 animate-pulse">

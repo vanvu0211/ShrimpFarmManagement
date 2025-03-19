@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { FaEllipsisV, FaTrash, FaExchangeAlt, FaPlay,FaInfo  , FaLeaf } from 'react-icons/fa';
+import { FaEllipsisV, FaTrash, FaExchangeAlt, FaPlay, FaInfo, FaLeaf } from 'react-icons/fa';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -71,7 +71,6 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   };
 
   const handleWaterClick = () => {
-    // Thêm logic cho nút BsDroplet nếu cần
     setIsMenuOpen(false);
   };
 
@@ -79,7 +78,6 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
     setIsMenuOpen(!isMenuOpen);
   };
 
-  // Animation variants cho menu dropdown
   const menuVariants = {
     hidden: { opacity: 0, y: -10, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2 } },
@@ -88,14 +86,14 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
   return (
     <motion.div
-      className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+  className="w-60 bg-white rounded-xl z-0 shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+>
       {/* Header */}
       <div
-        className={`flex justify-between items-center p-3 ${
+        className={`flex justify-between items-center z-0 p-3 ${
           status ? 'bg-blue-500' : 'bg-gray-400'
         }`}
       >
@@ -135,97 +133,95 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
         </div>
       </div>
 
-     {/* Footer */}
-<div className="flex justify-between items-center p-3 border-t bg-gray-50 relative">
-  {status ? (
-    <div className="flex space-x-2 mx-auto">
-     
-      <button
-        className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-        onClick={handleHarvestClick}
-        data-tooltip-id={`harvest-${pondId}`}
-      >
-        <BsDroplet size={16} />
-      </button>
-      <button
-        className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
-        onClick={handleHarvestClick}
-        data-tooltip-id={`info-${pondId}`}
-      >
-        <FaInfo size={16} />
-      </button>
-      <button
-        className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-        onClick={() => setIsDeleteCard(true)}
-        data-tooltip-id={`delete-${pondId}`}
-      >
-        <FaTrash size={16} />
-      </button>
-      
-      <div className="relative">
-        <button
-          className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
-          onClick={toggleMenu}
-          data-tooltip-id={`more-${pondId}`}
-        >
-          <FaEllipsisV size={16} />
-        </button>
-
-        {/* Menu Dropdown */}
-        {isMenuOpen && (
-          <motion.div
-            className="absolute right-0 bottom-14 mt-2 bg-white shadow-lg rounded-md p-2 z-10 border w-48"
-            style={{ zIndex: 100 }}
-            variants={menuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-          >
+      {/* Footer */}
+      <div className="flex justify-between items-center p-3 border-t bg-gray-50 relative">
+        {status ? (
+          <div className="flex space-x-2 mx-auto">
             <button
-              className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
+              className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+              onClick={handleWaterClick}
+              data-tooltip-id={`harvest-${pondId}`}
+            >
+              <BsDroplet size={16} />
+            </button>
+            <button
+              className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
               onClick={handleHarvestClick}
+              data-tooltip-id={`info-${pondId}`}
             >
-              <FaLeaf className="mr-2" size={16} /> Thu hoạch
+              <FaInfo size={16} />
             </button>
             <button
-              className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-              onClick={handleTransferClick}
+              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              onClick={() => setIsDeleteCard(true)}
+              data-tooltip-id={`delete-${pondId}`}
             >
-              <FaExchangeAlt className="mr-2" size={16} /> Chuyển ao
+              <FaTrash size={16} />
+            </button>
+            
+            <div className="relative">
+              <button
+                className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
+                onClick={toggleMenu}
+                data-tooltip-id={`more-${pondId}`}
+              >
+                <FaEllipsisV size={16} />
+              </button>
+
+              {/* Menu Dropdown */}
+              {isMenuOpen && (
+                <motion.div
+                  className="absolute right-0 bottom-14 mt-2 bg-white shadow-lg rounded-md p-2 z-0 border w-48"
+                  variants={menuVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                >
+                  <button
+                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
+                    onClick={handleHarvestClick}
+                  >
+                    <FaLeaf className="mr-2" size={16} /> Thu hoạch
+                  </button>
+                  <button
+                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
+                    onClick={handleTransferClick}
+                  >
+                    <FaExchangeAlt className="mr-2" size={16} /> Chuyển ao
+                  </button>
+                  <button
+                    className="flex items-center w-full text-left px-3  py-2 hover:bg-gray-100 rounded-md"
+                    onClick={handleShrimpClick}
+                  >
+                    <FaShrimp className="mr-2" size={16} /> Thông tin tôm
+                  </button>
+                </motion.div>
+              )}
+            </div>
+            <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
+            <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thông số môi trường" />
+            <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
+            <ReactTooltip id={`more-${pondId}`} place="top" content="Mở rộng" />
+          </div>
+        ) : (
+          <div className="flex space-x-2 w-full">
+            <button
+              className="flex-1 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-semibold"
+              onClick={() => setIsActiveModal(true)}
+            >
+              <FaPlay className="inline mr-1" /> Kích hoạt
             </button>
             <button
-              className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-              onClick={handleShrimpClick}
+              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              onClick={() => setIsDeleteCard(true)}
+              data-tooltip-id={`delete-${pondId}`}
             >
-              <FaShrimp className="mr-2" size={16} /> Thông tin tôm
+              <FaTrash size={16} />
             </button>
-          </motion.div>
+            <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
+          </div>
         )}
       </div>
-      <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
-      <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thông số môi trường" />
-      <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
-      <ReactTooltip id={`more-${pondId}`} place="top" content="Mở rộng" />
-    </div>
-  ) : (
-    <div className="flex space-x-2 w-full">
-      <button
-        className="flex-1 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-semibold"
-        onClick={() => setIsActiveModal(true)}
-      >
-        <FaPlay className="inline mr-1" /> Kích hoạt
-      </button>
-      <button
-        className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-        onClick={() => setIsDeleteCard(true)}
-        data-tooltip-id={`delete-${pondId}`}
-      >
-        <FaTrash size={16} />
-      </button>
-      <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
-    </div>
-  )}
-</div>
 
       {/* Modals */}
       {isDeleteCard && (
