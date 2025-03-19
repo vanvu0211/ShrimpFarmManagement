@@ -86,7 +86,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
   return (
     <motion.div
-  className="w-60 bg-white rounded-xl z-0 shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
+  className="w-60 bg-white rounded-xl  shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
   initial={{ opacity: 0, y: 20 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.5 }}
@@ -134,7 +134,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
       </div>
 
       {/* Footer */}
-      <div className="flex justify-between items-center p-3 border-t bg-gray-50 relative">
+      <div className="flex justify-between items-center p-3 border-t bg-gray-50 ">
         {status ? (
           <div className="flex space-x-2 mx-auto">
             <button

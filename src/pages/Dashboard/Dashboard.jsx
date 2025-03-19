@@ -11,7 +11,6 @@ import { DashboardRequestApi } from '../../services/api';
 import CreateModal from '../../components/CreateModal';
 import ImageModal from '../../components/ImageModal';
 import { FaMapMarkerAlt } from 'react-icons/fa';
-import { CiCirclePlus } from 'react-icons/ci';
 import Loading from '../../components/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,14 +20,12 @@ function Dashboard() {
   const callApi = useCallApi();
   const expanded = useSelector((state) => state.sidebar.expanded);
 
-  // State quản lý modal và loading
   const [isModal, setIsModal] = useState(false);
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State quản lý dữ liệu
   const [showImage, setShowImage] = useState(false);
   const [activePonds, setActivePonds] = useState(0);
   const [pondTypes, setPondTypes] = useState([]);
@@ -39,16 +36,14 @@ function Dashboard() {
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // Lấy farmName và username từ localStorage
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
   const farmId = Number(localStorage.getItem('farmId'));
 
   const fetchData = useCallback(() => {
-    // Kiểm tra nếu farmName hoặc username không tồn tại
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
       toast.error('Vui lòng chọn trang trại!');
-      return; // Không gọi API nếu thiếu thông tin
+      return;
     }
 
     callApi(
@@ -59,16 +54,13 @@ function Dashboard() {
         DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
       ],
       (res) => {
-        setPondTypes(res[0] || []); // Loại hình ao
+        setPondTypes(res[0] || []);
         setPonds(res[1] || []);
         setActivePonds(res[2]?.length || 0);
 
         const lastCleaningTime = new Date(res[3].cleanTime);
         const currentTime = new Date();
-
-        const days = Math.floor(
-          (currentTime - lastCleaningTime) / (1000 * 60 * 60 * 24)
-        );
+        const days = Math.floor((currentTime - lastCleaningTime) / (1000 * 60 * 60 * 24));
         setDaysOperated(days);
 
         if (days >= 60) {
@@ -88,12 +80,10 @@ function Dashboard() {
     fetchData();
   }, [fetchData]);
 
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 200);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -103,19 +93,18 @@ function Dashboard() {
   };
 
   const handleCleanSensor = () => {
-    const currentTime = new Date().toISOString(); // Lấy thời gian hiện tại
-
+    const currentTime = new Date().toISOString();
     callApi(
       [
         DashboardRequestApi.timeRequest.postCleaningTime({
-          cleanTime: currentTime, // Đúng theo cấu trúc yêu cầu
+          cleanTime: currentTime,
         }),
       ],
       (res) => {
         toast.success("Vệ sinh cảm biến thành công!");
-        setDaysOperated(0); // Reset số ngày vận hành
-        setNeedsCleaning(false); // Cập nhật trạng thái không cần vệ sinh
-        setIsConfirmModalOpen(false); // Đóng modal xác nhận
+        setDaysOperated(0);
+        setNeedsCleaning(false);
+        setIsConfirmModalOpen(false);
       },
       (err) => {
         toast.error("Không thể cập nhật thời gian vệ sinh!");
@@ -125,26 +114,21 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex max-h-screen bg-gradient-to-br z-0 from-teal-100 to-gray-100/40">
+    <div className="flex max-h-screen bg-gradient-to-br z-[100] from-teal-100 to-gray-100/40">
       <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full z-100 mr-2 overflow-hidden max-h-screen mb-2">
+      <div className="flex-1 flex flex-col transition-all m-2 rounded-xl items-center w-full  mr-2 overflow-hidden max-h-screen mb-2">
         {/* Container cho 3 card trên cùng */}
-        <div className="w-[90%] h-auto rounded-xl flex p-4 gap-y-3 gap-4 ">
-          {/* Card Tổng số ao */}
+        <div className="w-[90%] h-auto rounded-xl flex p-4  gap-y-3 gap-4">
           <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
             <h1 className="uppercase text-lg font-bold text-teal-800">Tổng số ao</h1>
             <span className="text-4xl font-bold text-teal-600">{ponds?.length || 0}</span>
           </div>
-
-          {/* Card Ao hoạt động */}
           <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
             <h1 className="uppercase text-lg font-bold text-teal-800">Hoạt động</h1>
             <span className="text-4xl font-bold text-teal-600">{activePonds}</span>
           </div>
-
-          {/* Card Tình trạng cảm biến */}
           <div className="flex-1 flex flex-col items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
             <h1 className="uppercase text-lg font-semibold font-sans text-gray-700">{farmName}</h1>
             <div className="text-center">
@@ -156,15 +140,18 @@ function Dashboard() {
               )}
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 items-center justify-center h-full rounded-xl shadow-md bg-white p-4">
+            <AiOutlineClockCircle onClick={() => setIsSetTime(true)} className="text-4xl" />
+            <FaMapMarkerAlt onClick={() => setShowImage(true)} className="text-red-500 text-4xl" />
+          </div>
         </div>
 
         {/* Container cho PondSummary */}
-        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto overflow-hidden no-scrollbar rounded-lg z-0 p-4 gap-y-3">
+        <div className="w-[90%] max-h-[80%] flex-1 overflow-y-auto  overflow-hidden no-scrollbar-700 rounded-lg p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName
             );
-
             return (
               <PondSummary
                 onPutSucces={fetchData}
@@ -183,9 +170,7 @@ function Dashboard() {
 
         <button className="h-10 w-10 right-4 items-center rounded-2xl bottom-5 fixed bg-[#61CBF4]/[.90] flex justify-center">
           <IoMdAdd
-            onClick={() => {
-              setIsModal(true);
-            }}
+            onClick={() => setIsModal(true)}
             className="h-12 text-3xl text-black shadow-lg"
           />
           <div className="flex items-center justify-center text-black font-bold">
@@ -210,10 +195,7 @@ function Dashboard() {
             setIsLoading={setIsLoading}
           />
         )}
-
-        {isModal && (
-          <Modal setIsModal={setIsModal} onPostSuccess={fetchData} />
-        )}
+        {isModal && <Modal setIsModal={setIsModal} onPostSuccess={fetchData} />}
         {isDeleteModal && (
           <DeleteModal
             setIsDeleteModal={setIsDeleteModal}
@@ -222,7 +204,6 @@ function Dashboard() {
             onDeleteSuccess={fetchData}
           />
         )}
-
         {isCreateModal && (
           <CreateModal
             setIsCreateModal={setIsCreateModal}
@@ -230,19 +211,7 @@ function Dashboard() {
             pondTypeId={selectedPondTypeId}
           />
         )}
-
         {showImage && <ImageModal setShowImage={setShowImage} />}
-
-        <div className="fixed top-5 right-5 text-4xl flex gap-x-2">
-          <AiOutlineClockCircle
-            onClick={() => setIsSetTime(true)}
-            className=""
-          />
-          <FaMapMarkerAlt
-            onClick={() => setShowImage(true)}
-            className="text-red-500"
-          />
-        </div>
       </div>
       {isLoading && <Loading />}
       <ToastContainer
@@ -256,9 +225,7 @@ function Dashboard() {
       {isConfirmModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <p className="text-lg font-medium mb-4">
-              Bạn có chắc chắn muốn vệ sinh cảm biến?
-            </p>
+            <p className="text-lg font-medium mb-4">Bạn có chắc chắn muốn vệ sinh cảm biến?</p>
             <div className="flex justify-end space-x-4">
               <button
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"

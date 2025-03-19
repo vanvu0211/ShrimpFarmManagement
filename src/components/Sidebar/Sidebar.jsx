@@ -168,64 +168,63 @@ function Sidebar({ onMobileMenuToggle }) { // Thêm prop để truyền trạng 
 
       {/* Sidebar trên mobile */}
       <div className="sm:hidden fixed top-0 left-0 w-full bg-gradient-to-b from-teal-600 to-teal-800 z-[2000] shadow-lg">
-        <div className="flex items-center justify-between p-4">
-          <img
-            src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
-            className="w-12"
-            alt="Logo"
-          />
-          <button
-            onClick={toggleMobileMenu}
-            className="text-white hover:bg-teal-700 p-2 rounded-full transition-colors"
-          >
-            <TfiAlignJustify size={24} />
-          </button>
-        </div>
+  <div className="flex items-center justify-between p-4">
+    <img
+      src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
+      className="w-12"
+      alt="Logo"
+    />
+    <button
+      onClick={toggleMobileMenu}
+      className="text-white hover:bg-teal-700 p-2 rounded-full transition-colors"
+    >
+      <TfiAlignJustify size={24} />
+    </button>
+  </div>
 
-        {/* Dropdown Menu */}
-        {isMobileMenuOpen && (
-          <div className="fixed w-full bg-teal-700 shadow-lg rounded-b-lg z-[2100]">
-            <ul className="px-4 py-2 space-y-2">
-              {menuItems.map((item) => (
-                <li
-                  key={item.name}
-                  onClick={() => {
-                    setActive(item.name);
-                    navigate(item.lnk);
-                    document.title = item.name;
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center py-2 px-4 rounded-lg cursor-pointer transition-all duration-200 ${
-                    active === item.name
-                      ? "bg-teal-100 text-teal-900"
-                      : "text-white hover:bg-teal-500"
-                  }`}
-                >
-                  <span className="mr-3 text-xl">{item.icon}</span>
-                  <span className="font-medium">{item.name}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="border-t border-teal-500 p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-teal-300 rounded-full mr-2 flex items-center justify-center text-white text-lg font-bold">
-                  {username ? username[0].toUpperCase() : "A"}
-                </div>
-                <span className="text-white text-sm font-medium truncate max-w-[150px]">
-                  {username || "Admin"}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-white bg-teal-700 py-1 px-2 rounded-lg hover:bg-teal-900 transition-all duration-200"
-              >
-                <FiLogOut size={18} className="mr-1" />
-                <span className="font-medium">Log out</span>
-              </button>
-            </div>
+  {isMobileMenuOpen && (
+    <div className="fixed w-full bg-teal-700 shadow-lg rounded-b-lg z-[2000]">
+      <ul className="px-4 py-2 space-y-2">
+        {menuItems.map((item) => (
+          <li
+            key={item.name}
+            onClick={() => {
+              setActive(item.name);
+              navigate(item.lnk);
+              document.title = item.name;
+              setIsMobileMenuOpen(false);
+            }}
+            className={`flex items-center py-2 px-4 rounded-lg cursor-pointer transition-all duration-200 ${
+              active === item.name
+                ? "bg-teal-100 text-teal-900"
+                : "text-white hover:bg-teal-500"
+            }`}
+          >
+            <span className="mr-3 text-xl">{item.icon}</span>
+            <span className="font-medium">{item.name}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="border-t border-teal-500 p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-teal-300 rounded-full mr-2 flex items-center justify-center text-white text-lg font-bold">
+            {username ? username[0].toUpperCase() : "A"}
           </div>
-        )}
+          <span className="text-white text-sm font-medium truncate max-w-[150px]">
+            {username || "Admin"}
+          </span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center text-white bg-teal-700 py-1 px-2 rounded-lg hover:bg-teal-900 transition-all duration-200"
+        >
+          <FiLogOut size={18} className="mr-1" />
+          <span className="font-medium">Log out</span>
+        </button>
       </div>
+    </div>
+  )}
+</div>
     </>
   );
 }

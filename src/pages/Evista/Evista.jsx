@@ -20,7 +20,7 @@ function Evista() {
   const [selectedPonds, setSelectedPonds] = useState([]);
   const [pondData, setPondData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Thêm state để theo dõi menu mobile
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
   const dateInputRef = useRef(null);
@@ -306,7 +306,6 @@ function Evista() {
     ));
   };
 
-  // Callback để nhận trạng thái từ Sidebar
   const handleMobileMenuToggle = (isOpen) => {
     setIsMobileMenuOpen(isOpen);
   };
@@ -318,14 +317,12 @@ function Evista() {
       </aside>
       <div className="flex-1 flex flex-col">
         <main
-          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300 ${
-            isMobileMenuOpen ? "pt-40" : "" // Thêm padding-top khi menu mở
-          }`}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300"
         >
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường
           </h1>
-          <div className="max-w-6xl mx-auto relative z-10">
+          <div className="max-w-6xl mx-auto  z-10">
             <form
               onSubmit={addPond}
               className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6 hover:shadow-lg transition-all duration-300"
