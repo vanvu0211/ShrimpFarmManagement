@@ -4,8 +4,8 @@ const ShrimpRequestApi = {
     ShrimpRequest: {
         feedingFood: async (data) => await axiosClient.post(`/Update/Food`, data),
         feedingMedicine: async (data) => await axiosClient.post(`/Update/Medicine`, data),
-        updateLossShrimp: async() => await axiosClient.post('Update/LossShrimp', data),
-        updateSizeShrimp: async() => await axiosClient.post('Update/SizeShrimp', data),
+        updateLossShrimp: async(data) => await axiosClient.post('Update/LossShrimp', data),
+        updateSizeShrimp: async(data) => await axiosClient.post('Update/SizeShrimp', data),
 
         getFeedingFood: async(pondId, date) => await axiosClient.get(`Update/FoodFeeding?PondId=${pondId}&date=${date}&pageSize=200&pageNumber=1`),
         getFeedingMedicine: async(pondId, date) => await axiosClient.get(`Update/MedicineFeeding?date=${date}&pondId=${pondId}&pageSize=200&pageNumber=1`),

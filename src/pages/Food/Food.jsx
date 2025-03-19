@@ -5,6 +5,7 @@ import { MedicineRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Loading from '../../components/Loading'; // Giả sử bạn có component Loading tương tự
 
 const Food = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -28,33 +29,21 @@ const Food = () => {
   const fetchFoods = useCallback(() => {
     callApi(
       [FoodRequestApi.foodRequest.getAllFoodByFarmId(farmId)],
-      (res) => {
-        setFoods(res[0].flat());
-      },
-      (err) => {
-        console.error(err);
-      }
+      (res) => setFoods(res[0].flat()),
+      (err) => console.error(err)
     );
-  }, [callApi,farmId]);
+  }, [callApi, farmId]);
 
   const fetchTreatments = useCallback(() => {
     callApi(
       [MedicineRequestApi.medicineRequest.getAllMedicineByFarmId(farmId)],
-      (res) => {
-        setTreatments(res[0].flat());
-      },
+      (res) => setTreatments(res[0].flat()),
       (err) => {
         toast.error('Không thể tải danh sách thuốc!');
         console.error(err);
       }
     );
-  }, [callApi,farmId]);
-
-  const LoadingSpinner = () => (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center z-50">
-      <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-t-4 border-blue-500 border-solid"></div>
-    </div>
-  );
+  }, [callApi, farmId]);
 
   const handleAddFood = useCallback(
     (e) => {
@@ -63,10 +52,7 @@ const Food = () => {
         toast.error('Tên thức ăn không được để trống!');
         return;
       }
-      const data = 
-      {   farmId:farmId,
-          name: newFood.trim() ,
-      };
+      const data = { farmId, name: newFood.trim() };
       setIsLoading(true);
       callApi(
         [FoodRequestApi.foodRequest.createFood(data)],
@@ -90,7 +76,7 @@ const Food = () => {
         }
       );
     },
-    [newFood, callApi, foods]
+    [newFood, callApi, foods, farmId]
   );
 
   const handleAddMedicine = useCallback(
@@ -100,9 +86,7 @@ const Food = () => {
         toast.error('Tên thuốc không được để trống!');
         return;
       }
-      const data = 
-      { name: newTreatment.trim(),
-        farmId:farmId };
+      const data = { name: newTreatment.trim(), farmId };
       setIsLoading(true);
       callApi(
         [MedicineRequestApi.medicineRequest.createMedicine(data)],
@@ -126,11 +110,11 @@ const Food = () => {
         }
       );
     },
-    [newTreatment, callApi, treatments]
+    [newTreatment, callApi, treatments, farmId]
   );
 
   const handleDeleteFood = useCallback(
-    (foodId,foodName) => {
+    (foodId, foodName) => {
       if (!window.confirm(`Bạn có chắc chắn muốn xóa thức ăn ${foodName}?`)) return;
       setIsLoading(true);
       callApi(
@@ -150,7 +134,7 @@ const Food = () => {
   );
 
   const handleDeleteMedicine = useCallback(
-    (treatmentId,treatmentName) => {
+    (treatmentId, treatmentName) => {
       if (!window.confirm(`Bạn có chắc chắn muốn xóa thuốc ${treatmentName}?`)) return;
       setIsLoading(true);
       callApi(
@@ -166,7 +150,7 @@ const Food = () => {
         }
       );
     },
-    [callApi, treatments,username,farmName]
+    [callApi, treatments]
   );
 
   const handleEditItem = (type, item) => {
@@ -187,10 +171,7 @@ const Food = () => {
         toast.error('Tên thức ăn không được để trống!');
         return;
       }
-      const data = 
-      { foodId : editingFood.foodId,
-        newName: editingFood.name.trim() ,
-      };
+      const data = { foodId: editingFood.foodId, newName: editingFood.name.trim() };
       setIsLoading(true);
       callApi(
         [FoodRequestApi.foodRequest.updateFood(data)],
@@ -218,9 +199,7 @@ const Food = () => {
         toast.error('Tên thuốc không được để trống!');
         return;
       }
-      const data = { medicineId: editingTreatment.medicineId, 
-        newName: editingTreatment.name.trim(),
-       };
+      const data = { medicineId: editingTreatment.medicineId, newName: editingTreatment.name.trim() };
       setIsLoading(true);
       callApi(
         [MedicineRequestApi.medicineRequest.updateMedicine(data)],
@@ -252,23 +231,31 @@ const Food = () => {
     {
       title: 'Thức ăn',
       content: (
-        <main className="p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
-          <section className="mb-6 sm:mb-10">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">Thêm thức ăn mới</h2>
-            <form onSubmit={handleAddFood} className="bg-white p-4 sm:p-6 rounded-xl shadow-lg flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <label className="w-full sm:w-24 font-medium text-gray-700 shrink-0">Tên thức ăn:</label>
+        <main className="w-full mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 transition-all duration-300">
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Thêm thức ăn mới</h2>
+            <form
+              onSubmit={handleAddFood}
+              className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-teal-800 font-semibold mb-2" htmlFor="newFood">
+                  Tên thức ăn
+                </label>
                 <input
                   type="text"
-                  name="name"
+                  id="newFood"
                   value={newFood}
                   onChange={(e) => setNewFood(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                  disabled={isLoading}
                 />
               </div>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto"
+                className={`w-full px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700 hover:shadow-lg'
+                }`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Đang thêm...' : 'Thêm thức ăn'}
@@ -277,48 +264,47 @@ const Food = () => {
           </section>
 
           <section>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">Danh sách thức ăn</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Danh sách thức ăn</h2>
             {foods.length === 0 ? (
-              <p className="text-gray-600">Chưa có thức ăn nào trong danh sách</p>
+              <p className="text-teal-600 text-center">Chưa có thức ăn nào trong danh sách</p>
             ) : (
-              <div className="bg-white rounded-xl shadow-lg overflow-x-auto">
-                <table className="w-full min-w-[600px]">
-                  <thead className="sticky top-0 bg-blue-600 text-white z-10">
+              <div className="bg-white rounded-xl shadow-md overflow-x-auto">
+                <table className="w-full min-w-[300px]">
+                  <thead className="bg-teal-600 text-white">
                     <tr>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">STT</th>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">Tên thức ăn</th>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">Hành động</th>
+                      <th className="p-3 text-left text-sm">STT</th>
+                      <th className="p-3 text-left text-sm">Tên thức ăn</th>
+                      <th className="p-3 text-left text-sm">Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
                     {foods.map((food, index) => (
-                      <tr
-                        key={food.name + index}
-                        className="border-t hover:bg-gray-100 transition-all duration-150"
-                      >
-                        <td className="p-2 sm:p-3 text-sm sm:text-base">{index + 1}</td>
+                      <tr key={food.foodId} className="border-t hover:bg-teal-50 transition-all duration-150">
+                        <td className="p-3 text-sm">{index + 1}</td>
                         {editingFood && editingFood.foodId === food.foodId ? (
                           <>
-                            <td className="p-2 sm:p-3">
+                            <td className="p-3">
                               <input
                                 type="text"
                                 name="name"
                                 value={editingFood.name}
                                 onChange={(e) => handleEditChange(e, 'foods')}
-                                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200"
                               />
                             </td>
-                            <td className="p-2 sm:p-3 flex flex-col sm:flex-row gap-2">
+                            <td className="p-3 flex flex-col sm:flex-row gap-2">
                               <button
                                 onClick={(e) => handleEditFood(e, food.name)}
-                                className="bg-green-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className={`bg-teal-600 text-white px-3 py-1 rounded-lg transition-all duration-200 ${
+                                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700'
+                                }`}
                                 disabled={isLoading}
                               >
                                 {isLoading ? 'Đang lưu...' : 'Lưu'}
                               </button>
                               <button
                                 onClick={() => handleCancelEdit('foods')}
-                                className="bg-gray-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className="bg-gray-600 text-white px-3 py-1 rounded-lg hover:bg-gray-700 transition-all duration-200"
                               >
                                 Hủy
                               </button>
@@ -326,17 +312,19 @@ const Food = () => {
                           </>
                         ) : (
                           <>
-                            <td className="p-2 sm:p-3 text-sm sm:text-base">{food.name}</td>
-                            <td className="p-2 sm:p-3 flex flex-col sm:flex-row gap-2">
+                            <td className="p-3 text-sm">{food.name}</td>
+                            <td className="p-3 flex flex-col sm:flex-row gap-2">
                               <button
                                 onClick={() => handleEditItem('foods', food)}
-                                className="bg-amber-500 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-amber-600 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className="bg-amber-500 text-white px-3 py-1 rounded-lg hover:bg-amber-600 transition-all duration-200"
                               >
                                 Sửa
                               </button>
                               <button
                                 onClick={() => handleDeleteFood(food.foodId, food.name)}
-                                className="bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className={`bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 ${
+                                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+                                }`}
                                 disabled={isLoading}
                               >
                                 Xóa
@@ -357,23 +345,31 @@ const Food = () => {
     {
       title: 'Điều trị',
       content: (
-        <main className="p-4 sm:p-6 max-w-full sm:max-w-4xl mx-auto">
-          <section className="mb-6 sm:mb-10">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">Thêm thuốc mới</h2>
-            <form onSubmit={handleAddMedicine} className="bg-white p-4 sm:p-6 rounded-xl shadow-lg flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <label className="w-full sm:w-24 font-medium text-gray-700 shrink-0">Tên thuốc:</label>
+        <main className="w-full mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 transition-all duration-300">
+          <section className="mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Thêm thuốc mới</h2>
+            <form
+              onSubmit={handleAddMedicine}
+              className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-teal-800 font-semibold mb-2" htmlFor="newTreatment">
+                  Tên thuốc
+                </label>
                 <input
                   type="text"
-                  name="name"
+                  id="newTreatment"
                   value={newTreatment}
                   onChange={(e) => setNewTreatment(e.target.value)}
-                  className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                  disabled={isLoading}
                 />
               </div>
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto"
+                className={`w-full px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700 hover:shadow-lg'
+                }`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Đang thêm...' : 'Thêm thuốc'}
@@ -382,48 +378,47 @@ const Food = () => {
           </section>
 
           <section>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">Danh sách thuốc</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Danh sách thuốc</h2>
             {treatments.length === 0 ? (
-              <p className="text-gray-600">Chưa có thuốc nào trong danh sách</p>
+              <p className="text-teal-600 text-center">Chưa có thuốc nào trong danh sách</p>
             ) : (
-              <div className="bg-white rounded-xl shadow-lg overflow-x-auto">
-                <table className="w-full min-w-[600px]">
-                  <thead className="sticky top-0 bg-blue-600 text-white z-10">
+              <div className="bg-white rounded-xl shadow-md overflow-x-auto">
+                <table className="w-full min-w-[300px]">
+                  <thead className="bg-teal-600 text-white">
                     <tr>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">STT</th>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">Tên thuốc</th>
-                      <th className="p-2 sm:p-3 text-left text-sm sm:text-base">Hành động</th>
+                      <th className="p-3 text-left text-sm">STT</th>
+                      <th className="p-3 text-left text-sm">Tên thuốc</th>
+                      <th className="p-3 text-left text-sm">Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
                     {treatments.map((treatment, index) => (
-                      <tr
-                        key={treatment.name + index}
-                        className="border-t hover:bg-gray-100 transition-all duration-150"
-                      >
-                        <td className="p-2 sm:p-3 text-sm sm:text-base">{index + 1}</td>
+                      <tr key={treatment.medicineId} className="border-t hover:bg-teal-50 transition-all duration-150">
+                        <td className="p-3 text-sm">{index + 1}</td>
                         {editingTreatment && editingTreatment.medicineId === treatment.medicineId ? (
                           <>
-                            <td className="p-2 sm:p-3">
+                            <td className="p-3">
                               <input
                                 type="text"
                                 name="name"
                                 value={editingTreatment.name}
                                 onChange={(e) => handleEditChange(e, 'treatments')}
-                                className="w-full p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-sm sm:text-base"
+                                className="w-full p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200"
                               />
                             </td>
-                            <td className="p-2 sm:p-3 flex flex-col sm:flex-row gap-2">
+                            <td className="p-3 flex flex-col sm:flex-row gap-2">
                               <button
                                 onClick={(e) => handleEditMedicine(e, treatment.name)}
-                                className="bg-green-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className={`bg-teal-600 text-white px-3 py-1 rounded-lg transition-all duration-200 ${
+                                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700'
+                                }`}
                                 disabled={isLoading}
                               >
                                 {isLoading ? 'Đang lưu...' : 'Lưu'}
                               </button>
                               <button
                                 onClick={() => handleCancelEdit('treatments')}
-                                className="bg-gray-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className="bg-gray-600 text-white px-3 py-1 rounded-lg hover:bg-gray-700 transition-all duration-200"
                               >
                                 Hủy
                               </button>
@@ -431,17 +426,19 @@ const Food = () => {
                           </>
                         ) : (
                           <>
-                            <td className="p-2 sm:p-3 text-sm sm:text-base">{treatment.name}</td>
-                            <td className="p-2 sm:p-3 flex flex-col sm:flex-row gap-2">
+                            <td className="p-3 text-sm">{treatment.name}</td>
+                            <td className="p-3 flex flex-col sm:flex-row gap-2">
                               <button
                                 onClick={() => handleEditItem('treatments', treatment)}
-                                className="bg-amber-500 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-amber-600 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                className="bg-amber-500 text-white px-3 py-1 rounded-lg hover:bg-amber-600 transition-all duration-200"
                               >
                                 Sửa
                               </button>
                               <button
-                                onClick={() => handleDeleteMedicine(treatment.medicineId,treatment.name)}
-                                className="bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base"
+                                onClick={() => handleDeleteMedicine(treatment.medicineId, treatment.name)}
+                                className={`bg-red-600 text-white px-3 py-1 rounded-lg transition-all duration-200 ${
+                                  isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+                                }`}
                                 disabled={isLoading}
                               >
                                 Xóa
@@ -462,21 +459,24 @@ const Food = () => {
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row h-screen overflow-hidden bg-gray-100">
-      <aside className="w-full sm:w-auto sm:h-full shrink-0">
+    <div className="flex max-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
+      <aside>
         <Sidebar />
       </aside>
-      <div className="flex-1 pt-0 sm:pt-5 overflow-y-auto">
-        <main className="p-4 sm:p-5 h-full">
-          <div className="flex flex-col sm:flex-row border-b border-gray-300 max-w-full sm:max-w-4xl mx-auto bg-white rounded-t-xl shadow-md">
+      <div className="flex-1  overflow-y-auto no-scrollbar">
+        <main className=" p-4 sm:p-6 lg:p-8">
+          {/* <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
+            Quản lý thức ăn và thuốc
+          </h1> */}
+          <div className="flex flex-col sm:flex-row border-b border-teal-300 max-w-6xl mx-auto bg-white rounded-t-xl shadow-md mb-6">
             {tabs.map((tab, index) => (
               <button
                 key={index}
-                className={`${
+                className={`flex-1 py-3 px-4 text-center font-medium text-base sm:text-lg transition-all duration-200 ${
                   activeTab === index
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-                } flex-1 py-2 sm:py-3 px-2 sm:px-4 text-center border-b-2 font-medium text-base sm:text-lg transition-all duration-200`}
+                    ? 'border-teal-500 text-teal-600 bg-teal-50 border-b-2'
+                    : 'border-transparent text-gray-600 hover:text-teal-600 hover:bg-teal-50'
+                }`}
                 onClick={() => setActiveTab(index)}
               >
                 {tab.title}
@@ -486,7 +486,7 @@ const Food = () => {
           {tabs[activeTab].content}
         </main>
       </div>
-      {isLoading && <LoadingSpinner />}
+      {isLoading && <Loading />}
       <ToastContainer
         position="top-right"
         autoClose={3000}

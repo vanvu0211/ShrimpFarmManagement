@@ -1,22 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { ShrimpRequestApi } from '../../services/api';
-import { FoodRequestApi } from '../../services/api';
 import { DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loading from '../../components/Loading';
 
-const FeedingTab = () => {
+const ShrimpTab = () => {
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const dateInputRef = useRef(null);
-  const location = useLocation();
 
   const [formData, setFormData] = useState({
     pondId: '',
-    feedingDate: '',
+    updateDate: '',
   });
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
@@ -26,8 +23,8 @@ const FeedingTab = () => {
   const [pondTypeFindOptions, setPondTypeFindOptions] = useState([]);
   const [selectedPondType, setSelectedPondType] = useState('');
   const [selectedPond, setSelectedPond] = useState('');
-  const [feedingList, setFeedingList] = useState([{ id: Date.now(), name: '', amount: 0 }]);
-  const [foods, setFoods] = useState([]);
+  const [sizeValue, setSizeValue] = useState(0);
+  const [lossValue, setLossValue] = useState(0);
   const [historyData, setHistoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,19 +38,10 @@ const FeedingTab = () => {
           label: pondType.pondTypeName,
         }));
         setPondTypeOptions(options);
-        setPondOptions([]);
         setPondTypeFindOptions(options);
       },
       null,
       (err) => console.error('Failed to fetch pondTypes:', err)
-    );
-  }, [callApi, farmId]);
-
-  const fetchFoods = useCallback(() => {
-    callApi(
-      [FoodRequestApi.foodRequest.getAllFoodByFarmId(farmId)],
-      (res) => setFoods(res[0].flat()),
-      (err) => console.error(err)
     );
   }, [callApi, farmId]);
 
@@ -63,12 +51,10 @@ const FeedingTab = () => {
       [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(selectedPondType, farmId)],
       (res) => {
         const ponds = res[0];
-        const options = ponds
-          // .filter((pond) => pond.pondTypeId === Number(selectedPondType))
-          .map((pond) => ({
-            value: pond.pondId,
-            label: pond.pondName,
-          }));
+        const options = ponds.map((pond) => ({
+          value: pond.pondId,
+          label: pond.pondName,
+        }));
         setPondOptions(options);
       },
       null,
@@ -82,43 +68,16 @@ const FeedingTab = () => {
       [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(selectedFindPondType, farmId)],
       (res) => {
         const ponds = res[0];
-        const options = ponds
-          // .filter((pond) => pond.pondTypeId === Number(selectedFindPondType))
-          .map((pond) => ({
-            value: pond.pondId,
-            label: pond.pondName,
-          }));
+        const options = ponds.map((pond) => ({
+          value: pond.pondId,
+          label: pond.pondName,
+        }));
         setPondFindOptions(options);
       },
       null,
       (err) => console.error('Failed to fetch ponds:', err)
     );
   }, [callApi, selectedFindPondType, farmId]);
-
-  const fetchPondsForPondType = useCallback(
-    (pondTypeId, initialPondId) => {
-      callApi(
-        [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(pondTypeId, farmId)],
-        (res) => {
-          const ponds = res[0];
-          const options = ponds.map((pond) => ({
-            value: pond.pondId,
-            label: pond.pondName,
-          }));
-          setPondOptions(options);
-
-          const selectedPondOption = options.find((option) => option.value === initialPondId);
-          if (selectedPondOption) {
-            setSelectedPond(selectedPondOption.value);
-            setFormData((prev) => ({ ...prev, pondId: selectedPondOption.value }));
-          }
-        },
-        null,
-        (err) => console.error('Failed to fetch ponds:', err)
-      );
-    },
-    [callApi, farmId]
-  );
 
   const handlePondTypeChange = useCallback((e) => {
     const value = e.target.value;
@@ -152,66 +111,96 @@ const FeedingTab = () => {
     []
   );
 
-  const handleRemoveFeedingItem = useCallback(
-    (id) => {
-      if (feedingList.length === 1) {
-        toast.error('Phải có ít nhất một mục thức ăn!');
-        return;
-      }
-      const newList = feedingList.filter((item) => item.id !== id);
-      setFeedingList(newList);
-    },
-    [feedingList]
-  );
-
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      if (!formData.pondId || !formData.feedingDate || feedingList.some((item) => !item.name || !item.amount)) {
+      console.log('Form submitted');
+      if (!formData.pondId || !formData.updateDate) {
         toast.error('Vui lòng điền đầy đủ thông tin!');
         return;
       }
 
       setIsLoading(true);
-      const submitData = {
+      const formattedUpdateDate = new Date(formData.updateDate).toISOString();
+      const lossData = {
         pondId: formData.pondId,
-        feedingDate: formData.feedingDate,
-        foods: feedingList.map(({ id, ...rest }) => rest),
+        lossValue,
+        updateDate: formattedUpdateDate,
       };
+      const sizeData = {
+        pondId: formData.pondId,
+        sizeValue,
+        updateDate: formattedUpdateDate,
+      };
+      console.log('Submitting:', { lossData, sizeData });
 
       callApi(
-        [ShrimpRequestApi.ShrimpRequest.feedingFood(submitData)],
-        () => {
+        [
+          Promise.all([
+            ShrimpRequestApi.ShrimpRequest.updateLossShrimp(lossData),
+            ShrimpRequestApi.ShrimpRequest.updateSizeShrimp(sizeData),
+          ]),
+        ],
+        (res) => {
+          console.log('API response:', res);
           setIsLoading(false);
-          toast.success('Thêm lịch cho ăn thành công!');
-          setFormData({ pondId: '', feedingDate: '' });
-          setFeedingList([{ id: Date.now(), name: '', amount: 0 }]);
+          toast.success('Cập nhật thông tin tôm thành công!');
+          setFormData({ pondId: '', updateDate: '' });
+          setSizeValue(0);
+          setLossValue(0);
           setSelectedPond('');
           setSelectedPondType('');
         },
         (err) => {
+          console.error('API error:', err);
           setIsLoading(false);
           toast.error(err?.response?.data?.title || 'Đã có lỗi xảy ra, vui lòng thử lại!');
         }
       );
     },
-    [formData, feedingList, callApi]
+    [formData, sizeValue, lossValue, callApi]
   );
 
   const handleHistorySearch = useCallback(() => {
-    if (!formData.pondId || !formData.feedingDate) {
+    if (!formData.pondId || !formData.updateDate) {
       toast.error('Vui lòng chọn ao và ngày!');
       return;
     }
 
     setIsLoading(true);
     callApi(
-      [ShrimpRequestApi.ShrimpRequest.getFeedingFood(formData.pondId, formData.feedingDate)],
+      [
+        Promise.all([
+          ShrimpRequestApi.ShrimpRequest.getLossShrimp(formData.pondId, formData.updateDate),
+          ShrimpRequestApi.ShrimpRequest.getSizeShrimp(formData.pondId, formData.updateDate),
+        ]),
+      ],
       (res) => {
+        const [lossData, sizeData] = res[0];
+        console.log('Loss Data:', lossData);
+        console.log('Size Data:', sizeData);
+
+        // Gộp dữ liệu theo updateDate
+        const mergedData = {};
+        lossData.forEach((loss) => {
+          mergedData[loss.updateDate] = { ...mergedData[loss.updateDate], lossValue: loss.lossValue };
+        });
+        sizeData.forEach((size) => {
+          mergedData[size.updateDate] = { ...mergedData[size.updateDate], sizeValue: size.sizeValue };
+        });
+
+        const history = Object.keys(mergedData).map((date) => ({
+          updateDate: date,
+          sizeValue: mergedData[date].sizeValue || 0,
+          lossValue: mergedData[date].lossValue || 0,
+        }));
+
+        console.log('Merged History:', history);
         setIsLoading(false);
-        setHistoryData(Array.isArray(res[0]) ? res[0] : []);
+        setHistoryData(history);
       },
       (err) => {
+        console.error('API error:', err);
         setIsLoading(false);
         toast.error('Không tìm thấy lịch sử!');
         setHistoryData([]);
@@ -221,27 +210,19 @@ const FeedingTab = () => {
 
   useEffect(() => {
     fetchPondTypes();
-    fetchFoods();
-  }, [fetchPondTypes, fetchFoods]);
+  }, [fetchPondTypes]);
 
   useEffect(() => {
     if (selectedPondType) fetchPonds();
     if (selectedFindPondType) fetchFindPonds();
   }, [selectedPondType, selectedFindPondType, fetchPonds, fetchFindPonds]);
 
-  useEffect(() => {
-    if (location.state?.pondId && location.state?.pondTypeId && pondTypeOptions.length > 0) {
-      const { pondId, pondTypeId } = location.state;
-      setSelectedPondType(pondTypeId);
-      setFormData((prev) => ({ ...prev, pondId }));
-      fetchPondsForPondType(pondTypeId, pondId);
-    }
-  }, [location.state, pondTypeOptions, fetchPondsForPondType]);
-
   return (
     <main className="w-full mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 transition-all duration-300">
       <section className="mb-6 sm:mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Thêm lịch cho ăn</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">
+          Cập nhật thông tin tôm
+        </h2>
         <form
           onSubmit={handleSubmit}
           className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
@@ -286,15 +267,15 @@ const FeedingTab = () => {
               </select>
             </div>
             <div>
-              <label className="block text-teal-800 font-semibold mb-2" htmlFor="feedingDate">
-                Ngày cho ăn
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="updateDate">
+                Ngày cập nhật
               </label>
               <input
                 type="date"
-                id="feedingDate"
+                id="updateDate"
                 ref={dateInputRef}
-                value={formData.feedingDate}
-                onChange={handleInputChange('feedingDate')}
+                value={formData.updateDate}
+                onChange={handleInputChange('updateDate')}
                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                 disabled={isLoading}
                 required
@@ -302,60 +283,37 @@ const FeedingTab = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {feedingList.map((item) => (
-              <div key={item.id} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                <select
-                  value={item.name}
-                  onChange={(e) => {
-                    const newList = feedingList.map((feeding) =>
-                      feeding.id === item.id ? { ...feeding, name: e.target.value } : feeding
-                    );
-                    setFeedingList(newList);
-                  }}
-                  className="col-span-1 sm:col-span-1 w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  disabled={isLoading}
-                >
-                  <option value="">Chọn thức ăn</option>
-                  {foods.map((food) => (
-                    <option key={food.foodId} value={food.name}>
-                      {food.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  value={item.amount}
-                  onChange={(e) => {
-                    const newList = feedingList.map((feeding) =>
-                      feeding.id === item.id ? { ...feeding, amount: Number(e.target.value) } : feeding
-                    );
-                    setFeedingList(newList);
-                  }}
-                  placeholder="Khối lượng (kg)"
-                  className="col-span-1 sm:col-span-1 w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  disabled={isLoading}
-                />
-                <div className="col-span-1 sm:col-span-1 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFeedingList([...feedingList, { id: Date.now(), name: '', amount: 0 }])}
-                    className="bg-teal-600 text-white px-3 py-2 rounded-lg hover:bg-teal-700 transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFeedingItem(item.id)}
-                    className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div>
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="lossValue">
+                Số lượng tôm hao (kg)
+              </label>
+              <input
+                id="lossValue"
+                type="number"
+                value={lossValue}
+                onChange={(e) => setLossValue(Number(e.target.value))}
+                placeholder="Nhập số lượng tôm hao"
+                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="sizeValue">
+                Kích thước tôm (mm)
+              </label>
+              <input
+                id="sizeValue"
+                type="range"
+                min="0"
+                max="100"
+                value={sizeValue}
+                onChange={(e) => setSizeValue(Number(e.target.value))}
+                className="w-full"
+                disabled={isLoading}
+              />
+              <span className="text-teal-600 text-sm">{sizeValue} mm</span>
+            </div>
           </div>
 
           <button
@@ -365,14 +323,14 @@ const FeedingTab = () => {
             }`}
             disabled={isLoading}
           >
-            {isLoading ? 'Đang xử lý...' : 'Thêm lịch cho ăn'}
+            {isLoading ? 'Đang xử lý...' : 'Cập nhật thông tin tôm'}
           </button>
         </form>
       </section>
 
       <section>
         <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">
-          Truy xuất lịch sử cho ăn
+          Truy xuất lịch sử thông tin tôm
         </h2>
         <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
@@ -412,8 +370,8 @@ const FeedingTab = () => {
               <label className="block text-teal-800 font-semibold mb-2">Ngày</label>
               <input
                 type="date"
-                value={formData.feedingDate}
-                onChange={handleInputChange('feedingDate')}
+                value={formData.updateDate}
+                onChange={handleInputChange('updateDate')}
                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                 disabled={isLoading}
               />
@@ -436,23 +394,21 @@ const FeedingTab = () => {
                 <thead className="bg-teal-600 text-white">
                   <tr>
                     <th className="p-3 text-sm">STT</th>
-                    <th className="p-3 text-sm">Thức ăn</th>
-                    <th className="p-3 text-sm">Khối lượng (kg)</th>
+                    <th className="p-3 text-sm">Kích thước tôm (mm)</th>
+                    <th className="p-3 text-sm">Số lượng tôm hao (kg)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {historyData.flatMap((record, index) =>
-                    record.foods.map((food, foodIndex) => (
-                      <tr
-                        key={`${record.id || index}-${foodIndex}`}
-                        className="border-t hover:bg-teal-50 transition-all duration-150"
-                      >
-                        <td className="p-3 text-sm">{index + 1}</td>
-                        <td className="p-3 text-sm">{food.name}</td>
-                        <td className="p-3 text-sm">{food.amount}</td>
-                      </tr>
-                    ))
-                  )}
+                  {historyData.map((record, index) => (
+                    <tr
+                      key={index}
+                      className="border-t hover:bg-teal-50 transition-all duration-150"
+                    >
+                      <td className="p-3 text-sm">{index + 1}</td>
+                      <td className="p-3 text-sm">{record.sizeValue || '-'}</td>
+                      <td className="p-3 text-sm">{record.lossValue || '-'}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -473,4 +429,4 @@ const FeedingTab = () => {
   );
 };
 
-export default FeedingTab;
+export default ShrimpTab;
