@@ -90,7 +90,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
             className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-100 z-20"
             onClick={handleCloseModal}
         >
-            <div className="relative bg-white p-6 rounded-xl shadow-2xl w-full max-w-md border-2 border-teal-200">
+            <div className="relative bg-white p-6 rounded-xl shadow-2xl w-full mx-10 max-w-md border-2 border-teal-200">
                 {/* Nút đóng */}
                 <i 
                     className="absolute top-2 right-2 text-2xl p-2 cursor-pointer hover:bg-teal-100 rounded-full text-teal-600"

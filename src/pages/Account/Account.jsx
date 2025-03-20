@@ -69,8 +69,8 @@ function Account() {
 
   return (
     // Giữ nguyên phần JSX
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
+    <div className="flex justify-center items-center  min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full mx-10 max-w-md border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
         {/* Tiêu đề */}
         <div className="flex justify-center items-center mb-6">
           <img
@@ -85,7 +85,7 @@ function Account() {
         </div>
 
         {/* Form đăng nhập */}
-        <div className="mb-5">
+        <div className=" mb-5">
           <label htmlFor="username" className="block text-left font-medium text-teal-800 mb-2">
             Tên đăng nhập
           </label>
@@ -112,7 +112,7 @@ function Account() {
             className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
           />
           <span
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 text-teal-600 cursor-pointer text-xl sm:text-2xl"
+            className="absolute top-2/3 right-3 transform -translate-y-1/2 text-teal-600 cursor-pointer text-xl sm:text-2xl"
             onClick={() => setIsPasswordVisible(!isPasswordVisible)}
           >
             {isPasswordVisible ? <IoEyeOff /> : <IoEye />}
