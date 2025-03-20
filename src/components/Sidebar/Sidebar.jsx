@@ -174,6 +174,12 @@ function Sidebar({ onMobileMenuToggle }) { // Thêm prop để truyền trạng 
       className="w-12"
       alt="Logo"
     />
+    {expanded && (
+              <div className="flex items-center text-2xl font-semibold tracking-wide">
+                <span className="text-white font-bold">Shrimp</span>
+                <span className="text-black font-bold">Pond</span>
+              </div>
+            )}
     <button
       onClick={toggleMobileMenu}
       className="text-white hover:bg-teal-700 p-2 rounded-full transition-colors"
