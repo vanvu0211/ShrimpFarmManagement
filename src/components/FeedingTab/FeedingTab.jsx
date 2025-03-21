@@ -1,8 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ShrimpRequestApi } from '../../services/api';
-import { FoodRequestApi } from '../../services/api';
-import { DashboardRequestApi } from '../../services/api';
+import { ShrimpRequestApi, FoodRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,10 +12,7 @@ const FeedingTab = () => {
   const dateInputRef = useRef(null);
   const location = useLocation();
 
-  const [formData, setFormData] = useState({
-    pondId: '',
-    feedingDate: '',
-  });
+  const [formData, setFormData] = useState({ pondId: '', feedingDate: '' });
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
   const [pondFindOptions, setPondFindOptions] = useState([]);
@@ -63,12 +58,10 @@ const FeedingTab = () => {
       [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(selectedPondType, farmId)],
       (res) => {
         const ponds = res[0];
-        const options = ponds
-          // .filter((pond) => pond.pondTypeId === Number(selectedPondType))
-          .map((pond) => ({
-            value: pond.pondId,
-            label: pond.pondName,
-          }));
+        const options = ponds.map((pond) => ({
+          value: pond.pondId,
+          label: pond.pondName,
+        }));
         setPondOptions(options);
       },
       null,
@@ -82,12 +75,10 @@ const FeedingTab = () => {
       [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(selectedFindPondType, farmId)],
       (res) => {
         const ponds = res[0];
-        const options = ponds
-          // .filter((pond) => pond.pondTypeId === Number(selectedFindPondType))
-          .map((pond) => ({
-            value: pond.pondId,
-            label: pond.pondName,
-          }));
+        const options = ponds.map((pond) => ({
+          value: pond.pondId,
+          label: pond.pondName,
+        }));
         setPondFindOptions(options);
       },
       null,
@@ -106,7 +97,6 @@ const FeedingTab = () => {
             label: pond.pondName,
           }));
           setPondOptions(options);
-
           const selectedPondOption = options.find((option) => option.value === initialPondId);
           if (selectedPondOption) {
             setSelectedPond(selectedPondOption.value);
@@ -239,12 +229,12 @@ const FeedingTab = () => {
   }, [location.state, pondTypeOptions, fetchPondsForPondType]);
 
   return (
-    <main className="w-full mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 transition-all duration-300">
+    <main className="w-full mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
       <section className="mb-6 sm:mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Thêm lịch cho ăn</h2>
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+          className="space-y-6 bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div>
@@ -256,7 +246,7 @@ const FeedingTab = () => {
                 value={selectedPondType}
                 onChange={handlePondTypeChange}
                 disabled={isLoading}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
               >
                 <option value="">Chọn loại ao</option>
                 {pondTypeOptions.map((option) => (
@@ -275,7 +265,7 @@ const FeedingTab = () => {
                 value={selectedPond}
                 onChange={handlePondChange}
                 disabled={isLoading}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
               >
                 <option value="">Chọn tên ao</option>
                 {pondOptions.map((option) => (
@@ -295,7 +285,7 @@ const FeedingTab = () => {
                 ref={dateInputRef}
                 value={formData.feedingDate}
                 onChange={handleInputChange('feedingDate')}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
                 disabled={isLoading}
                 required
               />
@@ -303,64 +293,90 @@ const FeedingTab = () => {
           </div>
 
           <div className="space-y-4">
-            {feedingList.map((item) => (
-              <div key={item.id} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                <select
-                  value={item.name}
-                  onChange={(e) => {
-                    const newList = feedingList.map((feeding) =>
-                      feeding.id === item.id ? { ...feeding, name: e.target.value } : feeding
-                    );
-                    setFeedingList(newList);
-                  }}
-                  className="col-span-1 sm:col-span-1 w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  disabled={isLoading}
+            <h3 className="text-lg font-semibold text-teal-700">Danh sách thức ăn</h3>
+            <div className="space-y-3">
+              {feedingList.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-teal-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 animate-fade-in"
                 >
-                  <option value="">Chọn thức ăn</option>
-                  {foods.map((food) => (
-                    <option key={food.foodId} value={food.name}>
-                      {food.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  value={item.amount}
-                  onChange={(e) => {
-                    const newList = feedingList.map((feeding) =>
-                      feeding.id === item.id ? { ...feeding, amount: Number(e.target.value) } : feeding
-                    );
-                    setFeedingList(newList);
-                  }}
-                  placeholder="Khối lượng (kg)"
-                  className="col-span-1 sm:col-span-1 w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  disabled={isLoading}
-                />
-                <div className="col-span-1 sm:col-span-1 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFeedingList([...feedingList, { id: Date.now(), name: '', amount: 0 }])}
-                    className="bg-teal-600 text-white px-3 py-2 rounded-lg hover:bg-teal-700 transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFeedingItem(item.id)}
-                    className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    -
-                  </button>
+                  <div className="w-10 flex-shrink-0">
+                    <span className="flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full text-sm font-medium">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 w-full">
+                    <div className="flex-1 min-w-0">
+                      <select
+                        value={item.name}
+                        onChange={(e) => {
+                          const newList = feedingList.map((feeding) =>
+                            feeding.id === item.id ? { ...feeding, name: e.target.value } : feeding
+                          );
+                          setFeedingList(newList);
+                        }}
+                        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
+                        disabled={isLoading}
+                      >
+                        <option value="">Chọn thức ăn</option>
+                        {foods.map((food) => (
+                          <option key={food.foodId} value={food.name}>
+                            {food.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-full sm:w-32">
+                      <input
+                        type="number"
+                        value={item.amount}
+                        onChange={(e) => {
+                          const newList = feedingList.map((feeding) =>
+                            feeding.id === item.id ? { ...feeding, amount: Math.max(0, Number(e.target.value)) } : feeding
+                          );
+                          setFeedingList(newList);
+                        }}
+                        placeholder="Khối lượng (kg)"
+                        min="0"
+                        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 self-end sm:self-center">
+                    {index === feedingList.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setFeedingList([...feedingList, { id: Date.now(), name: '', amount: 0 }])}
+                        className="p-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
+                        disabled={isLoading}
+                        title="Thêm mục mới"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFeedingItem(item.id)}
+                      className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
+                      disabled={isLoading || feedingList.length === 1}
+                      title="Xóa mục này"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <button
             type="submit"
-            className={`w-full px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
+            className={`w-full px-6 py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700 hover:shadow-lg'
             }`}
             disabled={isLoading}
@@ -371,10 +387,8 @@ const FeedingTab = () => {
       </section>
 
       <section>
-        <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">
-          Truy xuất lịch sử cho ăn
-        </h2>
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+        <h2 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-4 sm:mb-6">Truy xuất lịch sử cho ăn</h2>
+        <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-teal-800 font-semibold mb-2">Loại ao</label>
@@ -382,7 +396,7 @@ const FeedingTab = () => {
                 value={selectedFindPondType}
                 onChange={handleFindPondTypeChange}
                 disabled={isLoading}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
               >
                 <option value="">Chọn loại ao</option>
                 {pondTypeFindOptions.map((option) => (
@@ -398,7 +412,7 @@ const FeedingTab = () => {
                 value={selectedFindPond}
                 onChange={handleFindPondChange}
                 disabled={isLoading}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
               >
                 <option value="">Chọn tên ao</option>
                 {pondFindOptions.map((option) => (
@@ -414,14 +428,14 @@ const FeedingTab = () => {
                 type="date"
                 value={formData.feedingDate}
                 onChange={handleInputChange('feedingDate')}
-                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+                className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm disabled:opacity-50"
                 disabled={isLoading}
               />
             </div>
           </div>
           <button
             onClick={handleHistorySearch}
-            className={`w-full px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
+            className={`w-full px-6 py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
               isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700 hover:shadow-lg'
             }`}
             disabled={isLoading}
@@ -461,14 +475,7 @@ const FeedingTab = () => {
       </section>
 
       {isLoading && <Loading />}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnHover
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover />
     </main>
   );
 };
