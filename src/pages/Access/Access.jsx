@@ -1,50 +1,77 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import axios from 'axios';
 import { QRCodeCanvas } from 'qrcode.react';
 import { FaSearch } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AccessRequestApi } from '../../services/api'; // Import API
+import useCallApi from '../../hooks/useCallApi';
+import cl from 'classnames';
 import PropTypes from 'prop-types';
 
 const Access = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
-  const [lotOptions, setLotOptions] = useState([]);
+  const [seedOptions, setSeedOptions] = useState([]);
   const [harvestTimeOptions, setHarvestTimeOptions] = useState([]);
   const [selectedLot, setSelectedLot] = useState('');
   const [selectedHarvestTime, setSelectedHarvestTime] = useState('');
   const [showQRCode, setShowQRCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const qrCodeRef = useRef(null);
 
-  // API base URL
-  const API_BASE_URL = 'https://shrimppond.runasp.net/api/Traceability';
+  const qrCodeRef = useRef(null);
+  const callApi = useCallApi();
+  const [formData, setFormData] = useState({
+    seedId: '',
+    harvestTime: '0',
+  });
+
+  const farmId = Number(localStorage.getItem('farmId')) || 0; // Default to 0 if not found
 
   // Fetch lot options
   const fetchLotOptions = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/GetSeedId?pageSize=200&pageNumber=1`);
-      setLotOptions(response.data.map(lot => ({ value: lot.seedId, label: lot.seedId })));
-    } catch (error) {
-      console.error('Error fetching lot options:', error);
-      toast.error('Không thể tải danh sách lô!');
-    }
-  }, []);
+    callApi(
+      [AccessRequestApi.AccessRequest.getSeedIdList(farmId)],
+      (res) => {
+        console.log(res)
+        const seedOptions = res[0] || [];
+        setSeedOptions(
+          seedOptions.map((seed) => ({
+            value: seed.seedId,
+            label: seed.seedId,
+          }))
+        );
+      },
+      null,
+      (err) => {
+        console.error('Error fetching ponds:', err);
+      }
+
+    )
+  }, [farmId, callApi]);
 
   // Fetch harvest time options
   const fetchHarvestTimes = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/GetTimeHarvest?pageSize=200&pageNumber=1`);
-      setHarvestTimeOptions(response.data.map(time => ({ value: time.harvestTime, label: time.harvestTime })));
-    } catch (error) {
-      console.error('Error fetching harvest times:', error);
-      toast.error('Không thể tải danh sách lần thu hoạch!');
-    }
-  }, []);
+    callApi(
+      [AccessRequestApi.AccessRequest.getTimeHarvestList(farmId)],
+      (res) => {
+        const timeOptions = res[0] || [];
+        setHarvestTimeOptions(
+          timeOptions.map((seed) => ({
+            value: seed.harvestTime,
+            label: seed.harvestTime,
+          }))
+        );
+      },
+      null,
+      (err) => {
+        console.error('Error fetching ponds:', err);
+      }
+
+    )
+  }, [farmId, callApi]);
 
   useEffect(() => {
     fetchLotOptions();
@@ -59,24 +86,15 @@ const Access = () => {
     }
 
     setIsLoading(true);
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}?SeedId=${selectedLot}&HarvestTime=${selectedHarvestTime}&pageSize=200&pageNumber=1`
-      );
-      if (!response.data || Object.keys(response.data).length === 0) {
-        toast.warning('Không tìm thấy dữ liệu thu hoạch!');
-        setData(null);
-      } else {
-        setData(response.data);
+    callApi(
+      [AccessRequestApi.AccessRequest.getAccessRequestBySeedId(selectedLot,selectedHarvestTime,farmId)],
+      (res)=>{
+        setData(res[0]);
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching traceability data:', error);
-      toast.error('Đã có lỗi xảy ra khi tải dữ liệu!');
-      setData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedLot, selectedHarvestTime]);
+    )
+   
+  }, [selectedLot, selectedHarvestTime, farmId, callApi]);
 
   // Generate QR code content
   const generateQRCodeData = useCallback(() => {
@@ -112,12 +130,32 @@ const Access = () => {
     pdf.save(`Certificate_${selectedLot}_${selectedHarvestTime}_${index + 1}.pdf`);
   }, [selectedLot, selectedHarvestTime]);
 
-  // Handle select changes
-  const handleSelectChange = useCallback((setter) => (e) => {
-    setter(e.target.value);
-    setData(null); // Reset data when selection changes
-    setShowQRCode(false);
-  }, []);
+  // Handle input changes
+  const handleInputChange = useCallback(
+    (field) => (e) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+      setSelectedLot(field === 'seedId' ? e.target.value : selectedLot);
+      setSelectedHarvestTime(field === 'harvestTime' ? e.target.value : selectedHarvestTime);
+      setData(null); // Reset data when selection changes
+      setShowQRCode(false);
+    },
+    [selectedLot, selectedHarvestTime]
+  );
+
+  const isFormValid = useCallback(() => {
+    const { seedId, harvestTime } = formData;
+    return seedId && harvestTime !== '0';
+  }, [formData]);
+
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (isFormValid()) {
+        fetchData();
+      }
+    },
+    [fetchData, isFormValid]
+  );
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -126,50 +164,80 @@ const Access = () => {
         <h1 className="text-3xl font-bold text-gray-800">Truy Xuất Nguồn Gốc</h1>
 
         {/* Selection Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Chọn lô</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-200"
-              value={selectedLot}
-              onChange={handleSelectChange(setSelectedLot)}
-              disabled={isLoading}
-            >
-              <option value="">Chọn lô</option>
-              {lotOptions.map((lot) => (
-                <option key={lot.value} value={lot.value}>
-                  {lot.label}
-                </option>
-              ))}
-            </select>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="seedId">
+                Chọn lô
+              </label>
+              <select
+                id="seedId"
+                value={formData.seedId}
+                onChange={handleInputChange('seedId')}
+                disabled={isLoading}
+                required
+                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+              >
+                <option value="">Chọn lô</option>
+                {seedOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="harvestTime">
+                Chọn lần thu hoạch
+              </label>
+              <select
+                id="harvestTime"
+                value={formData.harvestTime}
+                onChange={handleInputChange('harvestTime')}
+                disabled={isLoading}
+                required
+                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+              >
+                <option value="0">Chọn lần thu hoạch</option>
+                {harvestTimeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Chọn lần thu hoạch</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-200"
-              value={selectedHarvestTime}
-              onChange={handleSelectChange(setSelectedHarvestTime)}
-              disabled={isLoading}
-            >
-              <option value="">Chọn lần thu hoạch</option>
-              {harvestTimeOptions.map((time) => (
-                <option key={time.value} value={time.value}>
-                  {time.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
+
+          <div className="flex justify-center">
             <button
-              onClick={fetchData}
-              className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
-              disabled={isLoading}
-              aria-label="Search"
+              type="submit"
+              className={cl(
+                'w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300',
+                {
+                  'opacity-50 cursor-not-allowed': isLoading || !isFormValid(),
+                  'hover:bg-teal-700 hover:shadow-lg': !isLoading && isFormValid(),
+                }
+              )}
+              disabled={isLoading || !isFormValid()}
             >
-              <FaSearch className="w-5 h-5" />
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Đang xử lý...
+                </span>
+              ) : (
+                'Tìm kiếm'
+              )}
             </button>
           </div>
-        </div>
+        </form>
 
         {/* Data Display */}
         {isLoading ? (
@@ -185,8 +253,21 @@ const Access = () => {
             <table className="min-w-full bg-white shadow-md rounded-lg divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Mã lô', 'Mã ao', 'Lần thu hoạch', 'Số lượng (kg)', 'Size tôm (cm)', 'Giấy chứng nhận', 'Số ngày nuôi', 'Trang trại', 'Địa chỉ'].map((header) => (
-                    <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {[
+                    'Mã lô',
+                    'Mã ao',
+                    'Lần thu hoạch',
+                    'Số lượng (kg)',
+                    'Size tôm (cm)',
+                    'Giấy chứng nhận',
+                    'Số ngày nuôi',
+                    'Trang trại',
+                    'Địa chỉ',
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       {header}
                     </th>
                   ))}
@@ -253,8 +334,6 @@ const Access = () => {
   );
 };
 
-Access.propTypes = {
-  // Không cần props ở đây vì component không nhận props từ bên ngoài
-};
+Access.propTypes = {};
 
 export default memo(Access);
