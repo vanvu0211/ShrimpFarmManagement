@@ -35,7 +35,7 @@ const Access = () => {
     callApi(
       [AccessRequestApi.AccessRequest.getSeedIdList(farmId)],
       (res) => {
-        console.log(res)
+        console.log(res);
         const seedOptions = res[0] || [];
         setSeedOptions(
           seedOptions.map((seed) => ({
@@ -48,8 +48,7 @@ const Access = () => {
       (err) => {
         console.error('Error fetching ponds:', err);
       }
-
-    )
+    );
   }, [farmId, callApi]);
 
   // Fetch harvest time options
@@ -69,8 +68,7 @@ const Access = () => {
       (err) => {
         console.error('Error fetching ponds:', err);
       }
-
-    )
+    );
   }, [farmId, callApi]);
 
   useEffect(() => {
@@ -87,13 +85,12 @@ const Access = () => {
 
     setIsLoading(true);
     callApi(
-      [AccessRequestApi.AccessRequest.getAccessRequestBySeedId(selectedLot,selectedHarvestTime,farmId)],
-      (res)=>{
+      [AccessRequestApi.AccessRequest.getAccessRequestBySeedId(selectedLot, selectedHarvestTime, farmId)],
+      (res) => {
         setData(res[0]);
         setIsLoading(false);
       }
-    )
-   
+    );
   }, [selectedLot, selectedHarvestTime, farmId, callApi]);
 
   // Generate QR code content
@@ -114,13 +111,18 @@ const Access = () => {
 
   // Download QR code
   const downloadQRCode = useCallback(() => {
-    const canvas = qrCodeRef.current?.querySelector('canvas');
-    if (!canvas) return;
+    const canvas = qrCodeRef.current; // Truy cập trực tiếp canvas từ QRCodeCanvas
+    if (!canvas) {
+      console.error('Không tìm thấy canvas QR code');
+      return;
+    }
     const imageURI = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.href = imageURI;
     link.download = `QRCode_${selectedLot}_${selectedHarvestTime}.png`;
+    document.body.appendChild(link); // Thêm link vào DOM
     link.click();
+    document.body.removeChild(link); // Xóa link sau khi tải
   }, [selectedLot, selectedHarvestTime]);
 
   // Download certificate as PDF
@@ -218,8 +220,8 @@ const Access = () => {
               className={cl(
                 'w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300',
                 {
-                  'opacity-50 cursor-not-allowed': isLoading || !isFormValid(),
-                  'hover:bg-teal-700 hover:shadow-lg': !isLoading && isFormValid(),
+                  'opacity-50 cursor-not-allowed': !isFormValid(),
+                  'hover:bg-teal-700 hover:shadow-lg': isFormValid(),
                 }
               )}
               disabled={isLoading || !isFormValid()}
@@ -313,9 +315,18 @@ const Access = () => {
               {showQRCode ? 'Ẩn QR' : 'Xuất QR'}
             </button>
             {showQRCode && (
-              <div className="mt-4 p-4 bg-white shadow-lg rounded-lg cursor-pointer" onClick={downloadQRCode}>
-                <QRCodeCanvas ref={qrCodeRef} value={generateQRCodeData()} size={200} />
-                <p className="text-center text-sm text-gray-600 mt-2">Nhấn để tải QR</p>
+              <div className="mt-4 p-4 bg-white shadow-lg rounded-lg">
+                <QRCodeCanvas
+                  ref={qrCodeRef} // Gắn ref trực tiếp vào QRCodeCanvas
+                  value={generateQRCodeData()}
+                  size={200}
+                />
+                <p
+                  className="text-center text-sm text-gray-600 mt-2 cursor-pointer"
+                  onClick={downloadQRCode} // Gắn sự kiện onClick vào đây
+                >
+                  Nhấn để tải QR
+                </p>
               </div>
             )}
           </div>
