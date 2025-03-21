@@ -69,6 +69,12 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
     console.log(pondTypeId);
     setIsMenuOpen(false);
   };
+  const handleInfoClick = () => {
+    navigate('/info', { state: { pondId, pondTypeId } });
+    console.log(pondTypeId);
+    setIsMenuOpen(false);
+  };
+  
 
   const handleWaterClick = () => {
     setIsMenuOpen(false);
@@ -146,7 +152,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
             </button>
             <button
               className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
-              onClick={handleHarvestClick}
+              onClick={handleInfoClick}
               data-tooltip-id={`info-${pondId}`}
             >
               <FaInfo size={16} />
