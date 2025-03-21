@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { IoCloseSharp } from "react-icons/io5";
-import { FaTrashAlt } from 'react-icons/fa';
+import { FaTrashAlt, FaPlus } from 'react-icons/fa';
 import cl from 'classnames';
 import useCallApi from '../../hooks/useCallApi';
 import { DashboardRequestApi } from '../../services/api';
@@ -10,11 +10,14 @@ import 'react-toastify/dist/ReactToastify.css';
 function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
   const [timeFields, setTimeFields] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState({ index: null, field: null });
-  const dropdownRefs = useRef([]);
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
 
+  // Tạo danh sách giờ và phút
+  const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  const minuteOptions = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+
+  // Lấy dữ liệu thời gian đã lưu từ API
   const fetchData = useCallback(() => {
     setIsLoading(true);
     callApi(
@@ -43,70 +46,60 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
     fetchData();
   }, [fetchData]);
 
+  // Thêm một mục thời gian mới
   const handleAddTimeField = () => {
-    setTimeFields([...timeFields, { hour: "", minute: "" }]);
+    setTimeFields([...timeFields, { hour: "00", minute: "00" }]);
   };
 
+  // Xóa một mục thời gian
   const handleRemoveTimeField = (index) => {
     const newTimeFields = timeFields.filter((_, i) => i !== index);
     setTimeFields(newTimeFields);
   };
 
-  const toggleDropdown = (index, field) => {
-    setDropdownVisible((prev) =>
-      prev.index === index && prev.field === field
-        ? { index: null, field: null }
-        : { index, field }
-    );
-  };
-
+  // Thay đổi giờ hoặc phút
   const handleTimeChange = (index, field, value) => {
     const newTimeFields = [...timeFields];
     newTimeFields[index][field] = value;
     setTimeFields(newTimeFields);
-    setDropdownVisible({ index: null, field: null });
   };
 
-  const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
-
+  // Gửi dữ liệu lên API
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (timeFields.every(({ hour, minute }) => hour !== "" && minute !== "")) {
-      const data = {
-        farmId: farmId,
-        timeSettingObjects: timeFields.map((time, index) => ({
-          index: index,
-          time: `${time.hour}:${time.minute}:00`
-        }))
-      };
-      setIsLoading(true);
-
-      callApi(
-        () => DashboardRequestApi.timeRequest.setTimeRequest(data),
-        () => {
-          setIsLoading(false);
-          toast.success("Đã thiết lập thời gian thành công!");
-          setErrorMessage('');
-          setIsSetTime(false);
-          onPostSuccess();
-        },
-        (err) => {
-          setIsLoading(false);
-          setErrorMessage(err?.response?.data?.title || 'Đã có lỗi xảy ra, vui lòng thử lại!');
-        }
-      );
-    } else {
-      setErrorMessage('Vui lòng điền đầy đủ giờ và phút!');
+    if (timeFields.length === 0) {
+      setErrorMessage('Vui lòng thêm ít nhất một thời gian!');
+      return;
     }
+
+    const data = {
+      farmId: farmId,
+      timeSettingObjects: timeFields.map((time, index) => ({
+        index: index,
+        time: `${time.hour}:${time.minute}:00`
+      }))
+    };
+    setIsLoading(true);
+
+    callApi(
+      () => DashboardRequestApi.timeRequest.setTimeRequest(data),
+      () => {
+        setIsLoading(false);
+        toast.success("Đã thiết lập thời gian thành công!");
+        setErrorMessage('');
+        setIsSetTime(false);
+        onPostSuccess();
+      },
+      (err) => {
+        setIsLoading(false);
+        setErrorMessage(err?.response?.data?.title || 'Đã có lỗi xảy ra, vui lòng thử lại!');
+      }
+    );
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-teal-100 to-gray-100/40 backdrop-blur-sm transition-all duration-300 ease-in-out"
-      onClick={() => setDropdownVisible({ index: null, field: null })}
-    >
-      <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md mx-4 border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-teal-100 to-gray-100/40 backdrop-blur-sm transition-all duration-300 ease-in-out">
+      <div className="relative bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-lg mx-4 border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
         <button
           onClick={() => setIsSetTime(false)}
           className="absolute top-3 right-3 p-1.5 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-all duration-200"
@@ -116,77 +109,56 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
         </button>
 
         <header className="text-2xl sm:text-3xl font-bold text-center text-teal-700 mb-6 tracking-tight">
-          Thiết Lập Thời Gian
+          Thiết Lập Thời Gian Đo
         </header>
 
-        <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-          {/* Thêm div với max-h và overflow-y-auto */}
-          <div className="max-h-64 overflow-y-auto mb-4">
-            {timeFields.map((time, index) => (
-              <div className="flex items-center mb-4 space-x-3" key={index}>
-                <span className="text-sm font-medium text-teal-800 w-32">
-                  Thời gian {index + 1}
-                </span>
-
-                {/* Dropdown giờ */}
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    placeholder="Giờ"
-                    value={time.hour}
-                    onClick={() => toggleDropdown(index, 'hour')}
-                    readOnly
-                    className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  />
-                  {dropdownVisible.index === index && dropdownVisible.field === 'hour' && (
-                    <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
-                      {hourOptions.map((hour) => (
-                        <div
-                          key={hour}
-                          onClick={() => handleTimeChange(index, 'hour', hour)}
-                          className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
-                        >
-                          {hour}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Dropdown phút */}
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    placeholder="Phút"
-                    value={time.minute}
-                    onClick={() => toggleDropdown(index, 'minute')}
-                    readOnly
-                    className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-                  />
-                  {dropdownVisible.index === index && dropdownVisible.field === 'minute' && (
-                    <div className="absolute z-20 mt-1 bg-white border border-teal-200 rounded-lg shadow-lg max-h-40 overflow-y-auto w-full">
-                      {minuteOptions.map((minute) => (
-                        <div
-                          key={minute}
-                          onClick={() => handleTimeChange(index, 'minute', minute)}
-                          className="px-3 py-1.5 text-teal-700 cursor-pointer hover:bg-teal-50 hover:text-teal-900 transition-colors duration-150"
-                        >
-                          {minute}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTimeField(index)}
-                  className="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-all duration-200"
+        <form onSubmit={handleSubmit}>
+          {/* Danh sách thời gian kiểu to-do list */}
+          <div className="max-h-64 overflow-y-auto mb-6 space-y-3">
+            {timeFields.length === 0 ? (
+              <p className="text-center text-gray-500">Chưa có thời gian nào được thiết lập.</p>
+            ) : (
+              timeFields.map((time, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-teal-50 rounded-lg shadow-sm hover:bg-teal-100 transition-all duration-200"
                 >
-                  <FaTrashAlt className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm font-medium text-teal-800">#{index + 1}</span>
+                    <select
+                      value={time.hour}
+                      onChange={(e) => handleTimeChange(index, 'hour', e.target.value)}
+                      className="p-2 border border-teal-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
+                    >
+                      {hourOptions.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-teal-700 font-medium">:</span>
+                    <select
+                      value={time.minute}
+                      onChange={(e) => handleTimeChange(index, 'minute', e.target.value)}
+                      className="p-2 border border-teal-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
+                    >
+                      {minuteOptions.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTimeField(index)}
+                    className="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-200 rounded-full transition-all duration-200"
+                  >
+                    <FaTrashAlt className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
 
           {errorMessage && (
@@ -195,13 +167,14 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
             </p>
           )}
 
-          <div className="flex justify-between items-center mt-6">
+          <div className="flex justify-between items-center">
             <button
               type="button"
               onClick={handleAddTimeField}
-              className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 hover:text-teal-800 transition-all duration-200"
+              className="flex items-center px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 hover:text-teal-800 transition-all duration-200"
             >
-              Thêm Thời Gian
+              <FaPlus className="w-4 h-4 mr-2" />
+              Thêm
             </button>
             <button
               type="submit"

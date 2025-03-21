@@ -125,14 +125,14 @@ function Dashboard() {
           <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
             {/* Card 1: Tổng số ao */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase text-lg font-bold text-teal-800 text-center">Tổng số ao</h1>
-              <span className="text-4xl font-bold text-teal-600">{ponds?.length || 0}</span>
+              <h1 className="uppercase min-w-96 text-lg font-bold text-teal-800 text-center">Tổng số ao</h1>
+              <span className="text-5xl font-bold text-red-500">{ponds?.length || 0}</span>
             </div>
 
             {/* Card 2: Hoạt động */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase text-lg font-bold text-teal-800 text-center">Hoạt động</h1>
-              <span className="text-4xl font-bold text-teal-600">{activePonds}</span>
+              <h1 className="uppercase min-w-96 text-lg font-bold text-teal-800 text-center">Hoạt động</h1>
+              <span className="text-5xl font-bold text-red-500">{activePonds}</span>
             </div>
           </div>
 

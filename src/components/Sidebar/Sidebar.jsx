@@ -167,19 +167,23 @@ function Sidebar({ onMobileMenuToggle }) { // Thêm prop để truyền trạng 
       </aside>
 
       {/* Sidebar trên mobile */}
+    
       <div className="sm:hidden fixed top-0 left-0 w-full bg-gradient-to-b from-teal-600 to-teal-800 z-[2000] shadow-lg">
   <div className="flex items-center justify-between p-4">
-    <img
-      src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
-      className="w-12"
-      alt="Logo"
-    />
-    {expanded && (
-              <div className="flex items-center text-2xl font-semibold tracking-wide">
-                <span className="text-white font-bold">Shrimp</span>
-                <span className="text-black font-bold">Pond</span>
-              </div>
-            )}
+    {/* Đưa logo và chữ ShrimpPond vào cùng một div */}
+    <div className="flex items-center space-x-1"> {/* space-x-1 để giảm khoảng cách */}
+      <img
+        src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
+        className="w-12"
+        alt="Logo"
+      />
+      {expanded && (
+        <div className="flex items-center text-2xl font-semibold tracking-wide">
+          <span className="text-white">Shrimp</span>
+          <span className="text-black font-sans">Pond</span>
+        </div>
+      )}
+    </div>
     <button
       onClick={toggleMobileMenu}
       className="text-white hover:bg-teal-700 p-2 rounded-full transition-colors"
