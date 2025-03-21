@@ -18,7 +18,12 @@ const infoRequestApi = {
     shrimpSizeRequest: {
         createShrimpSizeRequest: async (data) => await axiosClient.post("/Update/Medicine", data),
         createShrimpLossRequest: async (data) => await axiosClient.post("/Update/Medicine", data)
+    },
+    InfoRequest:{
+         getInfo: async (pondId) => await axiosClient.get(`/Info?pondId=${pondId}&pageSize=200&pageNumber=1`)   
     }
+
+
 }
 
 

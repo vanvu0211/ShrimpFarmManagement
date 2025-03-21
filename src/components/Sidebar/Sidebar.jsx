@@ -5,7 +5,7 @@ import { FiLogOut } from 'react-icons/fi';
 import { BsGrid, BsDroplet, BsSearch, BsFileText } from 'react-icons/bs';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleSidebar } from '../../store/sidebarSlice';
-import { FaExchangeAlt, FaLeaf } from 'react-icons/fa';
+import { FaExchangeAlt, FaLeaf, FaInfo } from 'react-icons/fa';
 import { FaShrimp, FaTablets } from "react-icons/fa6";
 import { PiFanDuotone } from "react-icons/pi";
 
@@ -18,6 +18,7 @@ function Sidebar({ onMobileMenuToggle }) { // Thêm prop để truyền trạng 
     { name: "Danh mục thực phẩm", icon: <FaTablets />, lnk: "/food" },
     { name: "Danh mục máy móc", icon: <PiFanDuotone />, lnk: "/machinesmanager" },
     { name: "Thông tin tôm", icon: <FaShrimp />, lnk: "/shrimpmanagement" },
+    { name: "Thông tin ao", icon: <FaInfo />, lnk: "/info" },
     { name: "Truy xuất nguồn gốc", icon: <BsSearch />, lnk: "/access" },
     { name: "Thông tin trang trại", icon: <BsFileText />, lnk: "/farm" },
   ];

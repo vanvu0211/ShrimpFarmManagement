@@ -14,6 +14,7 @@ const paths ={
     farm: "/farm",//
     machinesmanager: "/machinesmanager",//
     shrimpmanagement: "/shrimpmanagement",//
+    info: "/info",//
 }
 
 export default paths

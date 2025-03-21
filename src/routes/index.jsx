@@ -63,6 +63,11 @@ const routes = [
         component: Pages.ShrimpManagement, //dữ liệu
 
     },
+    {
+        path: paths.info, //đường link
+        component: Pages.Info, //dữ liệu
+
+    },
 ]
 
 export default routes
