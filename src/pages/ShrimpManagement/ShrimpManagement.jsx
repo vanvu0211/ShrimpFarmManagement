@@ -32,11 +32,11 @@ const ShrimpManagement = () => {
         <Sidebar />
       </aside>
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 mt-16 sm:mt-0 sm:p-6 lg:p-8">
           {/* <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Quản lý tôm
           </h1> */}
-          <div className="flex flex-col sm:flex-row border-b border-teal-300 max-w-6xl mx-auto bg-white rounded-t-xl shadow-md mb-6">
+          <div className="flex flex-row sm:flex-row border-b border-teal-300 max-w-6xl mx-auto bg-white rounded-t-xl shadow-md mb-6">
             {tabs.map((tab, index) => (
               <button
                 key={index}

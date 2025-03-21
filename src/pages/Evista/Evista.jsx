@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
 import { DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
+import { IoCloseSharp } from "react-icons/io5";
 
 function Evista() {
   const navigate = useNavigate();
@@ -210,11 +211,13 @@ function Evista() {
     const limits = parameterLimits[parameter];
     return limits
       ? {
-          yaxis: [
-            { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
-            { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
-          ],
-        }
+        yaxis: [
+          { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
+          { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
+        ],
+
+
+      }
       : {};
   };
 
@@ -315,7 +318,8 @@ function Evista() {
       <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
       </aside>
-      <div className="flex-1 mt-16 sm:mt-0 flex flex-col">
+
+      <div className="flex-1 mt-16 sm:mt-0  max-h-screen flex flex-col">
         <main
           className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300"
         >
@@ -323,89 +327,99 @@ function Evista() {
             Thông số môi trường
           </h1>
           <div className="max-w-6xl mx-auto  z-10">
-            <form
-              onSubmit={addPond}
-              className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6 hover:shadow-lg transition-all duration-300"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 z-10 gap-4">
-                <div>
-                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
-                    Chọn loại ao
-                  </label>
-                  <select
-                    id="pondTypeId"
-                    value={selectedPondType?.value || ''}
-                    onChange={handlePondTypeChange}
-                    required
-                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-                  >
-                    <option value="">Chọn loại ao</option>
-                    {pondTypes.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
-                    Tên ao
-                  </label>
-                  <select
-                    id="pondId"
-                    value={selectedPond?.value || ''}
-                    onChange={handlePondChange}
-                    required
-                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-                  >
-                    <option value="">Chọn ao</option>
-                    {pondOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
-                    Ngày bắt đầu
-                  </label>
-                  <input
-                    type="date"
-                    id="startDate"
-                    value={formatDateForInput(startDate)}
-                    onChange={handleStartDateChange}
-                    required
-                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
-                    Ngày kết thúc
-                  </label>
-                  <input
-                    type="date"
-                    id="endDate"
-                    value={formatDateForInput(endDate)}
-                    onChange={handleEndDateChange}
-                    required
-                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    type="submit"
-                    className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Đang tải...' : 'Xem dữ liệu'}
-                  </button>
-                </div>
-              </div>
-            </form>
+          <form
+  onSubmit={addPond}
+  className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
+>
+  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+    {/* Combobox 1 */}
+    <div className="sm:col-span-1">
+      <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
+        Chọn loại ao
+      </label>
+      <select
+        id="pondTypeId"
+        value={selectedPondType?.value || ''}
+        onChange={handlePondTypeChange}
+        required
+        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+      >
+        <option value="">Chọn loại ao</option>
+        {pondTypes.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Combobox 2 */}
+    <div className="sm:col-span-1">
+      <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
+        Tên ao
+      </label>
+      <select
+        id="pondId"
+        value={selectedPond?.value || ''}
+        onChange={handlePondChange}
+        required
+        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+      >
+        <option value="">Chọn ao</option>
+        {pondOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Datepicker 1 */}
+    <div className="sm:col-span-1">
+      <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
+        Ngày bắt đầu
+      </label>
+      <input
+        type="date"
+        id="startDate"
+        value={formatDateForInput(startDate)}
+        onChange={handleStartDateChange}
+        required
+        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+      />
+    </div>
+
+    {/* Datepicker 2 */}
+    <div className="sm:col-span-1">
+      <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
+        Ngày kết thúc
+      </label>
+      <input
+        type="date"
+        id="endDate"
+        value={formatDateForInput(endDate)}
+        onChange={handleEndDateChange}
+        required
+        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+      />
+    </div>
+
+    {/* Nút submit */}
+    <div className="sm:col-span-1 flex items-end">
+      <button
+        type="submit"
+        className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
+        disabled={loading}
+      >
+        {loading ? 'Đang tải...' : 'Xem dữ liệu'}
+      </button>
+    </div>
+  </div>
+</form>
             <div
               className="space-y-6 mt-6 overflow-y-auto"
-              style={{ maxHeight: 'calc(100vh - 200px)' }}
+
+              style={{ maxHeight: 'calc(100vh - 31vh)' }}
             >
               {renderCharts()}
             </div>
@@ -415,12 +429,13 @@ function Evista() {
               style={{
                 content: {
                   width: '90%',
-                  maxWidth: '800px',
                   height: '80vh',
-                  margin: 'auto',
+                  maxWidth:'800px',
+                  margin: "auto",
                   borderRadius: '12px',
-                  padding: '24px',
+                  padding: '10px',
                   zIndex: 10,
+                
                 },
                 overlay: { zIndex: 90 },
               }}
@@ -433,7 +448,7 @@ function Evista() {
                   onClick={() => setIsModalOpen(false)}
                   className="p-2 text-teal-500 hover:text-teal-700 transition-colors"
                 >
-                  <FaTrash size={16} />
+                  <IoCloseSharp size={26} />
                 </button>
               </div>
               <Chart

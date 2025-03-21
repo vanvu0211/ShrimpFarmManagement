@@ -76,7 +76,7 @@ const MachinesManager = () => {
       <aside className="h-full">
         <Sidebar />
       </aside>
-      <div className="grow pt-5 overflow-y-auto">
+      <div className="grow mt-16 sm:mt-0 pt-5 overflow-y-auto">
         <main className="p-6 max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Quản lý máy móc ao tôm</h1>
 

@@ -7,6 +7,7 @@ import SetTime from '../../components/SetTime';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 import useCallApi from '../../hooks/useCallApi';
 import { useSelector } from 'react-redux';
+import { IoMdAddCircle } from "react-icons/io";
 import { DashboardRequestApi } from '../../services/api';
 import CreateModal from '../../components/CreateModal';
 import ImageModal from '../../components/ImageModal';
@@ -141,7 +142,7 @@ function Dashboard() {
             <div className="flex-1 flex flex-col items-center justify-center bg-white min-w-0">
               <h1 className="uppercase text-lg font-bold font-sans text-gray-700 text-center">{farmName}</h1>
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-600">Số ngày vận hành: {daysOperated}</p>
+                <p className="text-xl font-medium text-gray-600">Số ngày vận hành: {daysOperated}</p>
                 {needsCleaning ? (
                   <p className="text-red-500 font-semibold text-sm mt-1">Cần vệ sinh cảm biến</p>
                 ) : (
@@ -176,12 +177,12 @@ function Dashboard() {
           })}
         </div>
 
-        <button className="h-10 w-10 right-4 items-center rounded-2xl bottom-5 fixed bg-[#61CBF4]/[.90] flex justify-center">
-          <IoMdAdd
+        <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed  flex justify-center">
+          <IoMdAddCircle
             onClick={() => setIsModal(true)}
-            className="h-12 text-3xl text-black shadow-lg"
+            className="h-12 text-4xl text-black "
           />
-          <div className="flex items-center justify-center text-black font-bold">
+          {/* <div className="flex items-center justify-center text-black font-bold">
             <div
               className={`
                 absolute right-full rounded-md px-2 py-1 ml-6 whitespace-nowrap
@@ -192,7 +193,7 @@ function Dashboard() {
             >
               Tạo khối
             </div>
-          </div>
+          </div> */}
         </button>
 
         {isSetTime && (
