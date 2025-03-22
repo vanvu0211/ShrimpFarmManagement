@@ -321,7 +321,7 @@ function Evista() {
 
       <div className="flex-1 mt-16 sm:mt-0  max-h-screen flex flex-col">
         <main
-          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300"
+          className="flex-1  first-letter: overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300"
         >
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường

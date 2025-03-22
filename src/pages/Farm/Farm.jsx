@@ -119,7 +119,7 @@ function Farm() {
                 <Sidebar />
             </aside>
 
-            <main className="w-full mx-auto mt-16 sm:mt-0 max-w-2xl overflow-y-auto overflow-hidden no-scrollbar  p-4 sm:p-6 lg:p-8 transition-all duration-300">
+            <main className="w-full mx-auto mt-16 sm:mt-0 max-w-6xl overflow-y-auto overflow-hidden no-scrollbar  p-4 sm:p-6 lg:p-8 transition-all duration-300">
                 <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
                     Thông tin trang trại
                 </h1>

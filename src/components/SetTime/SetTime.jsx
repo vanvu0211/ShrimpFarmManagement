@@ -124,7 +124,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
                   className="flex items-center justify-between p-3 bg-teal-50 rounded-lg shadow-sm hover:bg-teal-100 transition-all duration-200"
                 >
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-teal-800">#{index + 1}</span>
+                    <span className="text-sm font-medium text-teal-800">Thời gian {index + 1}</span>
                     <select
                       value={time.hour}
                       onChange={(e) => handleTimeChange(index, 'hour', e.target.value)}
