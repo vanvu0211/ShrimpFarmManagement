@@ -83,7 +83,7 @@ function Sidebar({ onMobileMenuToggle }) { // Thêm prop để truyền trạng 
   return (
     <>
       {/* Sidebar trên desktop */}
-      <aside className={`hidden sm:block h-screen ${expanded ? "w-64" : "w-[120px]"} transition-all duration-300 shadow-lg z-70`}>
+      <aside className={`hidden sm:block h-screen ${expanded ? "w-72" : "w-[120px]"} transition-all duration-300 shadow-lg z-70`}>
         <nav className="h-full flex flex-col bg-gradient-to-b from-teal-600 to-teal-800 border-r">
           <div className="p-2 pl-0 flex justify-between items-center">
             <img

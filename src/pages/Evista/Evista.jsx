@@ -326,96 +326,96 @@ function Evista() {
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường
           </h1>
-          <div className="max-w-6xl mx-auto  z-10">
-          <form
-  onSubmit={addPond}
-  className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
->
-  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-    {/* Combobox 1 */}
-    <div className="sm:col-span-1">
-      <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
-        Chọn loại ao
-      </label>
-      <select
-        id="pondTypeId"
-        value={selectedPondType?.value || ''}
-        onChange={handlePondTypeChange}
-        required
-        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-      >
-        <option value="">Chọn loại ao</option>
-        {pondTypes.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
+          <div className="max-w-8xl mx-auto  z-10">
+            <form
+              onSubmit={addPond}
+              className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                {/* Combobox 1 */}
+                <div className="sm:col-span-1">
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
+                    Chọn loại ao
+                  </label>
+                  <select
+                    id="pondTypeId"
+                    value={selectedPondType?.value || ''}
+                    onChange={handlePondTypeChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  >
+                    <option value="">Chọn loại ao</option>
+                    {pondTypes.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-    {/* Combobox 2 */}
-    <div className="sm:col-span-1">
-      <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
-        Tên ao
-      </label>
-      <select
-        id="pondId"
-        value={selectedPond?.value || ''}
-        onChange={handlePondChange}
-        required
-        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-      >
-        <option value="">Chọn ao</option>
-        {pondOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
+                {/* Combobox 2 */}
+                <div className="sm:col-span-1">
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
+                    Tên ao
+                  </label>
+                  <select
+                    id="pondId"
+                    value={selectedPond?.value || ''}
+                    onChange={handlePondChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  >
+                    <option value="">Chọn ao</option>
+                    {pondOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-    {/* Datepicker 1 */}
-    <div className="sm:col-span-1">
-      <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
-        Ngày bắt đầu
-      </label>
-      <input
-        type="date"
-        id="startDate"
-        value={formatDateForInput(startDate)}
-        onChange={handleStartDateChange}
-        required
-        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-      />
-    </div>
+                {/* Datepicker 1 */}
+                <div className="sm:col-span-1">
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
+                    Ngày bắt đầu
+                  </label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    value={formatDateForInput(startDate)}
+                    onChange={handleStartDateChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  />
+                </div>
 
-    {/* Datepicker 2 */}
-    <div className="sm:col-span-1">
-      <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
-        Ngày kết thúc
-      </label>
-      <input
-        type="date"
-        id="endDate"
-        value={formatDateForInput(endDate)}
-        onChange={handleEndDateChange}
-        required
-        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
-      />
-    </div>
+                {/* Datepicker 2 */}
+                <div className="sm:col-span-1">
+                  <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
+                    Ngày kết thúc
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    value={formatDateForInput(endDate)}
+                    onChange={handleEndDateChange}
+                    required
+                    className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm transition-all duration-200 z-20"
+                  />
+                </div>
 
-    {/* Nút submit */}
-    <div className="sm:col-span-1 flex items-end">
-      <button
-        type="submit"
-        className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
-        disabled={loading}
-      >
-        {loading ? 'Đang tải...' : 'Xem dữ liệu'}
-      </button>
-    </div>
-  </div>
-</form>
+                {/* Nút submit */}
+                <div className="sm:col-span-1 flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Đang tải...' : 'Xem dữ liệu'}
+                  </button>
+                </div>
+              </div>
+            </form>
             <div
               className="space-y-6 mt-6 overflow-y-auto"
 
@@ -430,12 +430,12 @@ function Evista() {
                 content: {
                   width: '90%',
                   height: '80vh',
-                  maxWidth:'800px',
+                  maxWidth: '800px',
                   margin: "auto",
                   borderRadius: '12px',
                   padding: '10px',
                   zIndex: 10,
-                
+
                 },
                 overlay: { zIndex: 90 },
               }}
