@@ -211,10 +211,10 @@ const Info = () => {
                     <strong>Tên ao:</strong> {infoData.pondName}
                   </p>
                   <p>
-                    <strong>Độ sâu:</strong> {infoData.deep} m
+                    <strong>Độ sâu:</strong> {infoData.deep} (m)
                   </p>
                   <p>
-                    <strong>Đường kính:</strong> {infoData.diameter} m
+                    <strong>Đường kính:</strong> {infoData.diameter} (m)
                   </p>
                   <p>
                     <strong>Loại ao:</strong> {infoData.pondTypeName}
@@ -238,7 +238,7 @@ const Info = () => {
                       {infoData.certificates.map((cert, index) => (
                         <li key={index}>
                           {cert.certificateName} -{' '}
-                          <a href={`data:image/jpeg;base64,${cert.fileData}`} download={`${cert.certificateName}.jpg`}>
+                          <a href={`data:image/jpeg;base64,${cert.fileData}`} className='text-blue-700 underline' download={`${cert.certificateName}.jpg`}>
                             Tải xuống
                           </a>
                         </li>
@@ -250,7 +250,7 @@ const Info = () => {
                 {/* Thức ăn */}
                 {infoData.feedingFoods?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-teal-700 mb-2">Thức ăn</h3>
+                    <h3 className="text-lg font-semibold text-teal-700 mb-2">Cho ăn</h3>
                     <table className="w-full text-left">
                       <thead className="bg-teal-600 text-white">
                         <tr>
@@ -275,7 +275,7 @@ const Info = () => {
                 {/* Thuốc */}
                 {infoData.feedingMedicines?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-teal-700 mb-2">Thuốc</h3>
+                    <h3 className="text-lg font-semibold text-teal-700 mb-2">Điều trị</h3>
                     <table className="w-full text-left">
                       <thead className="bg-teal-600 text-white">
                         <tr>
