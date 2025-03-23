@@ -156,7 +156,7 @@ function Dashboard() {
         </div>
 
         {/* Container cho PondSummary */}
-        <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto sm:overflow-hidden no-scrollbar-700 rounded-lg p-4 gap-y-3">
+        <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName
