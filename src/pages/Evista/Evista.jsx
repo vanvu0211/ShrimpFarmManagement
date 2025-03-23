@@ -84,6 +84,8 @@ function Evista() {
     Ph: { min: 7.5, max: 8.5 },
     O2: { min: 3.0, max: 7.0 },
     Temperature: { min: 25, max: 33 },
+    NH3: { min: 0, max: 0.1 },
+    NO2: { min: 0, max: 1.0 },
   };
 
   useEffect(() => {
@@ -152,6 +154,28 @@ function Evista() {
     }
   };
 
+  const fetchNH3NO2Data = async (pondId, pondName) => {
+    setLoading(true);
+    try {
+      const nh3Data = await fetchData('NH3', pondId);
+      const no2Data = await fetchData('NO2', pondId);
+
+      setPondData((prevData) => ({
+        ...prevData,
+        [pondId]: {
+          ...prevData[pondId],
+          NH3: nh3Data,
+          NO2: no2Data,
+        },
+      }));
+      toast.success(`Dữ liệu NH3, NO2 cho ao ${pondName} đã được cập nhật!`);
+    } catch (error) {
+      toast.error(`Không thể tải dữ liệu NH3, NO2 cho ao ${pondId}.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchData = async (parameter, pond) => {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -198,6 +222,15 @@ function Evista() {
     fetchAllParameters(selectedPond.value, selectedPond.label);
   };
 
+  const handleUpdateNH3NO2 = (e) => {
+    e.preventDefault();
+    if (!selectedPond) {
+      toast.warning('Vui lòng chọn một ao!');
+      return;
+    }
+    fetchNH3NO2Data(selectedPond.value, selectedPond.label);
+  };
+
   const deletePond = (pond) => {
     setSelectedPonds(selectedPonds.filter((p) => p.value !== pond.value));
     setPondData((prevData) => {
@@ -211,13 +244,11 @@ function Evista() {
     const limits = parameterLimits[parameter];
     return limits
       ? {
-        yaxis: [
-          { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
-          { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
-        ],
-
-
-      }
+          yaxis: [
+            { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
+            { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
+          ],
+        }
       : {};
   };
 
@@ -259,7 +290,7 @@ function Evista() {
             }));
 
             const formattedParam = param === 'Ph' ? 'pH' : param;
-            const unit = param === 'Temperature' ? '℃' : param === 'O2' ? 'mg/L' : '';
+            const unit = param === 'Temperature' ? '℃' : (param === 'O2' || param === 'NH3' || param === 'NO2') ? 'mg/L' : '';
 
             return (
               <div key={param} className="parameter-chart w-full">
@@ -319,19 +350,17 @@ function Evista() {
         <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
       </aside>
 
-      <div className="flex-1 mt-16 sm:mt-0  max-h-screen flex flex-col">
-        <main
-          className="flex-1  first-letter: overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300"
-        >
+      <div className="flex-1 mt-16 sm:mt-0 max-h-screen flex flex-col">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300">
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường
           </h1>
-          <div className="max-w-8xl mx-auto  z-10">
+          <div className="max-w-8xl mx-auto z-10">
             <form
               onSubmit={addPond}
               className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
                 {/* Combobox 1 */}
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
@@ -414,11 +443,22 @@ function Evista() {
                     {loading ? 'Đang tải...' : 'Xem dữ liệu'}
                   </button>
                 </div>
+
+                {/* Nút cập nhật NH3, NO2 */}
+                <div className="sm:col-span-1 flex items-end">
+                  <button
+                    type="button"
+                    onClick={handleUpdateNH3NO2}
+                    className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Đang tải...' : 'Cập nhật NH3, NO2'}
+                  </button>
+                </div>
               </div>
             </form>
             <div
               className="space-y-6 mt-6 overflow-y-auto"
-
               style={{ maxHeight: 'calc(100vh - 31vh)' }}
             >
               {renderCharts()}
@@ -435,7 +475,6 @@ function Evista() {
                   borderRadius: '12px',
                   padding: '10px',
                   zIndex: 10,
-
                 },
                 overlay: { zIndex: 90 },
               }}
@@ -466,7 +505,7 @@ function Evista() {
                   annotations: getAnnotations(activeChart?.param),
                   yaxis: {
                     title: {
-                      text: activeChart?.param === 'Temperature' ? '℃' : activeChart?.param === 'O2' ? 'mg/L' : '',
+                      text: activeChart?.param === 'Temperature' ? '℃' : (activeChart?.param === 'O2' || activeChart?.param === 'NH3' || activeChart?.param === 'NO2') ? 'mg/L' : '',
                       style: { fontSize: '14px', fontWeight: 600, color: '#475569' },
                     },
                   },

@@ -18,17 +18,6 @@ function Account() {
 
   const isLoginEnabled = username.trim() !== "" && password.trim() !== "";
 
-  // Xóa hoặc comment useEffect
-  /*
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
-    if (token && username) {
-      navigate("/dashboard");
-    }
-  }, [navigate]);
-  */
-
   const handleLogin = useCallback(() => {
     if (!isLoginEnabled) return;
 

@@ -119,7 +119,7 @@ function Dashboard() {
       <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-hidden max-h-screen mb-2">
+      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto  overflow-hidden max-h-screen mb-2">
         {/* Container cho 3 card trên cùng */}
         <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
           {/* Container cho Tổng số ao & Hoạt động trên mobile */}
@@ -156,7 +156,7 @@ function Dashboard() {
         </div>
 
         {/* Container cho PondSummary */}
-        <div className="w-[90%] max-h-[90%] flex-1 overflow-y-auto overflow-hidden no-scrollbar-700 rounded-lg p-4 gap-y-3">
+        <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto sm:overflow-hidden no-scrollbar-700 rounded-lg p-4 gap-y-3">
           {pondTypes.map((pondType) => {
             const filteredPonds = ponds.filter(
               (pond) => pond.pondTypeName === pondType.pondTypeName
