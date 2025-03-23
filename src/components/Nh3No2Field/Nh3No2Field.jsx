@@ -110,7 +110,7 @@ function Nh3No2Field() {
     );
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md">
+        <div className="bg-white p-4 rounded-lg ">
             {/* <h1 className="text-xl font-bold text-teal-700 mb-4">Cập nhật NH3/NO2</h1> */}
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
