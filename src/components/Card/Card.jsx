@@ -151,7 +151,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               <BsDroplet size={16} />
             </button>
             <button
-              className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
+              className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
               onClick={handleInfoClick}
               data-tooltip-id={`info-${pondId}`}
             >
@@ -218,6 +218,13 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               <FaPlay className="inline mr-1" /> Kích hoạt
             </button>
             <button
+              className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+              onClick={handleInfoClick}
+              data-tooltip-id={`info-${pondId}`}
+            >
+              <FaInfo size={16} />
+            </button>
+            <button
               className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
               onClick={() => setIsDeleteCard(true)}
               data-tooltip-id={`delete-${pondId}`}
@@ -225,6 +232,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               <FaTrash size={16} />
             </button>
             <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
+            <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
           </div>
         )}
       </div>
