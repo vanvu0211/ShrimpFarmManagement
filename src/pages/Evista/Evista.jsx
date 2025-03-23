@@ -259,6 +259,7 @@ function Evista() {
           className="flex justify-center items-center py-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+        
         >
           <div className="w-12 h-12 border-4 border-t-4 border-teal-500 border-solid rounded-full animate-spin"></div>
           <p className="ml-4 text-lg text-teal-700">Đang tải dữ liệu...</p>
@@ -271,7 +272,6 @@ function Evista() {
         className="chart-container bg-white rounded-xl shadow-lg p-6 mb-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-teal-700">{pond.label}</h2>
@@ -350,7 +350,7 @@ function Evista() {
         <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
       </aside>
 
-      <div className="flex-1 mt-16 sm:mt-0 max-h-screen flex flex-col">
+      <div className="flex-1 mt-16 sm:mt-0 overflow-y-auto  overflow-hidden max-h-screen flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300">
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường
@@ -458,7 +458,7 @@ function Evista() {
               </div>
             </form>
             <div
-              className="space-y-6 mt-6 overflow-y-auto"
+              className="space-y-6 mt-6  sm:overflow-y-auto"
               style={{ maxHeight: 'calc(100vh - 31vh)' }}
             >
               {renderCharts()}
