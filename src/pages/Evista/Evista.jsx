@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { IoCloseSharp } from "react-icons/io5";
+import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field'; // Import the Nh3No2Field component
 
 function Evista() {
   const navigate = useNavigate();
@@ -58,6 +59,7 @@ function Evista() {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNh3No2ModalOpen, setIsNh3No2ModalOpen] = useState(false); // New state for NH3/NO2 modal
   const [activeChart, setActiveChart] = useState(null);
   const [activePondName, setActivePondName] = useState('');
   const [startDate, setStartDate] = useState(new Date());
@@ -154,28 +156,6 @@ function Evista() {
     }
   };
 
-  const fetchNH3NO2Data = async (pondId, pondName) => {
-    setLoading(true);
-    try {
-      const nh3Data = await fetchData('NH3', pondId);
-      const no2Data = await fetchData('NO2', pondId);
-
-      setPondData((prevData) => ({
-        ...prevData,
-        [pondId]: {
-          ...prevData[pondId],
-          NH3: nh3Data,
-          NO2: no2Data,
-        },
-      }));
-      toast.success(`Dữ liệu NH3, NO2 cho ao ${pondName} đã được cập nhật!`);
-    } catch (error) {
-      toast.error(`Không thể tải dữ liệu NH3, NO2 cho ao ${pondId}.`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchData = async (parameter, pond) => {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -223,12 +203,12 @@ function Evista() {
   };
 
   const handleUpdateNH3NO2 = (e) => {
-    e.preventDefault();
-    if (!selectedPond) {
-      toast.warning('Vui lòng chọn một ao!');
-      return;
-    }
-    fetchNH3NO2Data(selectedPond.value, selectedPond.label);
+    // e.preventDefault();
+    // if (!selectedPond) {
+    //   toast.warning('Vui lòng chọn một ao!');
+    //   return;
+    // }
+    setIsNh3No2ModalOpen(true); // Open the NH3/NO2 modal
   };
 
   const deletePond = (pond) => {
@@ -244,11 +224,11 @@ function Evista() {
     const limits = parameterLimits[parameter];
     return limits
       ? {
-          yaxis: [
-            { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
-            { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
-          ],
-        }
+        yaxis: [
+          { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
+          { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
+        ],
+      }
       : {};
   };
 
@@ -259,7 +239,6 @@ function Evista() {
           className="flex justify-center items-center py-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-        
         >
           <div className="w-12 h-12 border-4 border-t-4 border-teal-500 border-solid rounded-full animate-spin"></div>
           <p className="ml-4 text-lg text-teal-700">Đang tải dữ liệu...</p>
@@ -350,7 +329,7 @@ function Evista() {
         <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
       </aside>
 
-      <div className="flex-1 mt-16 sm:mt-0 overflow-y-auto  overflow-hidden max-h-screen flex flex-col">
+      <div className="flex-1 mt-16 sm:mt-0 overflow-y-auto overflow-hidden max-h-screen flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300">
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8 mx-auto max-w-6xl">
             Thông số môi trường
@@ -458,29 +437,39 @@ function Evista() {
               </div>
             </form>
             <div
-              className="space-y-6 mt-6  sm:overflow-y-auto"
+              className="space-y-6 mt-6 sm:overflow-y-auto"
               style={{ maxHeight: 'calc(100vh - 31vh)' }}
             >
               {renderCharts()}
             </div>
+
+            {/* Modal for Chart Expansion */}
             <Modal
               isOpen={isModalOpen}
               onRequestClose={() => setIsModalOpen(false)}
               style={{
                 content: {
-                  width: '90%',
-                  height: '80vh',
-                  maxWidth: '800px',
-                  margin: "auto",
+                  width: '90%', // Chiếm 90% chiều rộng trên mobile
+                  maxWidth: '880px', // Giới hạn tối đa 600px trên desktop
+                  height: '90% ', // Chiều cao tự động điều chỉnh theo nội dung
+                  maxHeight: '880px', // Giới hạn tối đa 80% chiều cao màn hình
+                  margin: 'auto',
+                  marginTop: '5vh',
+                  zIndex: 100,
+                  background:'white',
                   borderRadius: '12px',
-                  padding: '10px',
-                  zIndex: 10,
+                  padding: '20px',
+                  overflowY: 'auto', // Thêm thanh cuộn nếu nội dung vượt quá
                 },
-                overlay: { zIndex: 90 },
+                overlay: {
+                  zIndex: 95,
+                  backgroundColor: 'rgba(75, 85, 99, 0.7)',
+                },
               }}
+              className="sm:p-4" 
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-teal-700">
+              <div className="flex justify-between items-center bg-white mb-2">
+                <h2 className="text-base sm:text-lg font-semibold text-teal-700 truncat">
                   {activePondName} - {activeChart?.param}
                 </h2>
                 <button
@@ -516,6 +505,46 @@ function Evista() {
                 width="100%"
               />
             </Modal>
+
+           {/* Modal for Nh3No2Field */}
+<Modal
+  isOpen={isNh3No2ModalOpen}
+  onRequestClose={() => setIsNh3No2ModalOpen(false)}
+  style={{
+    content: {
+      width: '90%', // Chiếm 90% chiều rộng trên mobile
+      maxWidth: '600px', // Giới hạn tối đa 600px trên desktop
+      height: 'auto', // Chiều cao tự động điều chỉnh theo nội dung
+      maxHeight: '80vh', // Giới hạn tối đa 80% chiều cao màn hình
+      margin: 'auto',
+      marginTop: '100px',
+      zIndex: 100,
+      background:'white',
+      borderRadius: '12px',
+                  padding: '20px',
+      overflowY: 'auto', // Thêm thanh cuộn nếu nội dung vượt quá
+    },
+    overlay: {
+      zIndex: 95,
+      backgroundColor: 'rgba(75, 85, 99, 0.7)',
+    },
+  }}
+  className="sm:p-4" // Thêm padding bổ sung trên desktop
+>
+  <div className="flex justify-between items-center bg-white mb-2">
+    <h2 className="text-base sm:text-lg font-semibold text-teal-700 truncate">
+      Cập nhật NH3/NO2 - {selectedPond?.label}
+    </h2>
+    <button
+      onClick={() => setIsNh3No2ModalOpen(false)}
+      className="p-1 text-teal-500 hover:text-teal-700 transition-colors"
+    >
+      <IoCloseSharp size={20} />
+    </button>
+  </div>
+  <Nh3No2Field />
+</Modal>
+      
           </div>
         </main>
       </div>
