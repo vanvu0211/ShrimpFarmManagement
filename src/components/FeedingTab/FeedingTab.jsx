@@ -21,7 +21,7 @@ const FeedingTab = () => {
   const [pondTypeFindOptions, setPondTypeFindOptions] = useState([]);
   const [selectedPondType, setSelectedPondType] = useState('');
   const [selectedPond, setSelectedPond] = useState('');
-  const [feedingList, setFeedingList] = useState([{ id: Date.now(), name: '', amount: 0 }]);
+  const [feedingList, setFeedingList] = useState([{ id: Date.now(), name: '', amount: '' }]);
   const [foods, setFoods] = useState([]);
   const [historyData, setHistoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +175,7 @@ const FeedingTab = () => {
           setIsLoading(false);
           toast.success('Thêm lịch cho ăn thành công!');
           setFormData({ pondId: '', feedingDate: '' });
-          setFeedingList([{ id: Date.now(), name: '', amount: 0 }]);
+          setFeedingList([{ id: Date.now(), name: '', amount: '' }]);
           setSelectedPond('');
           setSelectedPondType('');
         },
@@ -329,15 +329,20 @@ const FeedingTab = () => {
                     <div className="w-full sm:w-32">
                       <input
                         type="number"
-                        value={item.amount}
+                        value={item.amount || ''}
                         onChange={(e) => {
+                          const value = e.target.value;
                           const newList = feedingList.map((feeding) =>
-                            feeding.id === item.id ? { ...feeding, amount: Math.max(0, Number(e.target.value)) } : feeding
+                            feeding.id === item.id ? { 
+                              ...feeding, 
+                              amount: value === '' ? '' : Math.max(0, Number(value)) 
+                            } : feeding
                           );
                           setFeedingList(newList);
                         }}
                         placeholder="Khối lượng (kg)"
                         min="0"
+                        step="0.1"
                         className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
                         disabled={isLoading}
                       />
@@ -347,7 +352,7 @@ const FeedingTab = () => {
                     {index === feedingList.length - 1 && (
                       <button
                         type="button"
-                        onClick={() => setFeedingList([...feedingList, { id: Date.now(), name: '', amount: 0 }])}
+                        onClick={() => setFeedingList([...feedingList, { id: Date.now(), name: '', amount: '' }])}
                         className="p-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
                         disabled={isLoading}
                         title="Thêm mục mới"

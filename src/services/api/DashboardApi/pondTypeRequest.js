@@ -15,7 +15,7 @@ const DashboardRequestApi = {
         getPondRequestByFarmId: async (farmId) => await axiosClient.get( `Pond?farmId=${farmId}&pageSize=200&pageNumber=1`),
         getPondRequestByPondType: async (pondTypeName = "") => await axiosClient.get(`/Pond?pondTypeName=${pondTypeName}&pageSize=200&pageNumber=1`),
         getPondRequestByPondTypeIdAndFarmId: async (pondTypeId,farmId,status ="") => await axiosClient.get(`/Pond?farmId=${farmId}&pondStatus=${status}&pondTypeId=${pondTypeId}&pageSize=200&pageNumber=1`),
-        getPondRequestById: async (id ="", pondTypeName = "") => await axiosClient.get(`/Pond?pondId=${id}&pondTypeName=${pondTypeName}&pageSize=200&pageNumber=1`),
+        getPondRequestById: async (id ="", farmId) => await axiosClient.get(`/Pond?pondId=${id}&farmId=${farmId}&pageSize=200&pageNumber=1`),
         getPondRequestByStatus: async (farmId, status ="") => await axiosClient.get(`Pond?farmId=${farmId}&pondStatus=${status}&pageSize=200&pageNumber=1`),
         getPondRequestByUsernameAndFarmName: async (username, farmName) => await axiosClient.get(`/Pond/GetPondAd?userName=${username}&farmName=${farmName}`),
         

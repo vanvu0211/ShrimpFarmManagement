@@ -19,7 +19,7 @@ const TreatmentTab = () => {
   const [pondTypeFindOptions, setPondTypeFindOptions] = useState([]);
   const [selectedPondType, setSelectedPondType] = useState('');
   const [selectedPond, setSelectedPond] = useState('');
-  const [treatmentList, setTreatmentList] = useState([{ id: Date.now(), name: '', amount: 0 }]);
+  const [treatmentList, setTreatmentList] = useState([{ id: Date.now(), name: '', amount: '' }]);
   const [medicines, setMedicines] = useState([]);
   const [historyData, setHistoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -149,7 +149,7 @@ const TreatmentTab = () => {
           setIsLoading(false);
           toast.success('Thêm lịch xử lý thuốc thành công!');
           setFormData({ pondId: '', treatmentDate: '' });
-          setTreatmentList([{ id: Date.now(), name: '', amount: 0 }]);
+          setTreatmentList([{ id: Date.now(), name: '', amount: '' }]);
           setSelectedPond('');
           setSelectedPondType('');
         },
@@ -263,57 +263,61 @@ const TreatmentTab = () => {
               {treatmentList.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 bg-teal-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 animate-fade-in"
+                  className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-teal-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 animate-fade-in"
                 >
                   <div className="w-10 flex-shrink-0">
                     <span className="flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full text-sm font-medium">
                       {index + 1}
                     </span>
                   </div>
-                
                   <div className="flex flex-col sm:flex-row gap-4 w-full">
-                  <div className="flex-1 min-w-0">
-                    <select
-                      value={item.name}
-                      onChange={(e) => {
-                        const newList = treatmentList.map((treatment) =>
-                          treatment.id === item.id ? { ...treatment, name: e.target.value } : treatment
-                        );
-                        setTreatmentList(newList);
-                      }}
-                      className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
-                      disabled={isLoading}
-                    >
-                      <option value="">Chọn thuốc</option>
-                      {medicines.map((medicine) => (
-                        <option key={medicine.medicineId} value={medicine.name}>
-                          {medicine.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1 min-w-0">
+                      <select
+                        value={item.name}
+                        onChange={(e) => {
+                          const newList = treatmentList.map((treatment) =>
+                            treatment.id === item.id ? { ...treatment, name: e.target.value } : treatment
+                          );
+                          setTreatmentList(newList);
+                        }}
+                        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
+                        disabled={isLoading}
+                      >
+                        <option value="">Chọn thuốc</option>
+                        {medicines.map((medicine) => (
+                          <option key={medicine.medicineId} value={medicine.name}>
+                            {medicine.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-full sm:w-32">
+                      <input
+                        type="number"
+                        value={item.amount || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const newList = treatmentList.map((treatment) =>
+                            treatment.id === item.id ? { 
+                              ...treatment, 
+                              amount: value === '' ? '' : Math.max(0, Number(value)) 
+                            } : treatment
+                          );
+                          setTreatmentList(newList);
+                        }}
+                        placeholder="Khối lượng (kg)"
+                        min="0"
+                        step="0.1"
+                        className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
-                  <div className="w-32">
-                    <input
-                      type="number"
-                      value={item.amount}
-                      onChange={(e) => {
-                        const newList = treatmentList.map((treatment) =>
-                          treatment.id === item.id ? { ...treatment, amount: Math.max(0, Number(e.target.value)) } : treatment
-                        );
-                        setTreatmentList(newList);
-                      }}
-                      placeholder="Khối lượng (kg)"
-                      min="0"
-                      className="w-full p-3 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-sm disabled:opacity-50"
-                      disabled={isLoading}
-                    />
-                  </div>
-                  </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 self-end sm:self-center">
                     {index === treatmentList.length - 1 && (
                       <button
                         type="button"
-                        onClick={() => setTreatmentList([...treatmentList, { id: Date.now(), name: '', amount: 0 }])}
+                        onClick={() => setTreatmentList([...treatmentList, { id: Date.now(), name: '', amount: '' }])}
                         className="p-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
                         disabled={isLoading}
                         title="Thêm mục mới"

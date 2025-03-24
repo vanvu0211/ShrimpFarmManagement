@@ -16,6 +16,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const [harvestTime, setHarvestTime] = useState(0);
   const [daysSinceStart, setDaysSinceStart] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const farmId = Number(localStorage.getItem('farmId'));
 
   const navigate = useNavigate();
   const callApi = useCallApi();
@@ -30,24 +31,32 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   }, [callApi, pondId]);
 
   const fetchData = useCallback(() => {
-    callApi(
-      [DashboardRequestApi.pondRequest.getPondRequestById(pondId)],
-      (res) => {
-        const startDate = new Date(res[0][0].startDate);
-        if (!isNaN(startDate)) {
-          const currentDate = new Date();
-          const timeDifference = currentDate - startDate;
-          const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-          setDaysSinceStart(daysDifference);
-        } else {
-          setDaysSinceStart(0);
-        }
-      },
-      (err) => {
-        console.error('Error fetching pond data:', err.response?.data?.title || 'Unknown error');
+    callApi([
+      DashboardRequestApi.pondRequest.getPondRequestById(pondId,farmId),
+    ], 
+    (res) => {
+      const startDate = new Date(res[0][0].startDate); // Truy cập đến startDate trong phần tử đầu tiên
+      if (!isNaN(startDate)) { // Kiểm tra nếu startDate hợp lệ
+        const currentDate = new Date();
+        const timeDifference = currentDate - startDate;
+        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        console.log(pondId +  "--- "+ daysDifference);
+        setDaysSinceStart(daysDifference); // Lưu số ngày vào state
+      } else {
+        setDaysSinceStart(0); // Hoặc giá trị mặc định nào đó
       }
+    },
+    (err) => {
+      setIsLoading(false);
+      // Kiểm tra và hiển thị lỗi chi tiết từ phản hồi API
+      if (err.response && err.response.data && err.response.data.title) {
+          setErrorMessage(err.response.data.title);
+      } else {
+          setErrorMessage('Đã có lỗi xảy ra, vui lòng thử lại!');
+      }
+  }
     );
-  }, [callApi, pondId]);
+  }, [callApi, pondId, farmId]);
 
   useEffect(() => {
     harvestData();
@@ -66,15 +75,13 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
   const handleShrimpClick = () => {
     navigate('/shrimpmanagement', { state: { pondId, pondTypeId } });
-    console.log(pondTypeId);
     setIsMenuOpen(false);
   };
+
   const handleInfoClick = () => {
     navigate('/info', { state: { pondId, pondTypeId } });
-    console.log(pondTypeId);
     setIsMenuOpen(false);
   };
-  
 
   const handleWaterClick = () => {
     setIsMenuOpen(false);
@@ -92,17 +99,12 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
   return (
     <motion.div
-  className="w-60 bg-white rounded-xl  shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5 }}
->
-      {/* Header */}
-      <div
-        className={`flex justify-between items-center z-0 p-3 ${
-          status ? 'bg-blue-500' : 'bg-gray-400'
-        }`}
-      >
+      className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className={`flex justify-between items-center z-0 p-3 ${status ? 'bg-blue-500' : 'bg-gray-400'}`}>
         <h1 className="text-white text-xl font-bold">{pondName}</h1>
         <div className="text-white text-right">
           <p className="text-lg font-semibold">{daysSinceStart} ngày</p>
@@ -110,37 +112,23 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
         </div>
       </div>
 
-      {/* Body */}
       <div className="p-3">
         <div className="grid grid-cols-2 gap-2">
-          <div
-            className={`text-center py-2 text-sm font-medium ${
-              status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'
-            } rounded-md`}
-          >
+          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
             L2
           </div>
-          <div
-            className={`text-center py-2 text-sm font-medium ${
-              status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'
-            } rounded-md`}
-          >
+          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
             QB2
           </div>
         </div>
         <div className="mt-2">
-          <div
-            className={`text-center py-2 text-sm font-medium ${
-              status ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
-            } rounded-md`}
-          >
+          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
             L2
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex justify-between items-center p-3 border-t bg-gray-50 ">
+      <div className="flex justify-between items-center p-3 border-t bg-gray-50">
         {status ? (
           <div className="flex space-x-2 mx-auto">
             <button
@@ -164,8 +152,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
             >
               <FaTrash size={16} />
             </button>
-            
-            <div className="relative">
+            <div className="relative z-10">
               <button
                 className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
                 onClick={toggleMenu}
@@ -173,8 +160,6 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               >
                 <FaEllipsisV size={16} />
               </button>
-
-              {/* Menu Dropdown */}
               {isMenuOpen && (
                 <motion.div
                   className="absolute right-0 bottom-14 mt-2 bg-white shadow-lg rounded-md p-2 z-0 border w-48"
@@ -196,7 +181,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
                     <FaExchangeAlt className="mr-2" size={16} /> Chuyển ao
                   </button>
                   <button
-                    className="flex items-center w-full text-left px-3  py-2 hover:bg-gray-100 rounded-md"
+                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
                     onClick={handleShrimpClick}
                   >
                     <FaShrimp className="mr-2" size={16} /> Thông tin tôm
@@ -207,13 +192,13 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
             <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
             <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thông số môi trường" />
             <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
-            {/* <ReactTooltip id={`more-${pondId}`} place="top" content="Mở rộng" /> */}
           </div>
         ) : (
           <div className="flex space-x-2 w-full">
             <button
               className="flex-1 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-semibold"
               onClick={() => setIsActiveModal(true)}
+            
             >
               <FaPlay className="inline mr-1" /> Kích hoạt
             </button>
@@ -237,7 +222,6 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
         )}
       </div>
 
-      {/* Modals */}
       {isDeleteCard && (
         <DeleteCard
           pondId={pondId}
