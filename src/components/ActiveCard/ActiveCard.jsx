@@ -76,18 +76,19 @@ function ActiveCard({ pondId, setIsActiveModal, onDeleteCardSuccess }) {
     const maxSizeBeforeCompression = 500 * 1024; // 500KB
     if (file.size > maxSizeBeforeCompression) {
       try {
-        // Cấu hình nén ảnh xuống khoảng 500KB
+        // Cấu hình nén ảnh xuống khoảng 300KB
         const options = {
-          maxSizeMB: 0.5, // Giới hạn kích thước tối đa sau nén là 500KB (0.5MB)
-          maxWidthOrHeight: 1280, // Giảm độ phân giải tối đa để đạt kích thước mong muốn
+          maxSizeMB: 0.3, // Giới hạn kích thước tối đa sau nén là 300KB (0.3MB)
+          maxWidthOrHeight: 1920, // Giữ độ phân giải cao để chất lượng không giảm quá nhiều
           useWebWorker: true, // Tăng hiệu suất bằng web worker
+          initialQuality: 0.9, // Chất lượng ban đầu cao (0-1), giảm nếu cần
         };
 
         const compressedFile = await imageCompression(file, options);
         const reader = new FileReader();
         reader.onloadend = () => {
           setCertificates([reader.result.split(',')[1]]);
-          toast.success(`Ảnh đã được nén thành công xuống ~500KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
+          toast.success(`Ảnh đã được nén thành công xuống ~300KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
@@ -219,7 +220,7 @@ function ActiveCard({ pondId, setIsActiveModal, onDeleteCardSuccess }) {
               accept="image/jpeg,image/png" // Chỉ chấp nhận ảnh
             />
             <p className="text-gray-600 text-sm mt-1">
-              Ảnh lớn hơn 500KB sẽ được nén xuống ~500KB. Định dạng: JPEG, PNG.
+              Ảnh lớn hơn 500KB sẽ được nén xuống ~300KB. Định dạng: JPEG, PNG.
             </p>
           </div>
 
