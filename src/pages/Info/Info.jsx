@@ -20,6 +20,7 @@ const Info = () => {
   const [infoData, setInfoData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Lấy danh sách loại ao
   const fetchPondTypes = useCallback(() => {
@@ -57,8 +58,8 @@ const Info = () => {
   }, [callApi, selectedPondType, farmId]);
 
   // Lấy thông tin chi tiết ao với loading theo %
-  const fetchPondInfo = useCallback(() => {
-    if (!formData.pondId) {
+  const fetchPondInfo = useCallback((pondId) => {
+    if (!pondId) {
       return;
     }
 
@@ -75,7 +76,7 @@ const Info = () => {
     }, 200);
 
     callApi(
-      [infoRequestApi.InfoRequest.getInfo(formData.pondId)],
+      [infoRequestApi.InfoRequest.getInfo(pondId)],
       (res) => {
         clearInterval(progressInterval);
         setLoadingProgress(100);
@@ -94,7 +95,7 @@ const Info = () => {
         }, 300);
       }
     );
-  }, [callApi, formData.pondId]);
+  }, [callApi]);
 
   // Lấy danh sách ao dựa trên pondTypeId và chọn pondId ban đầu
   const fetchPondsForPondType = useCallback(
@@ -111,8 +112,8 @@ const Info = () => {
           const selectedPondOption = options.find((option) => option.value === initialPondId);
           if (selectedPondOption) {
             setSelectedPond(selectedPondOption.value);
-            setFormData((prev) => ({ ...prev, pondId: selectedPondOption.value }));
-            fetchPondInfo();
+            setFormData({ pondId: selectedPondOption.value });
+            fetchPondInfo(selectedPondOption.value); // Gọi trực tiếp với pondId
           }
         },
         null,
@@ -122,26 +123,24 @@ const Info = () => {
     [callApi, farmId, fetchPondInfo]
   );
 
-  // Xử lý khi có location.state
+  // Khởi tạo ban đầu từ location.state và tự động fetch info
   useEffect(() => {
     fetchPondTypes();
-  }, [fetchPondTypes]);
-
-  useEffect(() => {
-    if (location.state?.pondId && location.state?.pondTypeId && pondTypeOptions.length > 0) {
+    if (location.state?.pondId && location.state?.pondTypeId && isInitialLoad) {
       const { pondId, pondTypeId } = location.state;
       setSelectedPondType(pondTypeId);
-      setFormData((prev) => ({ ...prev, pondId }));
+      setFormData({ pondId });
       fetchPondsForPondType(pondTypeId, pondId);
+      setIsInitialLoad(false);
     }
-  }, [location.state, pondTypeOptions, fetchPondsForPondType]);
+  }, [fetchPondTypes, location.state, fetchPondsForPondType, isInitialLoad]);
 
   // Tải danh sách ao khi loại ao thay đổi
   useEffect(() => {
-    if (selectedPondType && !location.state) {
+    if (selectedPondType && !isInitialLoad) {
       fetchPonds();
     }
-  }, [selectedPondType, fetchPonds, location.state]);
+  }, [selectedPondType, fetchPonds, isInitialLoad]);
 
   // Xử lý thay đổi loại ao
   const handlePondTypeChange = useCallback((e) => {
@@ -150,6 +149,7 @@ const Info = () => {
     setSelectedPond('');
     setFormData({ pondId: '' });
     setInfoData(null);
+    setPondOptions([]);
   }, []);
 
   // Xử lý thay đổi ao
@@ -159,6 +159,11 @@ const Info = () => {
     setFormData({ pondId: value });
     setInfoData(null);
   }, []);
+
+  // Gọi fetchPondInfo khi nhấn nút
+  const handleFetchPondInfo = () => {
+    fetchPondInfo(formData.pondId);
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
@@ -210,7 +215,7 @@ const Info = () => {
               </div>
             </div>
             <button
-              onClick={fetchPondInfo}
+              onClick={handleFetchPondInfo}
               className={`w-full px-6 py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300 ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-teal-700 hover:shadow-lg'
               }`}
