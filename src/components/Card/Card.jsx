@@ -165,7 +165,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               <FaTrash size={16} />
             </button>
             
-            <div className="relative">
+            <div className="">
               <button
                 className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
                 onClick={toggleMenu}
