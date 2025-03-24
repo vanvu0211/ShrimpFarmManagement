@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loading from '../../components/Loading';
 import { useLocation } from 'react-router-dom';
+import imageCompression from 'browser-image-compression';
 
 function Harvest() {
     const [formData, setFormData] = useState({
@@ -94,13 +95,50 @@ function Harvest() {
         }
     }, []);
 
-    // Handle file upload
-    const handleFileChange = useCallback((e) => {
+    // Handle file upload với kiểm tra và nén ảnh
+    const handleFileChange = useCallback(async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onloadend = () => setCertificates([reader.result.split(',')[1]]);
-        reader.readAsDataURL(file);
+
+        // Kiểm tra loại file (chỉ chấp nhận ảnh)
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Chỉ chấp nhận file ảnh (JPEG, PNG)!');
+            e.target.value = '';
+            return;
+        }
+
+        // Kiểm tra kích thước file (500KB = 500 * 1024 bytes)
+        const maxSizeBeforeCompression = 500 * 1024; // 500KB
+        if (file.size > maxSizeBeforeCompression) {
+            try {
+                // Cấu hình nén ảnh xuống khoảng 500KB
+                const options = {
+                    maxSizeMB: 0.5, // Giới hạn kích thước tối đa sau nén là 500KB (0.5MB)
+                    maxWidthOrHeight: 1280, // Giảm độ phân giải tối đa để đạt kích thước mong muốn
+                    useWebWorker: true, // Tăng hiệu suất bằng web worker
+                };
+
+                const compressedFile = await imageCompression(file, options);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setCertificates([reader.result.split(',')[1]]);
+                    toast.success(`Ảnh đã được nén thành công xuống ~500KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
+                };
+                reader.readAsDataURL(compressedFile);
+            } catch (error) {
+                toast.error('Lỗi khi nén ảnh: ' + error.message);
+                e.target.value = '';
+            }
+        } else {
+            // Nếu ảnh nhỏ hơn 500KB, không nén
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCertificates([reader.result.split(',')[1]]);
+                toast.success('Ảnh đã được chọn thành công!');
+            };
+            reader.readAsDataURL(file);
+        }
     }, []);
 
     // Form validation
@@ -162,17 +200,16 @@ function Harvest() {
     return (
         <div className="flex max-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
             {/* Sidebar */}
-            <aside  >
+            <aside>
                 <Sidebar />
             </aside>
 
-            <main className= "w-full mt-16 sm:mt-0 mx-auto max-w-6xl overflow-y-auto overflow-hidden no-scrollbar   p-4 sm:p-6 lg:p-8 transition-all duration-300">
+            <main className="w-full mt-16 sm:mt-0 mx-auto max-w-6xl overflow-y-auto overflow-hidden no-scrollbar p-4 sm:p-6 lg:p-8 transition-all duration-300">
                 <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
                     Thu hoạch
                 </h1>
 
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="mb-4 sm:mb-6">
                             <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
@@ -214,7 +251,6 @@ function Harvest() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-
                         <div className="mb-4 sm:mb-6">
                             <label className="block text-teal-800 font-semibold mb-2" htmlFor="harvestTime">
                                 Lần thu hoạch
@@ -239,9 +275,9 @@ function Harvest() {
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                             />
                             {/* <IoCalendar
-                            className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-500 cursor-pointer hover:text-teal-700 transition-all duration-200"
-                            onClick={handleCalendarClick}
-                        /> */}
+                                className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-500 cursor-pointer hover:text-teal-700 transition-all duration-200"
+                                onClick={handleCalendarClick}
+                            /> */}
                         </div>
                     </div>
 
@@ -277,7 +313,6 @@ function Harvest() {
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                             />
                         </div>
-
                     </div>
 
                     <div className="mb-4 sm:mb-6">
@@ -289,8 +324,12 @@ function Harvest() {
                             id="certificates"
                             onChange={handleFileChange}
                             disabled={isLoading}
+                            accept="image/jpeg,image/png" // Chỉ chấp nhận ảnh
                             className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700"
                         />
+                        <p className="text-gray-600 text-sm mt-1">
+                            Ảnh lớn hơn 500KB sẽ được nén xuống ~500KB. Định dạng: JPEG, PNG.
+                        </p>
                     </div>
 
                     {errorMessage && (

@@ -7,8 +7,10 @@ import InputField from '../InputField';
 import FileInputField from '../FileInputField';
 import SelectField from '../SelectField';
 import PropTypes from 'prop-types';
+import imageCompression from 'browser-image-compression';
+import { toast } from 'react-toastify';
 
-const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
+function ActiveCard({ pondId, setIsActiveModal, onDeleteCardSuccess }) {
   const [formData, setFormData] = useState({
     seedId: '',
     seedName: '',
@@ -26,7 +28,7 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
   // Fetch pond options
   useEffect(() => {
     callApi(
-      [DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId,1)],
+      [DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1)],
       (res) => {
         const ponds = res[0];
         const options = ponds
@@ -57,62 +59,95 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
     }
   }, []);
 
-  // Handle file upload
-  const handleFileChange = useCallback((e) => {
+  // Handle file upload với kiểm tra và nén ảnh
+  const handleFileChange = useCallback(async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setCertificates([reader.result.split(',')[1]]);
-    };
-    reader.readAsDataURL(file);
+    // Kiểm tra loại file (chỉ chấp nhận ảnh)
+    const allowedTypes = ['image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Chỉ chấp nhận file ảnh (JPEG, PNG)!');
+      e.target.value = '';
+      return;
+    }
+
+    // Kiểm tra kích thước file (500KB = 500 * 1024 bytes)
+    const maxSizeBeforeCompression = 500 * 1024; // 500KB
+    if (file.size > maxSizeBeforeCompression) {
+      try {
+        // Cấu hình nén ảnh xuống khoảng 500KB
+        const options = {
+          maxSizeMB: 0.5, // Giới hạn kích thước tối đa sau nén là 500KB (0.5MB)
+          maxWidthOrHeight: 1280, // Giảm độ phân giải tối đa để đạt kích thước mong muốn
+          useWebWorker: true, // Tăng hiệu suất bằng web worker
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setCertificates([reader.result.split(',')[1]]);
+          toast.success(`Ảnh đã được nén thành công xuống ~500KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        toast.error('Lỗi khi nén ảnh: ' + error.message);
+        e.target.value = '';
+      }
+    } else {
+      // Nếu ảnh nhỏ hơn 500KB, không nén
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCertificates([reader.result.split(',')[1]]);
+        toast.success('Ảnh đã được chọn thành công!');
+      };
+      reader.readAsDataURL(file);
+    }
   }, []);
 
   // Form validation
   const isFormValid = useCallback(() => {
-    const { seedId, seedName, sizeShrimp, amountShrimp } = formData;
-    return (
-      seedId.trim() &&
-      seedName.trim() 
-      
-    );
+    const { seedId, seedName } = formData;
+    return seedId.trim() && seedName.trim();
   }, [formData]);
 
   // Handle form submission
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
 
-    if (!isFormValid()) {
-      setErrorMessage('Vui lòng điền đầy đủ và đúng định dạng các trường!');
-      return;
-    }
-
-    setIsLoading(true);
-    const submitData = {
-      pondId: pondId,
-      seedId: formData.seedId.trim(),
-      seedName: formData.seedName.trim(),
-      originPondId: formData.originPondId || '',
-      certificates,
-      sizeShrimp: parseFloat(formData.sizeShrimp),
-      amountShrimp: parseFloat(formData.amountShrimp),
-    };
-
-    callApi(
-      [DashboardRequestApi.pondRequest.updatePondRequest(submitData)],
-      () => {
-        onDeleteCardSuccess();
-        setIsActiveModal(false);
-      },
-      'Kích hoạt ao thành công!',
-      (err) => {
-        setIsLoading(false);
-        setErrorMessage(err?.message || 'Đã xảy ra lỗi, vui lòng thử lại!');
-        console.error('Activation Error:', err);
+      if (!isFormValid()) {
+        setErrorMessage('Vui lòng điền đầy đủ và đúng định dạng các trường!');
+        return;
       }
-    );
-  }, [formData, certificates, pondId, callApi, onDeleteCardSuccess, setIsActiveModal, isFormValid]);
+
+      setIsLoading(true);
+      const submitData = {
+        pondId: pondId,
+        seedId: formData.seedId.trim(),
+        seedName: formData.seedName.trim(),
+        originPondId: formData.originPondId || '',
+        certificates,
+        sizeShrimp: parseFloat(formData.sizeShrimp),
+        amountShrimp: parseFloat(formData.amountShrimp),
+      };
+
+      callApi(
+        [DashboardRequestApi.pondRequest.updatePondRequest(submitData)],
+        () => {
+          onDeleteCardSuccess();
+          setIsActiveModal(false);
+        },
+        'Kích hoạt ao thành công!',
+        (err) => {
+          setIsLoading(false);
+          setErrorMessage(err?.message || 'Đã xảy ra lỗi, vui lòng thử lại!');
+          console.error('Activation Error:', err);
+        }
+      );
+    },
+    [formData, certificates, pondId, callApi, onDeleteCardSuccess, setIsActiveModal, isFormValid]
+  );
 
   // Handle modal close
   const handleClose = useCallback(() => {
@@ -175,12 +210,18 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
             disabled={isLoading || pondOptions.length === 0}
           />
 
-          <FileInputField
-            label="Giấy chứng nhận"
-            id="certificates"
-            onChange={handleFileChange}
-            disabled={isLoading}
-          />
+          <div>
+            <FileInputField
+              label="Giấy chứng nhận"
+              id="certificates"
+              onChange={handleFileChange}
+              disabled={isLoading}
+              accept="image/jpeg,image/png" // Chỉ chấp nhận ảnh
+            />
+            <p className="text-gray-600 text-sm mt-1">
+              Ảnh lớn hơn 500KB sẽ được nén xuống ~500KB. Định dạng: JPEG, PNG.
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <InputField
@@ -244,7 +285,7 @@ const ActiveCard = ({ pondId, setIsActiveModal, onDeleteCardSuccess }) => {
       </div>
     </div>
   );
-};
+}
 
 ActiveCard.propTypes = {
   pondId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

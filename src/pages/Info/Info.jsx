@@ -137,10 +137,10 @@ const Info = () => {
 
   // Tải danh sách ao khi loại ao thay đổi
   useEffect(() => {
-    if (selectedPondType && !isInitialLoad) {
+    if (selectedPondType ) {
       fetchPonds();
     }
-  }, [selectedPondType, fetchPonds, isInitialLoad]);
+  }, [selectedPondType, fetchPonds]);
 
   // Xử lý thay đổi loại ao
   const handlePondTypeChange = useCallback((e) => {
