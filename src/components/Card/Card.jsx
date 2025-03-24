@@ -165,7 +165,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               <FaTrash size={16} />
             </button>
             
-            <div className="">
+            <div className="relative">
               <button
                 className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
                 onClick={toggleMenu}
@@ -207,7 +207,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
             <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
             <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thông số môi trường" />
             <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
-            {/* <ReactTooltip id={`more-${pondId}`} place="top" content="Mở rộng" /> */}
+            <ReactTooltip id={`more-${pondId}`} place="top" content="Mở rộng" />
           </div>
         ) : (
           <div className="flex space-x-2 w-full">
