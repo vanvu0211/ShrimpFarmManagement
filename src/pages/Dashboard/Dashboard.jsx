@@ -25,7 +25,7 @@ function Dashboard() {
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Bắt đầu với true
 
   const [showImage, setShowImage] = useState(false);
   const [activePonds, setActivePonds] = useState(0);
@@ -44,8 +44,11 @@ function Dashboard() {
   const fetchData = useCallback(() => {
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
       toast.error('Vui lòng chọn trang trại!');
+      setIsLoading(false); // Đặt false nếu không gọi API
       return;
     }
+
+    setIsLoading(true); // Bắt đầu loading khi gọi API
 
     callApi(
       [
@@ -69,10 +72,13 @@ function Dashboard() {
         } else {
           setNeedsCleaning(false);
         }
+
+        setIsLoading(false); // Kết thúc loading khi dữ liệu đã được cập nhật
       },
       (err) => {
         toast.error('Không thể tải dữ liệu từ API!');
         console.error(err);
+        setIsLoading(false); // Kết thúc loading nếu có lỗi
       }
     );
   }, [callApi, farmId]);
@@ -80,13 +86,6 @@ function Dashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 200);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleSelected = (pondTypeId, pondTypeName) => {
     setselectedPondTypeId(pondTypeId);
@@ -119,7 +118,7 @@ function Dashboard() {
       <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto  overflow-hidden max-h-screen mb-2">
+      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
         {/* Container cho 3 card trên cùng */}
         <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
           {/* Container cho Tổng số ao & Hoạt động trên mobile */}
@@ -177,23 +176,11 @@ function Dashboard() {
           })}
         </div>
 
-        <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed  flex justify-center">
+        <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
           <IoMdAddCircle
             onClick={() => setIsModal(true)}
-            className="h-12 text-4xl text-black "
+            className="h-12 text-4xl text-black"
           />
-          {/* <div className="flex items-center justify-center text-black font-bold">
-            <div
-              className={`
-                absolute right-full rounded-md px-2 py-1 ml-6 whitespace-nowrap
-                bg-indigo-100 text-indigo-800
-                invisible opacity-20 -translate-x-3 transition-all
-                group-hover:visible group-hover:opacity-100 group-hover:translate-x-0 group-hover:z-50
-              `}
-            >
-              Tạo khối
-            </div>
-          </div> */}
         </button>
 
         {isSetTime && (
