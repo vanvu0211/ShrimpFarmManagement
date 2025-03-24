@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'; // Thêm useLocation
+import { useLocation } from 'react-router-dom';
 import { DashboardRequestApi, infoRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { ToastContainer, toast } from 'react-toastify';
@@ -10,7 +10,7 @@ import Sidebar from '../../components/Sidebar';
 const Info = () => {
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
-  const location = useLocation(); // Sử dụng useLocation để lấy location
+  const location = useLocation();
 
   const [formData, setFormData] = useState({ pondId: '' });
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
@@ -19,6 +19,7 @@ const Info = () => {
   const [selectedPond, setSelectedPond] = useState('');
   const [infoData, setInfoData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   // Lấy danh sách loại ao
   const fetchPondTypes = useCallback(() => {
@@ -55,24 +56,42 @@ const Info = () => {
     );
   }, [callApi, selectedPondType, farmId]);
 
-  // Lấy thông tin chi tiết ao
+  // Lấy thông tin chi tiết ao với loading theo %
   const fetchPondInfo = useCallback(() => {
     if (!formData.pondId) {
-      // toast.error('Vui lòng chọn ao!');
       return;
     }
 
     setIsLoading(true);
+    setLoadingProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setLoadingProgress((prev) => {
+        if (prev >= 90) {
+          return prev;
+        }
+        return prev + 10;
+      });
+    }, 200);
+
     callApi(
       [infoRequestApi.InfoRequest.getInfo(formData.pondId)],
       (res) => {
-        setIsLoading(false);
-        setInfoData(res[0]); // Giả định response trả về là một object như trong document
+        clearInterval(progressInterval);
+        setLoadingProgress(100);
+        setTimeout(() => {
+          setIsLoading(false);
+          setInfoData(res[0]);
+        }, 300);
       },
       (err) => {
-        setIsLoading(false);
-        toast.error('Không tìm thấy thông tin!');
-        setInfoData(null);
+        clearInterval(progressInterval);
+        setLoadingProgress(100);
+        setTimeout(() => {
+          setIsLoading(false);
+          toast.error('Không tìm thấy thông tin!');
+          setInfoData(null);
+        }, 300);
       }
     );
   }, [callApi, formData.pondId]);
@@ -93,7 +112,7 @@ const Info = () => {
           if (selectedPondOption) {
             setSelectedPond(selectedPondOption.value);
             setFormData((prev) => ({ ...prev, pondId: selectedPondOption.value }));
-            fetchPondInfo(); // Tự động gọi fetchPondInfo sau khi chọn ao
+            fetchPondInfo();
           }
         },
         null,
@@ -105,7 +124,7 @@ const Info = () => {
 
   // Xử lý khi có location.state
   useEffect(() => {
-    fetchPondTypes(); // Luôn gọi để lấy danh sách loại ao
+    fetchPondTypes();
   }, [fetchPondTypes]);
 
   useEffect(() => {
@@ -130,7 +149,7 @@ const Info = () => {
     setSelectedPondType(value);
     setSelectedPond('');
     setFormData({ pondId: '' });
-    setInfoData(null); // Xóa dữ liệu cũ khi thay đổi loại ao
+    setInfoData(null);
   }, []);
 
   // Xử lý thay đổi ao
@@ -138,12 +157,11 @@ const Info = () => {
     const value = e.target.value;
     setSelectedPond(value);
     setFormData({ pondId: value });
-    setInfoData(null); // Xóa dữ liệu cũ khi thay đổi ao
+    setInfoData(null);
   }, []);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-      {/* Sidebar */}
       <aside>
         <Sidebar />
       </aside>
@@ -201,36 +219,19 @@ const Info = () => {
               {isLoading ? 'Đang tìm...' : 'Tìm kiếm thông tin'}
             </button>
 
-            {/* Hiển thị thông tin ao */}
             {infoData && (
               <div className="mt-6 space-y-6 overflow-y-auto sm:overflow-y-auto">
-                {/* Thông tin cơ bản */}
                 <div className="bg-teal-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-teal-700 mb-2">Thông tin cơ bản</h3>
-                  <p>
-                    <strong>Tên ao:</strong> {infoData.pondName}
-                  </p>
-                  <p>
-                    <strong>Độ sâu:</strong> {infoData.deep} (m)
-                  </p>
-                  <p>
-                    <strong>Đường kính:</strong> {infoData.diameter} (m)
-                  </p>
-                  <p>
-                    <strong>Loại ao:</strong> {infoData.pondTypeName}
-                  </p>
-                  <p>
-                    <strong>Trạng thái:</strong> {infoData.status}
-                  </p>
-                  <p>
-                    <strong>Tên giống:</strong> {infoData.seedName}
-                  </p>
-                  <p>
-                    <strong>Ngày bắt đầu:</strong> {new Date(infoData.startDate).toLocaleDateString()}
-                  </p>
+                  <p><strong>Tên ao:</strong> {infoData.pondName}</p>
+                  <p><strong>Độ sâu:</strong> {infoData.deep} (m)</p>
+                  <p><strong>Đường kính:</strong> {infoData.diameter} (m)</p>
+                  <p><strong>Loại ao:</strong> {infoData.pondTypeName}</p>
+                  <p><strong>Trạng thái:</strong> {infoData.status}</p>
+                  <p><strong>Tên giống:</strong> {infoData.seedName}</p>
+                  <p><strong>Ngày bắt đầu:</strong> {new Date(infoData.startDate).toLocaleDateString()}</p>
                 </div>
 
-                {/* Chứng nhận */}
                 {infoData.certificates?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Chứng nhận</h3>
@@ -238,7 +239,7 @@ const Info = () => {
                       {infoData.certificates.map((cert, index) => (
                         <li key={index}>
                           {cert.certificateName} -{' '}
-                          <a href={`data:image/jpeg;base64,${cert.fileData}`} className='text-blue-700 underline' download={`${cert.certificateName}.jpg`}>
+                          <a href={`data:image/jpeg;base64,${cert.fileData}`} className="text-blue-700 underline" download={`${cert.certificateName}.jpg`}>
                             Tải xuống
                           </a>
                         </li>
@@ -247,7 +248,6 @@ const Info = () => {
                   </div>
                 )}
 
-                {/* Thức ăn */}
                 {infoData.feedingFoods?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Cho ăn</h3>
@@ -272,7 +272,6 @@ const Info = () => {
                   </div>
                 )}
 
-                {/* Thuốc */}
                 {infoData.feedingMedicines?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Điều trị</h3>
@@ -297,7 +296,6 @@ const Info = () => {
                   </div>
                 )}
 
-                {/* Kích thước tôm */}
                 {infoData.sizeShrimps?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Kích thước tôm</h3>
@@ -320,7 +318,6 @@ const Info = () => {
                   </div>
                 )}
 
-                {/* Hao hụt tôm */}
                 {infoData.lossShrimps?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Hao hụt tôm</h3>
@@ -343,7 +340,6 @@ const Info = () => {
                   </div>
                 )}
 
-                {/* Thu hoạch */}
                 {infoData.harvests?.length > 0 && (
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-teal-700 mb-2">Thu hoạch</h3>
@@ -377,7 +373,7 @@ const Info = () => {
           </div>
         </section>
 
-        {isLoading && <Loading />}
+        {isLoading && <Loading progress={loadingProgress} />}
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover />
       </main>
     </div>
