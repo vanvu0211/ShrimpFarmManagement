@@ -108,22 +108,23 @@ function Harvest() {
             return;
         }
 
-        // Kiểm tra kích thước file (500KB = 500 * 1024 bytes)
-        const maxSizeBeforeCompression = 500 * 1024; // 500KB
+        // Kiểm tra kích thước file (300KB = 300 * 1024 bytes)
+        const maxSizeBeforeCompression = 300 * 1024; // 300KB
         if (file.size > maxSizeBeforeCompression) {
             try {
-                // Cấu hình nén ảnh xuống khoảng 500KB
+                // Cấu hình nén ảnh xuống khoảng 300KB
                 const options = {
-                    maxSizeMB: 0.5, // Giới hạn kích thước tối đa sau nén là 500KB (0.5MB)
-                    maxWidthOrHeight: 1280, // Giảm độ phân giải tối đa để đạt kích thước mong muốn
+                    maxSizeMB: 0.3, // Giới hạn kích thước tối đa sau nén là 300KB (0.3MB)
+                    maxWidthOrHeight: 1920, // Giữ độ phân giải cao để chất lượng không giảm quá nhiều
                     useWebWorker: true, // Tăng hiệu suất bằng web worker
+                    initialQuality: 0.9, // Chất lượng ban đầu cao (0-1)
                 };
 
                 const compressedFile = await imageCompression(file, options);
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setCertificates([reader.result.split(',')[1]]);
-                    toast.success(`Ảnh đã được nén thành công xuống ~500KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
+                    toast.success(`Ảnh đã được nén thành công xuống ~300KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
                 };
                 reader.readAsDataURL(compressedFile);
             } catch (error) {
@@ -131,7 +132,7 @@ function Harvest() {
                 e.target.value = '';
             }
         } else {
-            // Nếu ảnh nhỏ hơn 500KB, không nén
+            // Nếu ảnh nhỏ hơn 300KB, không nén
             const reader = new FileReader();
             reader.onloadend = () => {
                 setCertificates([reader.result.split(',')[1]]);
@@ -328,7 +329,7 @@ function Harvest() {
                             className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700"
                         />
                         <p className="text-gray-600 text-sm mt-1">
-                            Ảnh lớn hơn 500KB sẽ được nén xuống ~500KB. Định dạng: JPEG, PNG.
+                            Ảnh lớn hơn 300KB sẽ được nén xuống ~300KB. Định dạng: JPEG, PNG.
                         </p>
                     </div>
 
