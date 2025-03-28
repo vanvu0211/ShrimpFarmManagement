@@ -283,7 +283,7 @@ const MachinesManager = () => {
 
           {(selectedMachine || isCreating) && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 w-full max-w-lg flex flex-col h-[400px]">
+              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 w-4/5 max-w-lg flex flex-col h-[400px]">
                 <h2 className="text-xl sm:text-2xl font-semibold text-teal-700 mb-4 sm:mb-6">
                   {isCreating ? 'Tạo máy mới' : `Gắn ao cho ${selectedMachine.name}`}
                 </h2>
