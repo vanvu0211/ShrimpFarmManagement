@@ -18,6 +18,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const [daysSinceStart, setDaysSinceStart] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [machineData, setMachineData] = useState([]);
+  const [updatedMachineId, setUpdatedMachineId] = useState(null);
   const farmId = Number(localStorage.getItem('farmId'));
 
   const navigate = useNavigate();
@@ -43,12 +44,13 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
           ...updatedData[machineIndex],
           machineStatus: data.Value === 'ON'
         };
+        setUpdatedMachineId(updatedData[machineIndex].machineId);
+        setTimeout(() => setUpdatedMachineId(null), 1000);
       }
       return updatedData;
     });
   }, []);
 
-  console.log('typeof handleMachineStatusChanged:', typeof handleMachineStatusChanged);
   useSignalR(handleMachineStatusChanged);
 
   const harvestData = useCallback(() => {
@@ -138,11 +140,10 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   };
 
   const renderMachineStatus = () => {
-    // Sắp xếp lại danh sách máy: "Máy lọc phân" luôn ở dưới cùng
     const sortedMachines = [...machineData].sort((a, b) => {
-      if (a.machineName === 'Máy lọc phân') return 1; // Đưa "Máy lọc phân" xuống cuối
-      if (b.machineName === 'Máy lọc phân') return -1; // Giữ các máy khác ở trên
-      return 0; // Giữ nguyên thứ tự các máy khác
+      if (a.machineName === 'Máy lọc phân') return 1;
+      if (b.machineName === 'Máy lọc phân') return -1;
+      return 0;
     });
 
     const machinesToShow = sortedMachines.slice(0, 3);
@@ -151,38 +152,56 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
       <div className="p-3">
         <div className="grid grid-cols-2 gap-2">
           {machinesToShow.slice(0, 2).map((machine, index) => (
-            <div
+            <motion.div
               key={machine.machineId}
-              className={`text-center py-2 text-sm font-medium ${
-                machine.machineStatus 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              } rounded-md`}
+              className="text-center py-2 text-sm font-medium rounded-md"
+              animate={{
+                backgroundColor: machine.machineStatus 
+                  ? '#DCFCE7'
+                  : '#FEE2E2',
+                color: machine.machineStatus 
+                  ? '#166534'
+                  : '#991B1B',
+                scale: updatedMachineId === machine.machineId ? [1, 1.05, 1] : 1
+              }}
+              transition={{ 
+                color: { duration: 0.3 },
+                backgroundColor: { duration: 0.3 },
+                scale: { duration: 0.5 }
+              }}
             >
               {machine.machineName}
-            </div>
+            </motion.div>
           ))}
           {machinesToShow.length < 2 && Array(2 - machinesToShow.length).fill().map((_, index) => (
             <div
               key={`placeholder-${index}`}
-              className="text-center py-2 text-sm font-medium bg-gray-200 text-gray-600 rounded-md"
+              className="text-center py-2 text-sm personally font-medium bg-gray-200 text-gray-600 rounded-md"
             >
               N/A
             </div>
           ))}
         </div>
         {machinesToShow.length >= 3 && (
-          <div className="mt-2">
-            <div
-              className={`text-center py-2 text-sm font-medium ${
-                machinesToShow[2].machineStatus 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              } rounded-md`}
-            >
-              {machinesToShow[2].machineName}
-            </div>
-          </div>
+          <motion.div
+            className="mt-2 text-center py-2 text-sm font-medium rounded-md"
+            animate={{
+              backgroundColor: machinesToShow[2].machineStatus 
+                ? '#DCFCE7'
+                : '#FEE2E2',
+              color: machinesToShow[2].machineStatus 
+                ? '#166534'
+                : '#991B1B',
+              scale: updatedMachineId === machinesToShow[2].machineId ? [1, 1.05, 1] : 1
+            }}
+            transition={{ 
+              color: { duration: 0.3 },
+              backgroundColor: { duration: 0.3 },
+              scale: { duration: 0.5 }
+            }}
+          >
+            {machinesToShow[2].machineName}
+          </motion.div>
         )}
       </div>
     );
