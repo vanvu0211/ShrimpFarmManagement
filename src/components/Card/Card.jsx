@@ -4,11 +4,12 @@ import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import useCallApi from '../../hooks/useCallApi';
-import { HarvestRequest, DashboardRequestApi } from '../../services/api';
+import { HarvestRequest, DashboardRequestApi, MachineRequestApi } from '../../services/api';
 import DeleteCard from '../DeleteCard';
 import ActiveCard from '../../components/ActiveCard';
 import { FaShrimp } from "react-icons/fa6";
 import { BsDroplet } from 'react-icons/bs';
+import useSignalR from '../../hooks/useSignalR';
 
 function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPutSucces }) {
   const [isActiveModal, setIsActiveModal] = useState(false);
@@ -16,10 +17,39 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const [harvestTime, setHarvestTime] = useState(0);
   const [daysSinceStart, setDaysSinceStart] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [machineData, setMachineData] = useState([]);
   const farmId = Number(localStorage.getItem('farmId'));
 
   const navigate = useNavigate();
   const callApi = useCallApi();
+
+  const machineNameMapping = {
+    'Oxi': 'Máy quạt oxi',
+    'Waste_separator': 'Máy lọc phân',
+    'Fan1': 'Máy quạt 1',
+    'Fan2': 'Máy quạt 2',
+    'Fan3': 'Máy quạt 3'
+  };
+
+  const handleMachineStatusChanged = useCallback((data) => {
+    setMachineData(prevData => {
+      const updatedData = [...prevData];
+      const machineIndex = updatedData.findIndex(m => 
+        machineNameMapping[data.Name] === m.machineName
+      );
+      
+      if (machineIndex !== -1) {
+        updatedData[machineIndex] = {
+          ...updatedData[machineIndex],
+          machineStatus: data.Value === 'ON'
+        };
+      }
+      return updatedData;
+    });
+  }, []);
+
+  console.log('typeof handleMachineStatusChanged:', typeof handleMachineStatusChanged);
+  useSignalR(handleMachineStatusChanged);
 
   const harvestData = useCallback(() => {
     callApi(
@@ -32,36 +62,46 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
   const fetchData = useCallback(() => {
     callApi([
-      DashboardRequestApi.pondRequest.getPondRequestById(pondId,farmId),
+      DashboardRequestApi.pondRequest.getPondRequestById(pondId, farmId),
     ], 
     (res) => {
-      const startDate = new Date(res[0][0].startDate); // Truy cập đến startDate trong phần tử đầu tiên
-      if (!isNaN(startDate)) { // Kiểm tra nếu startDate hợp lệ
+      const startDate = new Date(res[0][0].startDate);
+      if (!isNaN(startDate)) {
         const currentDate = new Date();
         const timeDifference = currentDate - startDate;
         const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-        console.log(pondId +  "--- "+ daysDifference);
-        setDaysSinceStart(daysDifference); // Lưu số ngày vào state
+        setDaysSinceStart(daysDifference);
       } else {
-        setDaysSinceStart(0); // Hoặc giá trị mặc định nào đó
+        setDaysSinceStart(0);
       }
     },
     (err) => {
-      setIsLoading(false);
-      // Kiểm tra và hiển thị lỗi chi tiết từ phản hồi API
-      if (err.response && err.response.data && err.response.data.title) {
-          setErrorMessage(err.response.data.title);
-      } else {
-          setErrorMessage('Đã có lỗi xảy ra, vui lòng thử lại!');
-      }
-  }
-    );
+      console.error(err);
+    });
   }, [callApi, pondId, farmId]);
+
+  const fetchMachineData = useCallback(() => {
+    callApi(
+      [MachineRequestApi.machineRequest.getAllMachineByPondId(pondId)],
+      (res) => {
+        const mappedData = res[0].machineDatas.map(machine => ({
+          ...machine,
+          machineName: machineNameMapping[machine.machineName] || machine.machineName
+        }));
+        setMachineData(mappedData);
+      },
+      (err) => {
+        console.error('Error fetching machine data:', err);
+        setMachineData([]);
+      }
+    );
+  }, [callApi, pondId]);
 
   useEffect(() => {
     harvestData();
     fetchData();
-  }, [harvestData, fetchData]);
+    fetchMachineData();
+  }, [harvestData, fetchData, fetchMachineData]);
 
   const handleHarvestClick = () => {
     navigate('/harvest', { state: { pondId } });
@@ -97,6 +137,57 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
     exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } }
   };
 
+  const renderMachineStatus = () => {
+    // Sắp xếp lại danh sách máy: "Máy lọc phân" luôn ở dưới cùng
+    const sortedMachines = [...machineData].sort((a, b) => {
+      if (a.machineName === 'Máy lọc phân') return 1; // Đưa "Máy lọc phân" xuống cuối
+      if (b.machineName === 'Máy lọc phân') return -1; // Giữ các máy khác ở trên
+      return 0; // Giữ nguyên thứ tự các máy khác
+    });
+
+    const machinesToShow = sortedMachines.slice(0, 3);
+    
+    return (
+      <div className="p-3">
+        <div className="grid grid-cols-2 gap-2">
+          {machinesToShow.slice(0, 2).map((machine, index) => (
+            <div
+              key={machine.machineId}
+              className={`text-center py-2 text-sm font-medium ${
+                machine.machineStatus 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              } rounded-md`}
+            >
+              {machine.machineName}
+            </div>
+          ))}
+          {machinesToShow.length < 2 && Array(2 - machinesToShow.length).fill().map((_, index) => (
+            <div
+              key={`placeholder-${index}`}
+              className="text-center py-2 text-sm font-medium bg-gray-200 text-gray-600 rounded-md"
+            >
+              N/A
+            </div>
+          ))}
+        </div>
+        {machinesToShow.length >= 3 && (
+          <div className="mt-2">
+            <div
+              className={`text-center py-2 text-sm font-medium ${
+                machinesToShow[2].machineStatus 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              } rounded-md`}
+            >
+              {machinesToShow[2].machineName}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <motion.div
       className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
@@ -112,21 +203,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
         </div>
       </div>
 
-      <div className="p-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
-            L2
-          </div>
-          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
-            QB2
-          </div>
-        </div>
-        <div className="mt-2">
-          <div className={`text-center py-2 text-sm font-medium ${status ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'} rounded-md`}>
-            L2
-          </div>
-        </div>
-      </div>
+      {renderMachineStatus()}
 
       <div className="flex justify-between items-center p-3 border-t bg-gray-50">
         {status ? (
@@ -198,7 +275,6 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
             <button
               className="flex-1 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-semibold"
               onClick={() => setIsActiveModal(true)}
-            
             >
               <FaPlay className="inline mr-1" /> Kích hoạt
             </button>

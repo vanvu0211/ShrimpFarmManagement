@@ -38,7 +38,7 @@ const handleErrorNotification = (resolve, reject) => {
         .start() // Khởi động kết nối SignalR
         .then((conn) => {
             // Đăng ký lắng nghe sự kiện `ErrorNotification`
-            conn.on("ErrorNotification", (data) => {
+            conn.on("MachineStatusChanged", (data) => {
                 console.log("Received ErrorNotification:", data); // Log dữ liệu nhận được
                 resolve(data); // Trả dữ liệu qua callback resolve
             });

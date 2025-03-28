@@ -139,7 +139,7 @@ function Dashboard() {
           {/* Card 3: Farm Name & Icons */}
           <div className="flex flex-row justify-center items-center rounded-xl shadow-md bg-white p-4 gap-4 sm:gap-6 min-w-0 w-full sm:flex-1">
             <div className="flex-1 flex flex-col items-center justify-center bg-white min-w-0">
-              <h1 className="uppercase text-lg font-bold font-sans text-gray-700 text-center">{farmName}</h1>
+              <h1 className="uppercase text-lg font-bold font-sans text-teal-700 text-center">Trang trại: {farmName}</h1>
               <div className="text-center">
                 <p className="text-xl font-medium text-gray-600">Số ngày vận hành: {daysOperated}</p>
                 {needsCleaning ? (

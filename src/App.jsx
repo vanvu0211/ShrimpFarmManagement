@@ -6,7 +6,8 @@ import routes from './routes';
 import useSignalR from './hooks/useSignalR'; // Import hook SignalR
 
 function App() {
-    // useSignalR(); // Kích hoạt SignalR toàn cục
+    useSignalR(); // Kích hoạt SignalR toàn cục
+    
 
     return (
         <>
