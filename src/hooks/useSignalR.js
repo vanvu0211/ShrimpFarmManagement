@@ -28,7 +28,7 @@ const useSignalR = (onMachineStatusChanged) => {
                         if (typeof onMachineStatusChanged === 'function') {
                             onMachineStatusChanged(parsedData);
                         } else {
-                            console.warn('onMachineStatusChanged is not a function, skipping callback.');
+                            // console.warn('onMachineStatusChanged is not a function, skipping callback.');
                         }
                     } catch (error) {
                         console.error('Failed to parse MachineStatusChanged data:', error);
