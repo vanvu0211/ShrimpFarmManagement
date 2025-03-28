@@ -6,18 +6,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { MachineRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
-import useSignalR from '../../hooks/useSignalR';
+import { HubConnectionBuilder } from '@microsoft/signalr'; // Thêm import SignalR
 import { motion } from 'framer-motion';
-import cl from 'classnames';
-import Loading from '../../components/Loading'; // Thêm import Loading từ Dashboard
+import Loading from '../../components/Loading';
 
 const Option = (props) => (
   <components.Option {...props}>
-    <input
-      type="checkbox"
-      checked={props.isSelected}
-      onChange={() => null}
-    />
+    <input type="checkbox" checked={props.isSelected} onChange={() => null} />
     <label className="ml-2">{props.label}</label>
   </components.Option>
 );
@@ -26,8 +21,7 @@ const MachinesManager = () => {
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const [updatedMachineId, setUpdatedMachineId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Đảm bảo state này được dùng cho Loading
-
+  const [isLoading, setIsLoading] = useState(false);
   const [machines, setMachines] = useState([]);
   const [pondsOptions, setPondsOptions] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
@@ -36,15 +30,16 @@ const MachinesManager = () => {
   const [newMachineName, setNewMachineName] = useState('');
 
   const machineNameMapping = {
-    'Oxi': 'Máy quạt oxi',
-    'Waste_separator': 'Máy lọc phân',
-    'Fan1': 'Máy quạt 1',
-    'Fan2': 'Máy quạt 2',
-    'Fan3': 'Máy quạt 3',
+    Oxi: 'Máy quạt oxi',
+    Waste_separator: 'Máy lọc phân',
+    Fan1: 'Máy quạt 1',
+    Fan2: 'Máy quạt 2',
+    Fan3: 'Máy quạt 3',
   };
 
+  // Custom SignalR logic (thay thế useSignalR)
   const handleMachineStatusChanged = useCallback((data) => {
-    console.log('SignalR data:', data);
+    console.log('SignalR data received:', data);
     const mappedMachineName = machineNameMapping[data.Name] || data.Name;
     setMachines((prevMachines) => {
       const updatedMachines = prevMachines.map((machine) => {
@@ -62,7 +57,38 @@ const MachinesManager = () => {
     });
   }, []);
 
-  useSignalR(handleMachineStatusChanged);
+  useEffect(() => {
+    const connection = new HubConnectionBuilder()
+      .withUrl('YOUR_SIGNALR_HUB_URL') // Thay bằng URL hub SignalR thực tế của bạn
+      .withAutomaticReconnect() // Tự động kết nối lại nếu mất kết nối
+      .build();
+
+    const startConnection = () => {
+      connection
+        .start()
+        .then(() => {
+          console.log('SignalR Connected!');
+        })
+        .catch((err) => {
+          console.error('SignalR Connection Error:', err);
+          // Thử lại sau 2 giây nếu thất bại
+          setTimeout(startConnection, 2000);
+        });
+    };
+
+    startConnection();
+
+    connection.on('MachineStatusChanged', (data) => {
+      handleMachineStatusChanged(data);
+    });
+
+    // Cleanup khi component unmount
+    return () => {
+      connection.stop().then(() => {
+        console.log('SignalR Disconnected!');
+      });
+    };
+  }, [handleMachineStatusChanged]);
 
   useEffect(() => {
     const fetchPonds = async () => {
@@ -168,7 +194,6 @@ const MachinesManager = () => {
         setSelectedMachine(null);
       },
       (err) => {
-        
         toast.error('Lỗi khi cập nhật máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
       }
     );
@@ -260,7 +285,7 @@ const MachinesManager = () => {
                     {machine.name}
                   </h3>
                   <motion.p
-                    className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
+                    className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md"
                     animate={{
                       color: machine.status ? '#166534' : '#991B1B',
                       backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
@@ -269,10 +294,10 @@ const MachinesManager = () => {
                   >
                     Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
                   </motion.p>
-                  <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
+                  <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center">
                     Số ao: {machine.ponds.length}
                   </p>
-                  <p className="text-sm font-semibold sm:text-sm text-black text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
+                  <p className="text-sm font-semibold sm:text-sm text-black text-center">
                     Ao: {machine.pondNames.length > 0 ? machine.pondNames.join(', ') : 'Chưa gắn'}
                   </p>
                 </motion.div>
@@ -334,7 +359,7 @@ const MachinesManager = () => {
           )}
         </main>
       </div>
-      {isLoading && <Loading />} {/* Thêm Loading component */}
+      {isLoading && <Loading />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
