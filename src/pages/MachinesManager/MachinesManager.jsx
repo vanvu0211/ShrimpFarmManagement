@@ -8,7 +8,8 @@ import { MachineRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import useSignalR from '../../hooks/useSignalR';
 import { motion } from 'framer-motion';
-import cl from 'classnames'; // Thêm classnames để xử lý class động
+import cl from 'classnames';
+import Loading from '../../components/Loading'; // Thêm import Loading từ Dashboard
 
 const Option = (props) => (
   <components.Option {...props}>
@@ -25,12 +26,12 @@ const MachinesManager = () => {
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const [updatedMachineId, setUpdatedMachineId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Đảm bảo state này được dùng cho Loading
 
   const [machines, setMachines] = useState([]);
   const [pondsOptions, setPondsOptions] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [tempPonds, setTempPonds] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newMachineName, setNewMachineName] = useState('');
 
@@ -145,7 +146,7 @@ const MachinesManager = () => {
         pondName: pondsOptions.find((pond) => pond.value === pondId)?.label || '',
       })),
     };
-
+    setIsLoading(true);
     callApi(
       [MachineRequestApi.machineRequest.updateMachine(payload)],
       () => {
@@ -162,10 +163,12 @@ const MachinesManager = () => {
               : machine
           )
         );
+        setIsLoading(false);
         toast.success(`Đã cập nhật ao cho ${selectedMachine.name}!`);
         setSelectedMachine(null);
       },
       (err) => {
+        
         toast.error('Lỗi khi cập nhật máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
       }
     );
@@ -257,7 +260,7 @@ const MachinesManager = () => {
                     {machine.name}
                   </h3>
                   <motion.p
-                    className="text-sm sm:text-base mt-2 text-center px-2 py-1 rounded-md"
+                    className="text-base sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
                     animate={{
                       color: machine.status ? '#166534' : '#991B1B',
                       backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
@@ -266,10 +269,10 @@ const MachinesManager = () => {
                   >
                     Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
                   </motion.p>
-                  <p className="text-sm sm:text-base text-teal-600 text-center">
+                  <p className="text-base font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
                     Số ao: {machine.ponds.length}
                   </p>
-                  <p className="text-sm sm:text-base text-teal-600 text-center">
+                  <p className="text-sm font-semibold sm:text-sm text-black text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
                     Ao: {machine.pondNames.length > 0 ? machine.pondNames.join(', ') : 'Chưa gắn'}
                   </p>
                 </motion.div>
@@ -331,6 +334,7 @@ const MachinesManager = () => {
           )}
         </main>
       </div>
+      {isLoading && <Loading />} {/* Thêm Loading component */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
