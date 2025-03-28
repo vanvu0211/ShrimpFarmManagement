@@ -256,11 +256,11 @@ const MachinesManager = () => {
                   <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-4">
                     <span className="text-teal-600 font-semibold text-lg">Máy</span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-teal-800 text-center">
+                  <h3 className="text-2xl sm:text-xl font-semibold text-teal-800 text-center">
                     {machine.name}
                   </h3>
                   <motion.p
-                    className="text-base sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
+                    className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
                     animate={{
                       color: machine.status ? '#166534' : '#991B1B',
                       backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
@@ -269,7 +269,7 @@ const MachinesManager = () => {
                   >
                     Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
                   </motion.p>
-                  <p className="text-base font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
+                  <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
                     Số ao: {machine.ponds.length}
                   </p>
                   <p className="text-sm font-semibold sm:text-sm text-black text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
