@@ -8,7 +8,7 @@ const paths ={
     account: "/",
     access: "/access",//
     harvest: "/harvest",//
-    move: "/move",//
+    alarm: "/alarm",//
     transfer: "/transfer",//
     farm: "/farm",//
     farm: "/farm",//

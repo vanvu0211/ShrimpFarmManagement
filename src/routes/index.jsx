@@ -29,8 +29,8 @@ const routes = [
 
     },
     {
-        path: paths.move, //đường link
-        component: Pages.Move, //dữ liệu
+        path: paths.alarm, //đường link
+        component: Pages.Alarm, //dữ liệu
 
     },
     {

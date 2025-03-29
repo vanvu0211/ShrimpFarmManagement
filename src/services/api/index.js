@@ -9,3 +9,4 @@ export {default as ShrimpRequestApi} from './ShrimpApi/ShrimpRequest';
 export {default as TransferRequestApi} from './Transfer/TransferRequestApi';
 export {default as AccessRequestApi} from './AccessApi/AccessRequest';
 export {default as MachineRequestApi} from './MachineApi/MachineRequest';
+export {default as AlarmRequestApi} from './AlarmApi/alarmRequest';

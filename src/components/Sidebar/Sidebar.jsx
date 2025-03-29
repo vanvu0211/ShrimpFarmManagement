@@ -8,6 +8,7 @@ import { toggleSidebar } from '../../store/sidebarSlice';
 import { FaExchangeAlt, FaLeaf, FaInfo } from 'react-icons/fa';
 import { FaShrimp, FaTablets } from "react-icons/fa6";
 import { PiFanDuotone } from "react-icons/pi";
+import { MdReportProblem } from "react-icons/md";
 
 function Sidebar({ onMobileMenuToggle }) {
   const menuItems = [
@@ -20,7 +21,7 @@ function Sidebar({ onMobileMenuToggle }) {
     { name: "Thông tin tôm", icon: <FaShrimp />, lnk: "/shrimpmanagement" },
     { name: "Thông tin ao", icon: <FaInfo />, lnk: "/info" },
     { name: "Truy xuất nguồn gốc", icon: <BsSearch />, lnk: "/access" },
-    { name: "Thông tin trang trại", icon: <BsFileText />, lnk: "/farm" },
+    { name: "Thông báo và cảnh báo", icon: <MdReportProblem />, lnk: "/alarm" },
   ];
 
   const navigate = useNavigate();
