@@ -37,15 +37,7 @@ const useSignalR = (onMachineStatusChanged) => {
                     toast.error(`Lỗi: ${data.name || 'Không xác định'}, trạng thái: ${data.status || 'Không rõ'}`);
                 });
 
-<<<<<<< HEAD
-                connection.on('MachineStatusChanged', handleMachineStatusChanged);
 
-                connection.onclose((error) => {
-                    if (isMountedRef.current) {
-                        console.log('SignalR disconnected:', error?.message || 'No error');
-                        toast.warn('Mất kết nối SignalR. Đang thử kết nối lại...');
-                        setTimeout(connectSignalR, 2000); // Thử kết nối lại sau 2 giây
-=======
                 connection.on('MachineStatusChanged', (data) => {
                     try {
                         const parsedData = JSON.parse(data);
@@ -57,7 +49,7 @@ const useSignalR = (onMachineStatusChanged) => {
                         }
                     } catch (error) {
                         console.error('Failed to parse MachineStatusChanged data:', error);
->>>>>>> parent of 348f3d2 (update machine pages)
+
                     }
                 });
             }
