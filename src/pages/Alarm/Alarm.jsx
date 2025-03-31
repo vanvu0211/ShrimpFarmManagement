@@ -122,10 +122,10 @@ function Alarm() {
                                 required
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                             />
-                            {/* <IoCalendar
+                            <IoCalendar
                                 className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-500 cursor-pointer hover:text-teal-700 transition-all duration-200"
                                 onClick={handleCalendarClick('startDate')}
-                            /> */}
+                            />
                         </div>
 
                         <div className="mb-4 sm:mb-6 relative">
@@ -142,10 +142,10 @@ function Alarm() {
                                 required
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                             />
-                            {/* <IoCalendar
+                            <IoCalendar
                                 className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-500 cursor-pointer hover:text-teal-700 transition-all duration-200"
                                 onClick={handleCalendarClick('endDate')}
-                            /> */}
+                            />
                         </div>
                     </div>
 

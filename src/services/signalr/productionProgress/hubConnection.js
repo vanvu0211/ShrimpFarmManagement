@@ -1,7 +1,12 @@
 import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr';
 
+<<<<<<< HEAD
 const connection = new HubConnectionBuilder()
     .withUrl('http://103.170.122.142:5000/machineHub', {
+=======
+const connection = new HubConnectionBuilder() //Lớp tạo một kết nối tới một SignalR Hub
+    .withUrl('https://shrimppond.runasp.net/NotificationHub', {
+>>>>>>> parent of 8e56acc (update signalR)
         transport: HttpTransportType.WebSockets,
         skipNegotiation: true,
     })
