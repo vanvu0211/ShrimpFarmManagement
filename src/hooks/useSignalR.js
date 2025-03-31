@@ -1,85 +1,71 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
-import hubConnection from '/src/services/signalr/productionProgress/hubConnection.js';
+import hubConnection from '../services/signalr/productionProgress/hubConnection';
 
 const useSignalR = (onMachineStatusChanged) => {
-    const connectionRef = useRef(null);
-    const isMountedRef = useRef(true);
-
-    const handleMachineStatusChanged = useCallback((data) => {
-        console.log('Handling MachineStatusChanged:', data);
-        if (typeof onMachineStatusChanged === 'function') {
-            onMachineStatusChanged(data); // Gửi dữ liệu thô, không cần parse JSON vì server đã gửi object
-        }
-    }, [onMachineStatusChanged]);
-
-    const connectSignalR = useCallback(async () => {
-        if (!hubConnection || typeof hubConnection.start !== 'function') {
-            console.error('Invalid hubConnection:', hubConnection);
-            toast.error('Lỗi cấu hình SignalR.');
-            return;
-        }
-
-        if (connectionRef.current?.state === 'Connected') {
-            console.log('SignalR already connected');
-            return;
-        }
-
-        try {
-            const connection = await hubConnection.start();
-            if (isMountedRef.current) {
-                connectionRef.current = connection;
-                console.log('SignalR connected successfully');
-
-                // Lắng nghe các sự kiện từ server
-                connection.on('ErrorNotification', (data) => {
-                    console.log('ErrorNotification:', data);
-                    toast.error(`Lỗi: ${data.name || 'Không xác định'}, trạng thái: ${data.status || 'Không rõ'}`);
-                });
-
-
-                connection.on('MachineStatusChanged', (data) => {
-                    try {
-                        const parsedData = JSON.parse(data);
-                        // Kiểm tra xem onMachineStatusChanged có phải là hàm trước khi gọi
-                        if (typeof onMachineStatusChanged === 'function') {
-                            onMachineStatusChanged(parsedData);
-                        } else {
-                            console.warn('onMachineStatusChanged is not a function, skipping callback.');
-                        }
-                    } catch (error) {
-                        console.error('Failed to parse MachineStatusChanged data:', error);
-
-                    }
-                });
-            }
-        } catch (error) {
-            if (isMountedRef.current) {
-                console.error('SignalR connection error:', error);
-                toast.error('Không thể kết nối tới máy chủ SignalR.');
-                setTimeout(connectSignalR, 2000); // Thử lại sau 2 giây
-            }
-        }
-    }, [handleMachineStatusChanged]);
+    const connectionRef = useRef(null); // Lưu trữ connection để sử dụng xuyên suốt
 
     useEffect(() => {
+        let isMounted = true; // Đánh dấu component còn tồn tại
+
+        const connectSignalR = async () => {
+            if (connectionRef.current?.state === 'Connected') {
+                console.log('SignalR already connected');
+                return; // Không khởi tạo lại nếu đã kết nối
+            }
+
+            try {
+                const connection = await hubConnection.start();
+                if (isMounted) {
+                    connectionRef.current = connection;
+                    console.log('SignalR connected successfully');
+
+        
+
+                    // Đăng ký sự kiện MachineStatusChanged
+                    connection.on('MachineStatusChanged', (data) => {
+                        try {
+                            const parsedData = JSON.parse(data);
+                            if (typeof onMachineStatusChanged === 'function') {
+                                onMachineStatusChanged(parsedData);
+                            }
+                        } catch (error) {
+                            console.error('Failed to parse MachineStatusChanged data:', error);
+                        }
+                    });
+
+                    // Xử lý khi mất kết nối
+                    connection.onclose((error) => {
+                        if (isMounted) {
+                            console.log('SignalR disconnected:', error);
+                            // toast.warn('Mất kết nối SignalR, đang thử kết nối lại...');
+                            setTimeout(connectSignalR, 2000); // Thử kết nối lại sau 2 giây
+                        }
+                    });
+                }
+            } catch (error) {
+                if (isMounted) {
+                    console.error('SignalR connection error:', error);
+                    toast.error('Không thể kết nối tới máy chủ thông báo.');
+                    setTimeout(connectSignalR, 2000); // Thử lại sau 2 giây nếu thất bại
+                }
+            }
+        };
+
         connectSignalR();
 
+        // Cleanup khi component unmount
         return () => {
-            isMountedRef.current = false;
-            if (connectionRef.current?.state === 'Connected') {
-                hubConnection.stop()
-                    .then(() => console.log('SignalR connection stopped'))
-                    .catch((err) => console.error('Error stopping SignalR:', err));
+            isMounted = false;
+            if (connectionRef.current) {
+                connectionRef.current.stop();
+                connectionRef.current = null;
+                console.log('SignalR connection stopped');
             }
-            connectionRef.current = null;
         };
-    }, [connectSignalR]);
+    }, [onMachineStatusChanged]); // Dependency array giữ nguyên
 
-    return {
-        isConnected: connectionRef.current?.state === 'Connected',
-        connection: connectionRef.current,
-    };
+    return null;
 };
 
 export default useSignalR;
