@@ -25,8 +25,7 @@ function Dashboard() {
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Bắt đầu với true
-
+  const [isLoading, setIsLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
   const [activePonds, setActivePonds] = useState(0);
   const [pondTypes, setPondTypes] = useState([]);
@@ -36,19 +35,28 @@ function Dashboard() {
   const [daysOperated, setDaysOperated] = useState(0);
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date()); // Thêm state cho thời gian thực
 
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
   const farmId = Number(localStorage.getItem('farmId'));
 
+  // Cập nhật thời gian thực mỗi giây
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer); // Dọn dẹp khi component unmount
+  }, []);
+
   const fetchData = useCallback(() => {
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
       toast.error('Vui lòng chọn trang trại!');
-      setIsLoading(false); // Đặt false nếu không gọi API
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true); // Bắt đầu loading khi gọi API
+    setIsLoading(true);
 
     callApi(
       [
@@ -73,12 +81,12 @@ function Dashboard() {
           setNeedsCleaning(false);
         }
 
-        setIsLoading(false); // Kết thúc loading khi dữ liệu đã được cập nhật
+        setIsLoading(false);
       },
       (err) => {
         toast.error('Không thể tải dữ liệu từ API!');
         console.error(err);
-        setIsLoading(false); // Kết thúc loading nếu có lỗi
+        setIsLoading(false);
       }
     );
   }, [callApi, farmId]);
@@ -125,33 +133,51 @@ function Dashboard() {
           <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
             {/* Card 1: Tổng số ao */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase min-w-96 text-lg font-bold text-teal-800 text-center">Tổng số ao</h1>
+              <h1 className="uppercase min-w-96 font-helvetica text-lg font-bold text-teal-800 text-center">Tổng số ao</h1>
               <span className="text-5xl font-bold text-red-500">{ponds?.length || 0}</span>
             </div>
 
             {/* Card 2: Hoạt động */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase min-w-96 text-lg font-bold text-teal-800 text-center">Hoạt động</h1>
+              <h1 className="uppercase min-w-96 font-helvetica text-lg font-bold text-teal-800 text-center">Hoạt động</h1>
               <span className="text-5xl font-bold text-red-500">{activePonds}</span>
             </div>
           </div>
 
-          {/* Card 3: Farm Name & Icons */}
-          <div className="flex flex-row justify-center items-center rounded-xl shadow-md bg-white p-4 gap-4 sm:gap-6 min-w-0 w-full sm:flex-1">
-            <div className="flex-1 flex flex-col items-center justify-center bg-white min-w-0">
-              <h1 className="uppercase text-lg font-bold font-sans text-teal-700 text-center">Trang trại: {farmName}</h1>
-              <div className="text-center">
-                <p className="text-xl font-medium text-gray-600">Số ngày vận hành: {daysOperated}</p>
-                {needsCleaning ? (
-                  <p className="text-red-500 font-semibold text-sm mt-1">Cần vệ sinh cảm biến</p>
-                ) : (
-                  <p className="text-green-500 font-semibold text-sm mt-1">Cảm biến: Tốt</p>
-                )}
-              </div>
-            </div>
-            <AiOutlineClockCircle onClick={() => setIsSetTime(true)} className="text-4xl cursor-pointer" />
-            <FaMapMarkerAlt onClick={() => setShowImage(true)} className="text-red-500 text-4xl cursor-pointer" />
-          </div>
+          {/* Card 3: Farm Name & Icons với đồng hồ thời gian thực */}
+          <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
+  {/* Phần thông tin chính */}
+  <div className="col-span-2 flex flex-col items-center justify-center gap-2">
+    <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
+      Trang trại: {farmName}
+    </h1>
+    <div className="text-gray-700 space-y-1 text-center">
+      <p className="text-base font-helvetica">Thời gian hiện tại: {currentTime.toLocaleTimeString()}</p>
+      <p className="text-base font-helvetica">Số ngày vận hành: {daysOperated}</p>
+      {needsCleaning ? (
+        <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
+          Cần vệ sinh cảm biến
+        </span>
+      ) : (
+        <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+          Cảm biến: Tốt
+        </span>
+      )}
+    </div>
+  </div>
+
+  {/* Phần biểu tượng */}
+  <div className="flex flex-col items-center justify-center gap-4">
+    <AiOutlineClockCircle
+      onClick={() => setIsSetTime(true)}
+      className="text-5xl text-gray-600 cursor-pointer hover:text-teal-500 hover:scale-110 transition-transform duration-200"
+    />
+    <FaMapMarkerAlt
+      onClick={() => setShowImage(true)}
+      className="text-5xl text-red-500 cursor-pointer hover:text-red-600 hover:scale-110 transition-transform duration-200"
+    />
+  </div>
+</div>
         </div>
 
         {/* Container cho PondSummary */}
