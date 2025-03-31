@@ -4,23 +4,12 @@ import Select from 'react-select';
 import { components } from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { MachineRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import useSignalR from '../../hooks/useSignalR';
 import { motion } from 'framer-motion';
-import Loading from '../../components/Loading'; // Thêm import Loading từ Dashboard
-=======
-import { MachineRequestApi } from '../../services/api';
-import useCallApi from '../../hooks/useCallApi'; // Giả sử bạn có hook này để gọi API
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-import { MachineRequestApi } from '../../services/api';
-import useCallApi from '../../hooks/useCallApi'; // Giả sử bạn có hook này để gọi API
->>>>>>> parent of 348f3d2 (update machine pages)
+import cl from 'classnames'; // Thêm classnames để xử lý class động
 
-// Tùy chỉnh Option để hiển thị checkbox trong Select
 const Option = (props) => (
   <components.Option {...props}>
     <input
@@ -33,38 +22,14 @@ const Option = (props) => (
 );
 
 const MachinesManager = () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const [updatedMachineId, setUpdatedMachineId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Đảm bảo state này được dùng cho Loading
-=======
-  const farmId = Number(localStorage.getItem('farmId')); // Lấy farmId từ localStorage
-  const callApi = useCallApi(); // Hook để gọi API
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-  const farmId = Number(localStorage.getItem('farmId')); // Lấy farmId từ localStorage
-  const callApi = useCallApi(); // Hook để gọi API
->>>>>>> parent of 348f3d2 (update machine pages)
 
-  // Danh sách ao cố định (có thể thay bằng API nếu cần)
-  const pondsOptions = [
-    { value: 'Ao 1', label: 'Ao 1' },
-    { value: 'Ao 2', label: 'Ao 2' },
-    { value: 'Ao 3', label: 'Ao 3' },
-    { value: 'Ao 4', label: 'Ao 4' },
-    { value: 'Ao 5', label: 'Ao 5' },
-    { value: 'da8e0204-c035-4e2e-a7ad-da6056122d95', label: 'Ao Test 1' }, // Thêm pondId từ dữ liệu thực tế
-    { value: 'e10dd171-ab67-4d7a-b348-d877f37848ee', label: 'Ao Test 2' }, // Thêm pondId từ dữ liệu thực tế
-  ];
-
-  // Trạng thái quản lý danh sách máy, máy được chọn và ao tạm thời
   const [machines, setMachines] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [tempPonds, setTempPonds] = useState([]);
-<<<<<<< HEAD
-<<<<<<< HEAD
+  const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newMachineName, setNewMachineName] = useState('');
 
@@ -124,14 +89,7 @@ const MachinesManager = () => {
 
     fetchPonds();
   }, [callApi, farmId]);
-=======
-  const [isLoading, setIsLoading] = useState(false);
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-  const [isLoading, setIsLoading] = useState(false);
->>>>>>> parent of 348f3d2 (update machine pages)
 
-  // Lấy danh sách máy từ API khi component mount
   useEffect(() => {
     const fetchMachines = async () => {
       setIsLoading(true);
@@ -181,22 +139,12 @@ const MachinesManager = () => {
 
   // Xử lý khi nhấn nút "Lưu" để áp dụng thay đổi
   const handleSave = () => {
-    // Cập nhật danh sách máy trong state
-    setMachines((prevMachines) =>
-      prevMachines.map((machine) =>
-        machine.id === selectedMachine.id ? { ...machine, ponds: tempPonds } : machine
-      )
-    );
-<<<<<<< HEAD
-
-    // Chuẩn bị payload để gửi lên API
     const payload = {
       farmId,
       machineName: selectedMachine.name,
       pondIds: tempPonds.map((pondId) => ({ pondId })),
     };
-<<<<<<< HEAD
-    setIsLoading(true);
+
     callApi(
       [MachineRequestApi.machineRequest.updateMachine(payload)],
       () => {
@@ -213,40 +161,57 @@ const MachinesManager = () => {
               : machine
           )
         );
-        setIsLoading(false);
         toast.success(`Đã cập nhật ao cho ${selectedMachine.name}!`);
         setSelectedMachine(null);
-=======
-
-    // Gửi yêu cầu cập nhật lên API
-    callApi(
-      [MachineRequestApi.machineRequest.updateMachine(payload)],
-      () => {
-        toast.success(`Đã gắn ${tempPonds.join(', ')} cho ${selectedMachine.name}!`);
-        setSelectedMachine(null); // Đóng modal sau khi lưu
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-
-    // Chuẩn bị payload để gửi lên API
-    const payload = {
-      farmId,
-      machineName: selectedMachine.name,
-      pondIds: tempPonds.map((pondId) => ({ pondId })),
-    };
-
-    // Gửi yêu cầu cập nhật lên API
-    callApi(
-      [MachineRequestApi.machineRequest.updateMachine(payload)],
-      () => {
-        toast.success(`Đã gắn ${tempPonds.join(', ')} cho ${selectedMachine.name}!`);
-        setSelectedMachine(null); // Đóng modal sau khi lưu
->>>>>>> parent of 348f3d2 (update machine pages)
       },
       (err) => {
-        
         toast.error('Lỗi khi cập nhật máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
       }
     );
+  };
+
+  const handleCreateMachine = () => {
+    if (!newMachineName.trim()) {
+      toast.error('Vui lòng nhập tên máy!');
+      return;
+    }
+
+    const payload = {
+      farmId,
+      machineName: newMachineName,
+      pondIds: tempPonds.map((pondId) => ({ pondId })),
+    };
+
+    callApi(
+      [MachineRequestApi.machineRequest.createMachine(payload)],
+      (res) => {
+        const newMachine = {
+          id: res.data?.machineId || Date.now(),
+          name: newMachineName,
+          status: false,
+          ponds: tempPonds,
+          pondNames: pondsOptions
+            .filter((pond) => tempPonds.includes(pond.value))
+            .map((pond) => pond.label),
+        };
+        setMachines((prev) => [...prev, newMachine]);
+        toast.success(`Đã tạo máy ${newMachineName}!`);
+        setIsCreating(false);
+        setNewMachineName('');
+        setTempPonds([]);
+        setSelectedMachine(null);
+      },
+      (err) => {
+        toast.error('Lỗi khi tạo máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
+      }
+    );
+  };
+
+  const openCreateModal = () => {
+    setIsCreating(true);
+    setSelectedMachine(null);
+    setTempPonds([]);
+    setNewMachineName('');
   };
 
   return (
@@ -272,13 +237,11 @@ const MachinesManager = () => {
                   <div className="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mb-4">
                     <span className="text-blue-600 font-semibold text-lg">Máy</span>
                   </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-                  <h3 className="text-2xl sm:text-xl font-semibold text-teal-800 text-center">
+                  <h3 className="text-lg sm:text-xl font-semibold text-teal-800 text-center">
                     {machine.name}
                   </h3>
                   <motion.p
-                    className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
+                    className="text-sm sm:text-base mt-2 text-center px-2 py-1 rounded-md"
                     animate={{
                       color: machine.status ? '#166534' : '#991B1B',
                       backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
@@ -287,27 +250,13 @@ const MachinesManager = () => {
                   >
                     Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
                   </motion.p>
-                  <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
+                  <p className="text-sm sm:text-base text-teal-600 text-center">
                     Số ao: {machine.ponds.length}
                   </p>
-                  <p className="text-sm font-semibold sm:text-sm text-black text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
+                  <p className="text-sm sm:text-base text-teal-600 text-center">
                     Ao: {machine.pondNames.length > 0 ? machine.pondNames.join(', ') : 'Chưa gắn'}
                   </p>
                 </motion.div>
-=======
-                  <h3 className="text-xl font-semibold text-gray-800 text-center">{machine.name}</h3>
-                  <p className="text-base text-gray-600 mt-2 text-center">
-                    Ao: {machine.ponds.length > 0 ? machine.ponds.join(', ') : 'Chưa gắn'}
-                  </p>
-                </div>
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-                  <h3 className="text-xl font-semibold text-gray-800 text-center">{machine.name}</h3>
-                  <p className="text-base text-gray-600 mt-2 text-center">
-                    Ao: {machine.ponds.length > 0 ? machine.ponds.join(', ') : 'Chưa gắn'}
-                  </p>
-                </div>
->>>>>>> parent of 348f3d2 (update machine pages)
               ))
             ) : (
               <p className="text-gray-600">Chưa có máy nào được tạo.</p>
@@ -317,21 +266,9 @@ const MachinesManager = () => {
           {/* Modal chỉ hiển thị phần chọn ao */}
           {selectedMachine && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-<<<<<<< HEAD
-<<<<<<< HEAD
-              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 w-11/12 max-w-lg flex flex-col h-[400px]">
+              <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 w-full max-w-lg flex flex-col h-[400px]">
                 <h2 className="text-xl sm:text-2xl font-semibold text-teal-700 mb-4 sm:mb-6">
                   {isCreating ? 'Tạo máy mới' : `Gắn ao cho ${selectedMachine.name}`}
-=======
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg flex flex-col h-[400px]">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                  Gắn ao cho {selectedMachine.name}
->>>>>>> parent of 348f3d2 (update machine pages)
-=======
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg flex flex-col h-[400px]">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                  Gắn ao cho {selectedMachine.name}
->>>>>>> parent of 348f3d2 (update machine pages)
                 </h2>
                 <div className="flex-grow">
                   <Select
