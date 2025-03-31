@@ -1,40 +1,61 @@
-import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr'
-// import { authStorageService } from '@/services/browserStorage'
+import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr';
 
-const connection = new HubConnectionBuilder() //Lớp tạo một kết nối tới một SignalR Hub
-    // .withUrl('https://shrimppond.runasp.net/NotificationHub', {
-    .withUrl('https://shrimppond.duckdns.org:5000/machineHub', {
+const connection = new HubConnectionBuilder()
+    .withUrl('http://103.170.122.142:5000/machineHub', {
         transport: HttpTransportType.WebSockets,
         skipNegotiation: true,
-        // accessTokenFactory: authStorageService.accessToken.get,
-    }) //Thiết lập URL của Hub để kết nối. Đồng thời các tham số đặc biệt được truyền vào như transport, skipNegotiation, accessTokenFactory.
-    .withAutomaticReconnect() //Thiết lập kết nối tự động khởi động lại khi bị mất kết nối.
-    .build() //Tạo một đối tượng kết nối tới Hub.
+    })
+    .withAutomaticReconnect([0, 2000, 5000, 10000]) // Tùy chỉnh thời gian thử kết nối lại
+    .build();
 
 const hubConnection = {
     connection,
     start: async () => {
         try {
             if (connection.state === 'Disconnected') {
-                await connection.start()
-                if (connection.state === 'Connected') {
-                    console.log('Connected to websocket server')
-                }
+                await connection.start();
+                console.log('Connected to WebSocket server:', connection.state);
+
+                // Lắng nghe sự kiện MachineStatusChanged
+                connection.on('MachineStatusChanged', (data) => {
+                    console.log('Received MachineStatusChanged event:', data);
+                    console.log('Machine Name:', data.Name);
+                    console.log('Status:', data.Value);
+                    console.log('Timestamp:', data.TimeStamp);
+
+                    // Xử lý dữ liệu theo nhu cầu
+                    if (data.Value === 'ON') {
+                        console.log(`${data.Name} is turned ON at ${data.TimeStamp}`);
+                    } else {
+                        console.log(`${data.Name} is turned OFF at ${data.TimeStamp}`);
+                    }
+                });
+
+                // Xử lý khi kết nối đóng
+                connection.onclose((err) => {
+                    console.log('Connection closed:', err ? err.message : 'No error');
+                });
+
+                return connection;
+            } else {
+                console.log('Connection already in state:', connection.state);
+                return connection;
             }
-
-            connection.onclose((err) => {
-                console.log('Connection close because: ' + err)
-            })
-            return connection
         } catch (error) {
-            console.log('Fail to start connection: ' + error)
+            console.error('Failed to start SignalR connection:', error);
+            throw error; // Ném lỗi để hook xử lý
         }
     },
-    stop: () => {
-        if (connection.state === 'Connected') {
-            connection.stop()
+    stop: async () => {
+        try {
+            if (connection.state === 'Connected') {
+                await connection.stop();
+                console.log('SignalR connection stopped');
+            }
+        } catch (error) {
+            console.error('Failed to stop SignalR connection:', error);
         }
     },
-}
+};
 
-export default hubConnection
+export default hubConnection;
