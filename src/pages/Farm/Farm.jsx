@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer và toast
-import 'react-toastify/dist/ReactToastify.css'; // Import CSS cho react-toastify
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Loading from '../../components/Loading';
 import useCallApi from '../../hooks/useCallApi';
 import { FarmRequestApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 function Farm() {
-    const [farms, setFarms] = useState([]); // Danh sách trang trại
-    const [farmName, setFarmName] = useState(''); // Tên trang trại
-    const [farmAddress, setFarmAddress] = useState(''); // Địa chỉ trang trại
-    const [isLoading, setIsLoading] = useState(false); // Trạng thái loading
+    const [farms, setFarms] = useState([]);
+    const [farmName, setFarmName] = useState('');
+    const [farmAddress, setFarmAddress] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const callApi = useCallApi();
     const navigate = useNavigate();
@@ -36,7 +36,7 @@ function Farm() {
                 (err) => {
                     setIsLoading(false);
                     if (err?.response?.data?.title === 'PondType is still exits in Farm') {
-                        toast.error('Vẫn còn khối ao ở farm!'); // Thông báo lỗi cụ thể
+                        toast.error('Vẫn còn khối ao ở farm!');
                     } else {
                         toast.error('Có lỗi xảy ra khi xóa trang trại!');
                     }
@@ -46,8 +46,6 @@ function Farm() {
         },
         [callApi, farms]
     );
-
-
 
     const fetchFarms = useCallback(() => {
         if (!username) {
@@ -60,7 +58,8 @@ function Farm() {
                 FarmRequestApi.farmRequest.getAllFarmByUserName(username),
             ],
             (res) => {
-                setFarms(res[0].flat());
+                const farmData = res[0] && Array.isArray(res[0]) ? res[0].flat() : [];
+                setFarms(farmData);
             },
             (err) => {
                 toast.error('Không thể tải danh sách trang trại!');
@@ -83,7 +82,7 @@ function Farm() {
                 address: farmAddress.trim(),
                 username,
             };
-            console.log(data)
+            console.log(data);
 
             setIsLoading(true);
 
@@ -94,9 +93,9 @@ function Farm() {
                 (res) => {
                     setIsLoading(false);
                     toast.success('Thêm trang trại thành công!');
-                    setFarms([...farms, res[0]]); // Thêm trang trại mới vào danh sách
-                    setFarmName(''); // Reset tên trang trại
-                    setFarmAddress(''); // Reset địa chỉ
+                    setFarms([...farms, res[0]]);
+                    setFarmName('');
+                    setFarmAddress('');
                 },
                 (err) => {
                     setIsLoading(false);
@@ -114,17 +113,15 @@ function Farm() {
 
     return (
         <div className="flex max-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-            {/* Sidebar */}
             <aside>
                 <Sidebar />
             </aside>
 
-            <main className="w-full mx-auto mt-16 sm:mt-0 max-w-6xl overflow-y-auto overflow-hidden no-scrollbar  p-4 sm:p-6 lg:p-8 transition-all duration-300">
+            <main className="w-full mx-auto mt-16 sm:mt-0 max-w-6xl overflow-y-auto overflow-hidden no-scrollbar p-4 sm:p-6 lg:p-8 transition-all duration-300">
                 <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
                     Thông tin trang trại
                 </h1>
 
-                {/* Form thêm trang trại */}
                 <form onSubmit={handleAddFarm} className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
                     <div className="mb-4 sm:mb-6">
                         <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
@@ -162,7 +159,6 @@ function Farm() {
                     </button>
                 </form>
 
-                {/* Danh sách trang trại */}
                 <h2 className="text-lg sm:text-xl font-bold text-teal-700 mb-4 sm:mb-6">
                     Danh sách trang trại
                 </h2>
@@ -179,7 +175,7 @@ function Farm() {
                                     className="cursor-pointer text-teal-600 hover:text-teal-800 font-semibold hover:underline mb-2 sm:mb-0"
                                     onClick={() => {
                                         localStorage.setItem('farmName', farm.farmName);
-                                        localStorage.setItem('farmId', String(farm.farmId)); // Lưu farmName vào localStorage
+                                        localStorage.setItem('farmId', String(farm.farmId));
                                         navigate('/dashboard');
                                     }}
                                 >
@@ -199,10 +195,7 @@ function Farm() {
                     )}
                 </ul>
             </main>
-            {/* Hiển thị loading */}
             {isLoading && <Loading />}
-
-            {/* ToastContainer */}
             <ToastContainer
                 position="top-right"
                 autoClose={3000}

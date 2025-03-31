@@ -18,24 +18,12 @@ function Account() {
 
   const isLoginEnabled = username.trim() !== "" && password.trim() !== "";
 
-  const handleAccept = async () => {
-    try {
-      // Gửi yêu cầu thử nghiệm đến https://103.170.122.142:5000/machineHub
-      const response = await fetch('https://103.170.122.142:5000/machineHub', {
-        method: 'GET',
-        mode: 'no-cors', // Dùng no-cors vì chứng chỉ tự ký có thể gây lỗi CORS
-      });
-      console.log('Kết nối thành công đến machineHub');
-    } catch (error) {
-      console.error('Lỗi khi kết nối đến machineHub:', error);
-    }
-  };
+
 
   const handleLogin = useCallback(() => {
     if (!isLoginEnabled) return;
 
     setIsLoading(true);
-    handleAccept();
     setErrorMessage("");
 
     const loginData = {

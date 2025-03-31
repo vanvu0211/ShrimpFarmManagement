@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient"
+import axiosClient from "../Transfer/axiosClient"
 
 const ShrimpRequestApi = {
     ShrimpRequest: {

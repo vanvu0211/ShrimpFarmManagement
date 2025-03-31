@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import axios from 'axios';
 import { FaPlus, FaTrash, FaExpand } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
 import Modal from 'react-modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
-import { DashboardRequestApi } from '../../services/api';
+import { DashboardRequestApi,EvistaRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { IoCloseSharp } from "react-icons/io5";
 import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field';
@@ -25,7 +24,6 @@ function Evista() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
-  const dateInputRef = useRef(null);
 
   const [chartData] = useState({
     series: [],
@@ -50,7 +48,7 @@ function Evista() {
         title: { text: '' },
         labels: { style: { colors: '#64748b', fontSize: '12px' } },
       },
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'], // Thêm màu cho NH3 và NO2
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
       stroke: { curve: 'smooth', width: 2 },
       grid: { borderColor: '#e2e8f0' },
       annotations: { yaxis: [] },
@@ -137,35 +135,39 @@ function Evista() {
     );
   }, [callApi, selectedPondType, farmId]);
 
-  const fetchAllParameters = async (pondId, pondName) => {
+  const fetchAllParameters = async (pondIdPrivilegeEscalation, pondName) => {
     setLoading(true);
     try {
-      const phData = await fetchData('Ph', pondId);
-      const o2Data = await fetchData('O2', pondId);
-      const tempData = await fetchData('Temperature', pondId);
-      const nh3Data = await fetchData('NH3', pondId); // Thêm dữ liệu NH3
-      const no2Data = await fetchData('NO2', pondId); // Thêm dữ liệu NO2
+      const phData = await fetchData('Ph', pondIdPrivilegeEscalation);
+      const o2Data = await fetchData('O2', pondIdPrivilegeEscalation);
+      const tempData = await fetchData('Temperature', pondIdPrivilegeEscalation);
+      const nh3Data = await fetchData('NH3', pondIdPrivilegeEscalation);
+      const no2Data = await fetchData('NO2', pondIdPrivilegeEscalation);
 
       setPondData((prevData) => ({
         ...prevData,
-        [pondId]: { Ph: phData, O2: o2Data, Temperature: tempData, NH3: nh3Data, NO2: no2Data },
+        [pondIdPrivilegeEscalation]: { Ph: phData, O2: o2Data, Temperature: tempData, NH3: nh3Data, NO2: no2Data },
       }));
       toast.success(`Dữ liệu ao ${pondName} đã được cập nhật!`);
     } catch (error) {
-      toast.error(`Không thể tải dữ liệu cho ao ${pondId}.`);
+      toast.error(`Không thể tải dữ liệu cho ao ${pondIdPrivilegeEscalation}.`);
     } finally {
       setLoading(false);
     }
   };
 
   const fetchData = async (parameter, pond) => {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
+    const formattedStartDate = formatDateForInput(startDate);
+    const formattedEndDate = formatDateForInput(endDate);
 
-    const url = `https://shrimppond.runasp.net/api/Environment?pondId=${pond}&name=${parameter}&startDate=${formattedStartDate}&endDate=${formattedEndDate}&pageSize=200&pageNumber=1`;
     try {
-      const response = await axios.get(url);
-      return response.data.reverse();
+      const response = await EvistaRequestApi.EnvironmentRequest.getEnvironmentRequest(
+        pond,
+        parameter,
+        formattedStartDate,
+        formattedEndDate
+      );
+      return response.reverse(); // Giả sử response là mảng dữ liệu
     } catch (error) {
       console.error(`Failed to fetch data for ${parameter}:`, error);
       return [];
@@ -204,8 +206,8 @@ function Evista() {
     fetchAllParameters(selectedPond.value, selectedPond.label);
   };
 
-  const handleUpdateNH3NO2 = (e) => {
-    setIsNh3No2ModalOpen(true); // Open the NH3/NO2 modal
+  const handleUpdateNH3NO2 = () => {
+    setIsNh3No2ModalOpen(true);
   };
 
   const deletePond = (pond) => {
@@ -221,11 +223,11 @@ function Evista() {
     const limits = parameterLimits[parameter];
     return limits
       ? {
-        yaxis: [
-          { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
-          { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
-        ],
-      }
+          yaxis: [
+            { y: limits.min, borderColor: '#ef4444', label: { text: `Min: ${limits.min}`, style: { color: '#fff', background: '#ef4444' } } },
+            { y: limits.max, borderColor: '#10b981', label: { text: `Max: ${limits.max}`, style: { color: '#fff', background: '#10b981' } } },
+          ],
+        }
       : {};
   };
 
@@ -250,7 +252,7 @@ function Evista() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-semibold bg-teal-100  text-teal-700">{pond.label}</h2>
+          <h2 className="text-3xl font-semibold bg-teal-100 text-teal-700">{pond.label}</h2>
           <button
             onClick={() => deletePond(pond)}
             className="p-2 rounded-full hover:bg-red-100 text-red-500 transition-colors"
@@ -328,7 +330,7 @@ function Evista() {
 
       <div className="flex-1 mt-16 sm:mt-0 overflow-y-auto overflow-hidden max-h-screen flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300">
-          <h1 className="text-2xl sm:text-3xl font-bold text-teal-700  sm:mb-2 mx-auto max-w-6xl">
+          <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 sm:mb-2 mx-auto max-w-6xl">
             Thông số môi trường
           </h1>
           <div className="max-w-8xl mx-auto z-10">
@@ -337,7 +339,6 @@ function Evista() {
               className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
             >
               <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
-                {/* Combobox 1 */}
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
                     Chọn loại ao
@@ -358,7 +359,6 @@ function Evista() {
                   </select>
                 </div>
 
-                {/* Combobox 2 */}
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondId">
                     Tên ao
@@ -379,7 +379,6 @@ function Evista() {
                   </select>
                 </div>
 
-                {/* Datepicker 1 */}
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="startDate">
                     Ngày bắt đầu
@@ -394,7 +393,6 @@ function Evista() {
                   />
                 </div>
 
-                {/* Datepicker 2 */}
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="endDate">
                     Ngày kết thúc
@@ -409,7 +407,6 @@ function Evista() {
                   />
                 </div>
 
-                {/* Nút submit */}
                 <div className="sm:col-span-1 flex items-end">
                   <button
                     type="submit"
@@ -420,7 +417,6 @@ function Evista() {
                   </button>
                 </div>
 
-                {/* Nút cập nhật NH3, NO2 */}
                 <div className="sm:col-span-1 flex items-end">
                   <button
                     type="button"
@@ -440,7 +436,6 @@ function Evista() {
               {renderCharts()}
             </div>
 
-            {/* Modal for Chart Expansion */}
             <Modal
               isOpen={isModalOpen}
               onRequestClose={() => setIsModalOpen(false)}
@@ -503,7 +498,6 @@ function Evista() {
               />
             </Modal>
 
-            {/* Modal for Nh3No2Field */}
             <Modal
               isOpen={isNh3No2ModalOpen}
               onRequestClose={() => setIsNh3No2ModalOpen(false)}
