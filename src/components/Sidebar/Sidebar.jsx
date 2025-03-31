@@ -22,6 +22,7 @@ function Sidebar({ onMobileMenuToggle }) {
     { name: "Thông tin ao", icon: <FaInfo />, lnk: "/info" },
     { name: "Truy xuất nguồn gốc", icon: <BsSearch />, lnk: "/access" },
     { name: "Thông báo và cảnh báo", icon: <MdReportProblem />, lnk: "/alarm" },
+    { name: "Thông tin trang trại", icon: <BsFileText  />, lnk: "/farm" },
   ];
 
   const navigate = useNavigate();
