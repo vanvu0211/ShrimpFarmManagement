@@ -5,11 +5,16 @@ import { components } from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { MachineRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import useSignalR from '../../hooks/useSignalR';
 import { motion } from 'framer-motion';
 import Loading from '../../components/Loading'; // Thêm import Loading từ Dashboard
+=======
+import { MachineRequestApi } from '../../services/api';
+import useCallApi from '../../hooks/useCallApi'; // Giả sử bạn có hook này để gọi API
+>>>>>>> parent of 348f3d2 (update machine pages)
 =======
 import { MachineRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi'; // Giả sử bạn có hook này để gọi API
@@ -29,10 +34,15 @@ const Option = (props) => (
 
 const MachinesManager = () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const [updatedMachineId, setUpdatedMachineId] = useState(null);
   const [isLoading, setIsLoading] = useState(false); // Đảm bảo state này được dùng cho Loading
+=======
+  const farmId = Number(localStorage.getItem('farmId')); // Lấy farmId từ localStorage
+  const callApi = useCallApi(); // Hook để gọi API
+>>>>>>> parent of 348f3d2 (update machine pages)
 =======
   const farmId = Number(localStorage.getItem('farmId')); // Lấy farmId từ localStorage
   const callApi = useCallApi(); // Hook để gọi API
@@ -53,6 +63,7 @@ const MachinesManager = () => {
   const [machines, setMachines] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
   const [tempPonds, setTempPonds] = useState([]);
+<<<<<<< HEAD
 <<<<<<< HEAD
   const [isCreating, setIsCreating] = useState(false);
   const [newMachineName, setNewMachineName] = useState('');
@@ -116,6 +127,9 @@ const MachinesManager = () => {
 =======
   const [isLoading, setIsLoading] = useState(false);
 >>>>>>> parent of 348f3d2 (update machine pages)
+=======
+  const [isLoading, setIsLoading] = useState(false);
+>>>>>>> parent of 348f3d2 (update machine pages)
 
   // Lấy danh sách máy từ API khi component mount
   useEffect(() => {
@@ -173,6 +187,7 @@ const MachinesManager = () => {
         machine.id === selectedMachine.id ? { ...machine, ponds: tempPonds } : machine
       )
     );
+<<<<<<< HEAD
 
     // Chuẩn bị payload để gửi lên API
     const payload = {
@@ -202,6 +217,22 @@ const MachinesManager = () => {
         toast.success(`Đã cập nhật ao cho ${selectedMachine.name}!`);
         setSelectedMachine(null);
 =======
+
+    // Gửi yêu cầu cập nhật lên API
+    callApi(
+      [MachineRequestApi.machineRequest.updateMachine(payload)],
+      () => {
+        toast.success(`Đã gắn ${tempPonds.join(', ')} cho ${selectedMachine.name}!`);
+        setSelectedMachine(null); // Đóng modal sau khi lưu
+>>>>>>> parent of 348f3d2 (update machine pages)
+=======
+
+    // Chuẩn bị payload để gửi lên API
+    const payload = {
+      farmId,
+      machineName: selectedMachine.name,
+      pondIds: tempPonds.map((pondId) => ({ pondId })),
+    };
 
     // Gửi yêu cầu cập nhật lên API
     callApi(
@@ -242,6 +273,7 @@ const MachinesManager = () => {
                     <span className="text-blue-600 font-semibold text-lg">Máy</span>
                   </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
                   <h3 className="text-2xl sm:text-xl font-semibold text-teal-800 text-center">
                     {machine.name}
                   </h3>
@@ -269,6 +301,13 @@ const MachinesManager = () => {
                   </p>
                 </div>
 >>>>>>> parent of 348f3d2 (update machine pages)
+=======
+                  <h3 className="text-xl font-semibold text-gray-800 text-center">{machine.name}</h3>
+                  <p className="text-base text-gray-600 mt-2 text-center">
+                    Ao: {machine.ponds.length > 0 ? machine.ponds.join(', ') : 'Chưa gắn'}
+                  </p>
+                </div>
+>>>>>>> parent of 348f3d2 (update machine pages)
               ))
             ) : (
               <p className="text-gray-600">Chưa có máy nào được tạo.</p>
@@ -279,9 +318,15 @@ const MachinesManager = () => {
           {selectedMachine && (
             <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
 <<<<<<< HEAD
+<<<<<<< HEAD
               <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 w-11/12 max-w-lg flex flex-col h-[400px]">
                 <h2 className="text-xl sm:text-2xl font-semibold text-teal-700 mb-4 sm:mb-6">
                   {isCreating ? 'Tạo máy mới' : `Gắn ao cho ${selectedMachine.name}`}
+=======
+              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg flex flex-col h-[400px]">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                  Gắn ao cho {selectedMachine.name}
+>>>>>>> parent of 348f3d2 (update machine pages)
 =======
               <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg flex flex-col h-[400px]">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">
