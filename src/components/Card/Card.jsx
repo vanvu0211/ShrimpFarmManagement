@@ -25,7 +25,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const callApi = useCallApi();
 
   const machineNameMapping = {
-    'Oxi': 'Máy quạt oxi',
+    'Oxi': 'Máy oxi',
     'Waste_separator': 'Máy lọc phân',
     'Fan1': 'Máy quạt 1',
     'Fan2': 'Máy quạt 2',

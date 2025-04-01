@@ -51,7 +51,7 @@ function Dashboard() {
 
   const fetchData = useCallback(() => {
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
-      toast.error('Vui lòng chọn trang trại!');
+      // toast.error('Vui lòng chọn trang trại!');
       setIsLoading(false);
       return;
     }
