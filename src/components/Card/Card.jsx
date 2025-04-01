@@ -140,29 +140,94 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
     exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } }
   };
 
+  // const renderMachineStatus = () => {
+  //   const sortedMachines = [...machineData].sort((a, b) => {
+  //     if (a.machineName === 'Máy lọc phân') return 1;
+  //     if (b.machineName === 'Máy lọc phân') return -1;
+  //     return 0;
+  //   });
+
+  //   const machinesToShow = sortedMachines.slice(0, 3);
+
+  //   return (
+  //     <div className="p-3">
+  //       <div className="grid grid-cols-2 gap-2">
+  //         {machinesToShow.slice(0, 2).map((machine, index) => (
+  //           <motion.div
+  //             key={machine.machineId}
+  //             className="text-center py-2 text-sm font-medium rounded-md"
+  //             animate={{
+  //               backgroundColor: machine.machineStatus
+  //                 ? '#DCFCE7'
+  //                 : '#FEE2E2',
+  //               color: machine.machineStatus
+  //                 ? '#166534'
+  //                 : '#991B1B',
+  //               scale: updatedMachineId === machine.machineId ? [1, 1.05, 1] : 1
+  //             }}
+  //             transition={{
+  //               color: { duration: 0.3 },
+  //               backgroundColor: { duration: 0.3 },
+  //               scale: { duration: 0.5 }
+  //             }}
+  //           >
+  //             {machine.machineName}
+  //           </motion.div>
+  //         ))}
+  //         {machinesToShow.length < 3 && Array(3 - machinesToShow.length).fill().map((_, index) => (
+  //           <div
+  //             key={`placeholder-${index}`}
+  //             className="text-center py-2 text-sm personally font-medium bg-gray-200 text-gray-600 rounded-md"
+  //           >
+  //             N/A
+  //           </div>
+  //         ))}
+  //       </div>
+  //       {machinesToShow.length >= 3 && (
+  //         <motion.div
+  //           className="mt-2 text-center py-2 text-sm font-medium rounded-md"
+  //           animate={{
+  //             backgroundColor: machinesToShow[2].machineStatus
+  //               ? '#DCFCE7'
+  //               : '#FEE2E2',
+  //             color: machinesToShow[2].machineStatus
+  //               ? '#166534'
+  //               : '#991B1B',
+  //             scale: updatedMachineId === machinesToShow[2].machineId ? [1, 1.05, 1] : 1
+  //           }}
+  //           transition={{
+  //             color: { duration: 0.3 },
+  //             backgroundColor: { duration: 0.3 },
+  //             scale: { duration: 0.5 }
+  //           }}
+  //         >
+  //           {machinesToShow[2].machineName}
+  //         </motion.div>
+  //       )}
+  //     </div>
+  //   );
+  // };
   const renderMachineStatus = () => {
     const sortedMachines = [...machineData].sort((a, b) => {
       if (a.machineName === 'Máy lọc phân') return 1;
       if (b.machineName === 'Máy lọc phân') return -1;
       return 0;
     });
-
+  
     const machinesToShow = sortedMachines.slice(0, 3);
-
+    const hasWasteSeparator = machinesToShow.some(m => m.machineName === 'Máy lọc phân');
+    const displayMachines = machinesToShow.filter(m => m.machineName !== 'Máy lọc phân');
+  
     return (
       <div className="p-3">
         <div className="grid grid-cols-2 gap-2">
-          {machinesToShow.slice(0, 2).map((machine, index) => (
+          {displayMachines.slice(0, 2).map((machine, index) => (
             <motion.div
               key={machine.machineId}
               className="text-center py-2 text-sm font-medium rounded-md"
               animate={{
-                backgroundColor: machine.machineStatus
-                  ? '#DCFCE7'
-                  : '#FEE2E2',
-                color: machine.machineStatus
-                  ? '#166534'
-                  : '#991B1B',
+                backgroundColor: machine.machineStatus ? '#DCFCE7' : '#FEE2E2',
+                color: machine.machineStatus ? '#166534' : '#991B1B',
                 scale: updatedMachineId === machine.machineId ? [1, 1.05, 1] : 1
               }}
               transition={{
@@ -174,26 +239,35 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               {machine.machineName}
             </motion.div>
           ))}
-          {machinesToShow.length < 3 && Array(3 - machinesToShow.length).fill().map((_, index) => (
-            <div
-              key={`placeholder-${index}`}
-              className="text-center py-2 text-sm personally font-medium bg-gray-200 text-gray-600 rounded-md"
-            >
-              N/A
-            </div>
-          ))}
+          {displayMachines.length < 2 &&
+            Array(2 - displayMachines.length).fill().map((_, index) => (
+              <div
+                key={`placeholder-${index}`}
+                className="text-center py-2 text-sm font-medium bg-gray-200 text-gray-600 rounded-md"
+              >
+                N/A
+              </div>
+            ))}
         </div>
-        {machinesToShow.length >= 3 && (
+        {(hasWasteSeparator || machinesToShow.length < 3) && (
           <motion.div
             className="mt-2 text-center py-2 text-sm font-medium rounded-md"
             animate={{
-              backgroundColor: machinesToShow[2].machineStatus
-                ? '#DCFCE7'
-                : '#FEE2E2',
-              color: machinesToShow[2].machineStatus
-                ? '#166534'
-                : '#991B1B',
-              scale: updatedMachineId === machinesToShow[2].machineId ? [1, 1.05, 1] : 1
+              backgroundColor:
+                hasWasteSeparator
+                  ? machinesToShow.find(m => m.machineName === 'Máy lọc phân').machineStatus
+                    ? '#DCFCE7'
+                    : '#FEE2E2'
+                  : '#e5e7eb ', // Giả định trạng thái "tắt" cho N/A
+              color: hasWasteSeparator
+                ? machinesToShow.find(m => m.machineName === 'Máy lọc phân').machineStatus
+                  ? '#166534'
+                  : '#991B1B'
+                : '#4b5563', // Giả định màu "tắt" cho N/A
+              scale:
+                hasWasteSeparator && updatedMachineId === machinesToShow.find(m => m.machineName === 'Máy lọc phân').machineId
+                  ? [1, 1.05, 1]
+                  : 1
             }}
             transition={{
               color: { duration: 0.3 },
@@ -201,13 +275,16 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               scale: { duration: 0.5 }
             }}
           >
-            {machinesToShow[2].machineName}
+            {hasWasteSeparator
+              ? 'Máy lọc phân'
+              : machinesToShow.length < 3
+              ? 'N/A'
+              : null}
           </motion.div>
         )}
       </div>
     );
   };
-
   return (
     <motion.div
       className="w-60 bg-white rounded-xl shadow-lg overflow-hidden m-4 transition-transform transform hover:scale-105"
