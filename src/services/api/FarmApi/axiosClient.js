@@ -3,31 +3,37 @@ import { api as apiConfig } from "../../../config";
 
 const axiosClient = axios.create(apiConfig.URLDomain);
 
+// Request Interceptor
 axiosClient.interceptors.request.use(
-    async (config) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${token}`,
-            };
-        }
-        return config;
-    },
-    async (error) => Promise.reject(new Error(error))
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
+// Response Interceptor
 axiosClient.interceptors.response.use(
-    async (response) => {
-        if (response && response.data) {
-            return response.data;
-        }
-    },
-    async (error) => {
-        const errorData = error.response?.data || "";
-        // Không xử lý 401 ở đây, để useCallApi quản lý
-        return Promise.reject(error); // Trả lỗi về cho useCallApi
+  (response) => {
+    return response.data || response;
+  },
+  (error) => {
+    const errorData = error.response?.data || error.message || "Unknown error";
+
+    if (error.code === "ERR_NETWORK") {
+      alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại!");
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      window.location.href = "/";
     }
+    return Promise.reject(errorData);
+  }
 );
 
 export default axiosClient;

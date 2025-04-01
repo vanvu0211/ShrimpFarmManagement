@@ -80,11 +80,11 @@ function Dashboard() {
         } else {
           setNeedsCleaning(false);
         }
-
         setIsLoading(false);
       },
       (err) => {
         toast.error('Không thể tải dữ liệu từ API!');
+        console.error("Lỗi");
         console.error(err);
         setIsLoading(false);
       }

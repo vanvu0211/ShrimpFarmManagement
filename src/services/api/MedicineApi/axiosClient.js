@@ -3,8 +3,9 @@ import { api as apiConfig } from "../../../config";
 
 const axiosClient = axios.create(apiConfig.URLDomain);
 
+// Request Interceptor
 axiosClient.interceptors.request.use(
-  async (config) => {
+  (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers = {
@@ -14,24 +15,24 @@ axiosClient.interceptors.request.use(
     }
     return config;
   },
-  async (error) => Promise.reject(new Error(error))
+  (error) => Promise.reject(error)
 );
 
+// Response Interceptor
 axiosClient.interceptors.response.use(
-  async (response) => {
-    if (response && response.data) {
-      return response.data;
-    }
+  (response) => {
+    return response.data || response;
   },
-  async (error) => {
-    const errorData = error.response?.data || "";
-    // Xử lý khi token hết hạn (401)
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token"); // Xóa token
-      localStorage.removeItem("username"); // Xóa thông tin người dùng nếu cần
-      window.location.href = "/"; // Điều hướng về trang đăng nhập
+  (error) => {
+    const errorData = error.response?.data || error.message || "Unknown error";
+
+    if (error.code === "ERR_NETWORK") {
+      alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại!");
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      window.location.href = "/";
     }
-    return Promise.reject(new Error(errorData));
+    return Promise.reject(errorData);
   }
 );
 
