@@ -153,6 +153,9 @@ function Sidebar({ onMobileMenuToggle }) {
                 {expanded && <span className="ml-2 font-medium">Log out</span>}
               </button>
             </div>
+            <div className={`text-white text-xs mt-2 text-center opacity-75 ${expanded ? "" : "hidden"}`}>
+              © 2025 HCMUT. All rights reserved.
+            </div>
           </div>
         </nav>
       </aside>
@@ -204,22 +207,27 @@ function Sidebar({ onMobileMenuToggle }) {
                 </li>
               ))}
             </ul>
-            <div className="border-t border-teal-500 p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-teal-300 rounded-full mr-2 flex items-center justify-center text-white text-lg font-bold">
-                  {username ? username[0].toUpperCase() : "A"}
+            <div className="border-t border-teal-500 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-teal-300 rounded-full mr-2 flex items-center justify-center text-white text-lg font-bold">
+                    {username ? username[0].toUpperCase() : "A"}
+                  </div>
+                  <span className="text-white text-sm font-medium truncate max-w-[150px]">
+                    {username || "Admin"}
+                  </span>
                 </div>
-                <span className="text-white text-sm font-medium truncate max-w-[150px]">
-                  {username || "Admin"}
-                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center text-white bg-teal-700 py-1 px-2 rounded-lg hover:bg-teal-900 transition-all duration-200"
+                >
+                  <FiLogOut size={18} className="mr-1" />
+                  <span className="font-medium">Log out</span>
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-white bg-teal-700 py-1 px-2 rounded-lg hover:bg-teal-900 transition-all duration-200"
-              >
-                <FiLogOut size={18} className="mr-1" />
-                <span className="font-medium">Log out</span>
-              </button>
+              <div className="text-white text-xs text-center opacity-75">
+                © 2025 HCMUT. All rights reserved.
+              </div>
             </div>
           </div>
         )}
