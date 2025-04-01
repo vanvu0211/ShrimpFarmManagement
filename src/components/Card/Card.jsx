@@ -35,10 +35,10 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const handleMachineStatusChanged = useCallback((data) => {
     setMachineData(prevData => {
       const updatedData = [...prevData];
-      const machineIndex = updatedData.findIndex(m => 
+      const machineIndex = updatedData.findIndex(m =>
         machineNameMapping[data.Name] === m.machineName
       );
-      
+
       if (machineIndex !== -1) {
         updatedData[machineIndex] = {
           ...updatedData[machineIndex],
@@ -65,21 +65,21 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   const fetchData = useCallback(() => {
     callApi([
       DashboardRequestApi.pondRequest.getPondRequestById(pondId, farmId),
-    ], 
-    (res) => {
-      const startDate = new Date(res[0][0].startDate);
-      if (!isNaN(startDate)) {
-        const currentDate = new Date();
-        const timeDifference = currentDate - startDate;
-        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-        setDaysSinceStart(daysDifference);
-      } else {
-        setDaysSinceStart(0);
-      }
-    },
-    (err) => {
-      console.error(err);
-    });
+    ],
+      (res) => {
+        const startDate = new Date(res[0][0].startDate);
+        if (!isNaN(startDate)) {
+          const currentDate = new Date();
+          const timeDifference = currentDate - startDate;
+          const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+          setDaysSinceStart(daysDifference);
+        } else {
+          setDaysSinceStart(0);
+        }
+      },
+      (err) => {
+        console.error(err);
+      });
   }, [callApi, pondId, farmId]);
 
   const fetchMachineData = useCallback(() => {
@@ -126,6 +126,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
   };
 
   const handleWaterClick = () => {
+    navigate('/evista', { state: { pondId, pondTypeId } });
     setIsMenuOpen(false);
   };
 
@@ -147,7 +148,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
     });
 
     const machinesToShow = sortedMachines.slice(0, 3);
-    
+
     return (
       <div className="p-3">
         <div className="grid grid-cols-2 gap-2">
@@ -156,15 +157,15 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               key={machine.machineId}
               className="text-center py-2 text-sm font-medium rounded-md"
               animate={{
-                backgroundColor: machine.machineStatus 
+                backgroundColor: machine.machineStatus
                   ? '#DCFCE7'
                   : '#FEE2E2',
-                color: machine.machineStatus 
+                color: machine.machineStatus
                   ? '#166534'
                   : '#991B1B',
                 scale: updatedMachineId === machine.machineId ? [1, 1.05, 1] : 1
               }}
-              transition={{ 
+              transition={{
                 color: { duration: 0.3 },
                 backgroundColor: { duration: 0.3 },
                 scale: { duration: 0.5 }
@@ -173,7 +174,7 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
               {machine.machineName}
             </motion.div>
           ))}
-          {machinesToShow.length < 2 && Array(2 - machinesToShow.length).fill().map((_, index) => (
+          {machinesToShow.length < 3 && Array(3 - machinesToShow.length).fill().map((_, index) => (
             <div
               key={`placeholder-${index}`}
               className="text-center py-2 text-sm personally font-medium bg-gray-200 text-gray-600 rounded-md"
@@ -186,15 +187,15 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
           <motion.div
             className="mt-2 text-center py-2 text-sm font-medium rounded-md"
             animate={{
-              backgroundColor: machinesToShow[2].machineStatus 
+              backgroundColor: machinesToShow[2].machineStatus
                 ? '#DCFCE7'
                 : '#FEE2E2',
-              color: machinesToShow[2].machineStatus 
+              color: machinesToShow[2].machineStatus
                 ? '#166534'
                 : '#991B1B',
               scale: updatedMachineId === machinesToShow[2].machineId ? [1, 1.05, 1] : 1
             }}
-            transition={{ 
+            transition={{
               color: { duration: 0.3 },
               backgroundColor: { duration: 0.3 },
               scale: { duration: 0.5 }
@@ -226,93 +227,83 @@ function Card({ pondId, pondName, pondTypeId, status, onDeleteCardSuccess, onPut
 
       <div className="flex justify-between items-center p-3 border-t bg-gray-50">
         {status ? (
-          <div className="flex space-x-2 mx-auto">
+          <div className="flex space-x-1 mx-auto">
             <button
-              className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+              className="p-2 bg-blue-400 text-white rounded-md hover:bg-blue-500 transition-colors flex items-center justify-center"
               onClick={handleWaterClick}
-              data-tooltip-id={`harvest-${pondId}`}
+              data-tooltip-id={`envir-${pondId}`}
             >
               <BsDroplet size={16} />
             </button>
             <button
-              className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+              className="p-2 bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors flex items-center justify-center"
+              onClick={handleHarvestClick}
+              data-tooltip-id={`harvest-${pondId}`}
+            >
+              <FaLeaf size={16} />
+            </button>
+            <button
+              className="p-2 bg-purple-400 text-white rounded-md hover:bg-purple-500 transition-colors flex items-center justify-center"
+              onClick={handleTransferClick}
+              data-tooltip-id={`transfer-${pondId}`}
+            >
+              <FaExchangeAlt size={16} />
+            </button>
+              <button
+              className="p-2 bg-teal-400 text-white rounded-md hover:bg-teal-500 transition-colors flex items-center justify-center"
+              onClick={handleShrimpClick}
+              data-tooltip-id={`shrimp-${pondId}`}
+            >
+              <FaShrimp size={16} />
+            </button>
+
+            <button
+              className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
               onClick={handleInfoClick}
               data-tooltip-id={`info-${pondId}`}
             >
               <FaInfo size={16} />
             </button>
             <button
-              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
               onClick={() => setIsDeleteCard(true)}
               data-tooltip-id={`delete-${pondId}`}
             >
               <FaTrash size={16} />
             </button>
-            <div className="relative z-10">
-              <button
-                className="p-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
-                onClick={toggleMenu}
-                data-tooltip-id={`more-${pondId}`}
-              >
-                <FaEllipsisV size={16} />
-              </button>
-              {isMenuOpen && (
-                <motion.div
-                  className="absolute right-0 bottom-14 mt-2 bg-white shadow-lg rounded-md p-2 z-0 border w-48"
-                  variants={menuVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                >
-                  <button
-                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-                    onClick={handleHarvestClick}
-                  >
-                    <FaLeaf className="mr-2" size={16} /> Thu hoạch
-                  </button>
-                  <button
-                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-                    onClick={handleTransferClick}
-                  >
-                    <FaExchangeAlt className="mr-2" size={16} /> Chuyển ao
-                  </button>
-                  <button
-                    className="flex items-center w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-                    onClick={handleShrimpClick}
-                  >
-                    <FaShrimp className="mr-2" size={16} /> Thông tin tôm
-                  </button>
-                </motion.div>
-              )}
-            </div>
-            <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
-            <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thông số môi trường" />
-            <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
+            <ReactTooltip id={`envir-${pondId}`} place="top" content="Thông số môi trường" />
+      <ReactTooltip id={`info-${pondId}`} place="top" content="Thông tin ao" />
+      <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
+      <ReactTooltip id={`harvest-${pondId}`} place="top" content="Thu hoạch" />
+      <ReactTooltip id={`transfer-${pondId}`} place="top" content="Chuyển ao" />
+      <ReactTooltip id={`shrimp-${pondId}`} place="top" content="Thông tin tôm" />
           </div>
+
+
         ) : (
-          <div className="flex space-x-2 w-full">
+          <div className="flex space-x-1 w-full">
             <button
-              className="flex-1 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm font-semibold"
+              className="flex-1  bg-green-400 text-white rounded-md hover:bg-green-500 transition-colors text-sm font-semibold"
               onClick={() => setIsActiveModal(true)}
             >
-              <FaPlay className="inline mr-1" /> Kích hoạt
+              <FaPlay className="inline " /> Kích hoạt
             </button>
             <button
-              className="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+            className="p-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 transition-colors flex items-center justify-center"
               onClick={handleInfoClick}
               data-tooltip-id={`info-${pondId}`}
             >
               <FaInfo size={16} />
             </button>
             <button
-              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              className="p-2 bg-red-400 text-white rounded-md hover:bg-red-500 transition-colors flex items-center justify-center"
               onClick={() => setIsDeleteCard(true)}
               data-tooltip-id={`delete-${pondId}`}
             >
               <FaTrash size={16} />
             </button>
             <ReactTooltip id={`delete-${pondId}`} place="top" content="Xóa ao" />
-            <ReactTooltip id={`info-${pondId}`} place="bottom" content="Thông tin ao" />
+            <ReactTooltip id={`info-${pondId}`} place="top" content="Thông tin ao" />
           </div>
         )}
       </div>

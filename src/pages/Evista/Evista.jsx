@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
 import Sidebar from '../../components/Sidebar/Sidebar';
+import axios from 'axios';
 import { FaPlus, FaTrash, FaExpand } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
 import Modal from 'react-modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
-import { DashboardRequestApi,EvistaRequestApi } from '../../services/api';
+import { DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { IoCloseSharp } from "react-icons/io5";
 import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field';
 
 function Evista() {
   const navigate = useNavigate();
+  const location = useLocation(); // Thêm useLocation để lấy location.state
   const [selectedPondType, setSelectedPondType] = useState(null);
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypes, setPondTypes] = useState([]);
@@ -135,47 +137,74 @@ function Evista() {
     );
   }, [callApi, selectedPondType, farmId]);
 
-  const fetchAllParameters = async (pondIdPrivilegeEscalation, pondName) => {
-    setLoading(true);
-    try {
-      const phData = await fetchData('Ph', pondIdPrivilegeEscalation);
-      const o2Data = await fetchData('O2', pondIdPrivilegeEscalation);
-      const tempData = await fetchData('Temperature', pondIdPrivilegeEscalation);
-      const nh3Data = await fetchData('NH3', pondIdPrivilegeEscalation);
-      const no2Data = await fetchData('NO2', pondIdPrivilegeEscalation);
+  const fetchPondsForPondType = useCallback(
+    (pondTypeId, initialPondId) => {
+      callApi(
+        [DashboardRequestApi.pondRequest.getPondRequestByPondTypeIdAndFarmId(pondTypeId, farmId)],
+        (res) => {
+          const ponds = res[0];
+          const options = ponds.map((pond) => ({
+            value: pond.pondId,
+            label: pond.pondName,
+          }));
+          setPondOptions(options);
+          const selectedPondOption = options.find((option) => option.value === initialPondId);
+          if (selectedPondOption) {
+            setSelectedPond(selectedPondOption); // Đặt toàn bộ object thay vì chỉ value
+          }
+        },
+        null,
+        (err) => console.error('Failed to fetch ponds:', err)
+      );
+    },
+    [callApi, farmId]
+  );
 
-      setPondData((prevData) => ({
-        ...prevData,
-        [pondIdPrivilegeEscalation]: { Ph: phData, O2: o2Data, Temperature: tempData, NH3: nh3Data, NO2: no2Data },
-      }));
-      toast.success(`Dữ liệu ao ${pondName} đã được cập nhật!`);
-    } catch (error) {
-      toast.error(`Không thể tải dữ liệu cho ao ${pondIdPrivilegeEscalation}.`);
-    } finally {
-      setLoading(false);
+  // Xử lý location.state để đặt giá trị mặc định
+  useEffect(() => {
+    if (location.state && pondTypes.length > 0) {
+      const { pondId, pondTypeId } = location.state;
+      const selectedPondTypeOption = pondTypes.find((option) => option.value === pondTypeId);
+      if (selectedPondTypeOption) {
+        setSelectedPondType(selectedPondTypeOption);
+        fetchPondsForPondType(pondTypeId, pondId);
+      }
     }
-  };
+  }, [location.state, pondTypes, fetchPondsForPondType]);
 
   const fetchData = async (parameter, pond) => {
     const formattedStartDate = formatDateForInput(startDate);
     const formattedEndDate = formatDateForInput(endDate);
 
+    const url = `https://shrimppond.runasp.net/api/Environment?pondId=${pond}&name=${parameter}&startDate=${formattedStartDate}&endDate=${formattedEndDate}&pageSize=200&pageNumber=1`;
     try {
-      const response = await EvistaRequestApi.EnvironmentRequest.getEnvironmentRequest(
-        pond,
-        parameter,
-        formattedStartDate,
-        formattedEndDate
-      );
-      return response.reverse(); // Giả sử response là mảng dữ liệu
+      const response = await axios.get(url);
+      return response.data.reverse();
     } catch (error) {
       console.error(`Failed to fetch data for ${parameter}:`, error);
       return [];
     }
   };
 
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
+  const fetchAllParameters = async (pondId, pondName) => {
+    setLoading(true);
+    try {
+      const phData = await fetchData('Ph', pondId);
+      const o2Data = await fetchData('O2', pondId);
+      const tempData = await fetchData('Temperature', pondId);
+      const nh3Data = await fetchData('NH3', pondId);
+      const no2Data = await fetchData('NO2', pondId);
+
+      setPondData((prevData) => ({
+        ...prevData,
+        [pondId]: { Ph: phData, O2: o2Data, Temperature: tempData, NH3: nh3Data, NO2: no2Data },
+      }));
+      toast.success(`Dữ liệu ao ${pondName} đã được cập nhật!`);
+    } catch (error) {
+      toast.error(`Không thể tải dữ liệu cho ao ${pondId}.`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePondTypeChange = (e) => {
