@@ -8,7 +8,7 @@ import { MachineRequestApi, DashboardRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import useSignalR from '../../hooks/useSignalR';
 import { motion } from 'framer-motion';
-import Loading from '../../components/Loading'; // Thêm import Loading từ Dashboard
+import Loading from '../../components/Loading';
 
 const Option = (props) => (
   <components.Option {...props}>
@@ -25,8 +25,7 @@ const MachinesManager = () => {
   const farmId = Number(localStorage.getItem('farmId'));
   const callApi = useCallApi();
   const [updatedMachineId, setUpdatedMachineId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // Đảm bảo state này được dùng cho Loading
-
+  const [isLoading, setIsLoading] = useState(false);
   const [machines, setMachines] = useState([]);
   const [pondsOptions, setPondsOptions] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
@@ -92,39 +91,38 @@ const MachinesManager = () => {
   }, [callApi, farmId]);
 
   useEffect(() => {
-    const fetchMachines = async () => {
-      setIsLoading(true);
-      try {
-        callApi(
-          [MachineRequestApi.machineRequest.getAllMachineByFarmId(farmId)],
-          (res) => {
-            const machineData = res[0] || [];
-            const formattedMachines = machineData.map((machine) => ({
-              id: machine.machineId,
-              name: machine.machineName,
-              status: machine.status,
-              ponds: machine.pondIds.map((pond) => pond.pondId),
-              pondNames: machine.pondIds.map((pond) => pond.pondName),
-            }));
-            setMachines(formattedMachines);
-            setIsLoading(false);
-          },
-          null,
-          (err) => {
-            console.error('Error fetching machines:', err);
-            toast.error('Không thể tải danh sách máy!');
-            setIsLoading(false);
-          }
-        );
-      } catch (error) {
-        console.error('Error fetching machines:', error);
-        toast.error('Không thể tải danh sách máy!');
-        setIsLoading(false);
-      }
-    };
-
     fetchMachines();
   }, [callApi, farmId]);
+  const fetchMachines = async () => {
+    setIsLoading(true);
+    try {
+      callApi(
+        [MachineRequestApi.machineRequest.getAllMachineByFarmId(farmId)],
+        (res) => {
+          const machineData = res[0] || [];
+          const formattedMachines = machineData.map((machine) => ({
+            id: machine.machineId,
+            name: machine.machineName,
+            status: machine.status,
+            ponds: machine.pondIds.map((pond) => pond.pondId),
+            pondNames: machine.pondIds.map((pond) => pond.pondName),
+          }));
+          setMachines(formattedMachines);
+          setIsLoading(false);
+        },
+        null,
+        (err) => {
+          console.error('Error fetching machines:', err);
+          toast.error('Không thể tải danh sách máy!');
+          setIsLoading(false);
+        }
+      );
+    } catch (error) {
+      console.error('Error fetching machines:', error);
+      toast.error('Không thể tải danh sách máy!');
+      setIsLoading(false);
+    }
+  };
 
   const handleMachineClick = (machine) => {
     setSelectedMachine(machine);
@@ -167,7 +165,7 @@ const MachinesManager = () => {
         setSelectedMachine(null);
       },
       (err) => {
-        
+        setIsLoading(false);
         toast.error('Lỗi khi cập nhật máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
       }
     );
@@ -197,6 +195,7 @@ const MachinesManager = () => {
             .filter((pond) => tempPonds.includes(pond.value))
             .map((pond) => pond.label),
         };
+        fetchMachines();
         setMachines((prev) => [...prev, newMachine]);
         toast.success(`Đã tạo máy ${newMachineName}!`);
         setIsCreating(false);
@@ -206,6 +205,29 @@ const MachinesManager = () => {
       },
       (err) => {
         toast.error('Lỗi khi tạo máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
+      }
+    );
+  };
+
+  const handleDeleteMachine = (machineId) => {
+    if (!window.confirm('Bạn có chắc muốn xóa máy này không?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    callApi(
+      [MachineRequestApi.machineRequest.deleteMachine(machineId)],
+      () => {
+        setMachines((prevMachines) => 
+          prevMachines.filter((machine) => machine.id !== machineId)
+        );
+        setIsLoading(false);
+        toast.success('Đã xóa máy thành công!');
+        setSelectedMachine(null);
+      },
+      (err) => {
+        setIsLoading(false);
+        toast.error('Lỗi khi xóa máy: ' + (err?.response?.data?.title || 'Thử lại sau!'));
       }
     );
   };
@@ -245,35 +267,39 @@ const MachinesManager = () => {
               machines.map((machine) => (
                 <motion.div
                   key={machine.id}
-                  onClick={() => handleMachineClick(machine)}
-                  className="bg-white p-6 sm:p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-center h-64 w-full"
+                  className="bg-white p-6 sm:p-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col items-center justify-between h-64 w-full relative"
                   animate={{
                     scale: updatedMachineId === machine.id ? [1, 1.05, 1] : 1,
                   }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-4">
-                    <span className="text-teal-600 font-semibold text-lg">Máy</span>
-                  </div>
-                  <h3 className="text-2xl sm:text-xl font-semibold text-teal-800 text-center">
-                    {machine.name}
-                  </h3>
-                  <motion.p
-                    className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md" // Tăng cỡ chữ từ text-sm lên text-base
-                    animate={{
-                      color: machine.status ? '#166534' : '#991B1B',
-                      backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
-                    }}
-                    transition={{ duration: 0.3 }}
+                  <div 
+                    className="w-full flex flex-col items-center"
+                    onClick={() => handleMachineClick(machine)}
                   >
-                    Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
-                  </motion.p>
-                  <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
-                    Số ao: {machine.ponds.length}
-                  </p>
-                  <p className="text-sm font-semibold sm:text-sm text-black text-center"> {/* Tăng cỡ chữ từ text-sm lên text-base */}
-                    Ao: {machine.pondNames.length > 0 ? machine.pondNames.join(', ') : 'Chưa gắn'}
-                  </p>
+                    <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                      <span className="text-teal-600 font-semibold text-lg">Máy</span>
+                    </div>
+                    <h3 className="text-2xl sm:text-xl font-semibold text-teal-800 text-center">
+                      {machine.name}
+                    </h3>
+                    <motion.p
+                      className="text-xl sm:text-lg mt-2 text-center px-2 py-1 rounded-md"
+                      animate={{
+                        color: machine.status ? '#166534' : '#991B1B',
+                        backgroundColor: machine.status ? '#DCFCE7' : '#FEE2E2',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      Trạng thái: {machine.status ? 'Bật' : 'Tắt'}
+                    </motion.p>
+                    <p className="text-lg font-semibold sm:text-lg text-teal-600 text-center">
+                      Số ao: {machine.ponds.length}
+                    </p>
+                    <p className="text-sm font-semibold sm:text-sm text-black text-center">
+                      Ao: {machine.pondNames.length > 0 ? machine.pondNames.join(', ') : 'Chưa gắn'}
+                    </p>
+                  </div>               
                 </motion.div>
               ))
             ) : (
@@ -318,6 +344,17 @@ const MachinesManager = () => {
                   >
                     Lưu
                   </button>
+                  {!isCreating && selectedMachine && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteMachine(selectedMachine.id);
+                      }}
+                      className="px-6 py-2 sm:py-3 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-300"
+                    >
+                      Xóa
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setSelectedMachine(null);
@@ -333,7 +370,7 @@ const MachinesManager = () => {
           )}
         </main>
       </div>
-      {isLoading && <Loading />} {/* Thêm Loading component */}
+      {isLoading && <Loading />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
