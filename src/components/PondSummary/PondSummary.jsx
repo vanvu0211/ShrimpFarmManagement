@@ -32,7 +32,7 @@ const PondSummary = ({ ponds, pondTypeName, pondTypeId, setIsDeleteModal, setIsC
   return (
     <div className="flex flex-col w-full bg-white rounded-lg pb-1  border mt-4">
       <div className="flex text-xl  mb-1 justify-between p-1">
-        <h1 className="px-4 uppercase font-helvetica text-teal-800 mb-4">{pondTypeName} : {ponds.length} (ao)</h1>  
+        <h1 className="px-4 uppercase font-semibold font-helvetica text-teal-800 mb-4">{pondTypeName} : {ponds.length} (ao)</h1>  
         <span className="flex gap-x-3 pr-5">
           <FaTrashAlt 
             className="mt-2 cursor-pointer"
