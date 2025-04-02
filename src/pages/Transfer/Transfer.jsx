@@ -9,12 +9,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import Loading from '../../components/Loading';
 import { useLocation } from 'react-router-dom';
 import TransferRequest from '../../services/api/Transfer/TransferRequestApi';
+import imageCompression from 'browser-image-compression';
 
 const Transfer = () => {
     const [formData, setFormData] = useState({
         transferPondId: '',
         originPondId: '',
-        transferDate: '',
+        transferDate: new Date().toISOString().split('T')[0], // Khởi tạo ngày hiện tại
         size: '',
         amount: '',
     });
@@ -29,14 +30,6 @@ const Transfer = () => {
     const dateInputRef = useRef(null);
     const callApi = useCallApi();
     const location = useLocation();
-
-    // Initialize form with location state
-    useEffect(() => {
-        if (location.state?.pondId) {
-            setFormData((prev) => ({ ...prev, originPondId: location.state.pondId }));
-            fetchOriginPondOptions();
-        }
-    }, [location.state]);
 
     // Fetch origin pond options
     const fetchOriginPondOptions = useCallback(() => {
@@ -113,13 +106,51 @@ const Transfer = () => {
         []
     );
 
-    // Handle file upload
-    const handleFileChange = useCallback((e) => {
+    // Handle file upload với kiểm tra và nén ảnh
+    const handleFileChange = useCallback(async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onloadend = () => setCertificates([reader.result.split(',')[1]]);
-        reader.readAsDataURL(file);
+
+        // Kiểm tra loại file (chỉ chấp nhận ảnh)
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Chỉ chấp nhận file ảnh (JPEG, PNG)!');
+            e.target.value = '';
+            return;
+        }
+
+        // Kiểm tra kích thước file (300KB = 300 * 1024 bytes)
+        const maxSizeBeforeCompression = 300 * 1024; // 300KB
+        if (file.size > maxSizeBeforeCompression) {
+            try {
+                // Cấu hình nén ảnh xuống khoảng 300KB
+                const options = {
+                    maxSizeMB: 0.3, // Giới hạn kích thước tối đa sau nén là 300KB (0.3MB)
+                    maxWidthOrHeight: 1920, // Giữ độ phân giải cao để chất lượng không giảm quá nhiều
+                    useWebWorker: true, // Tăng hiệu suất bằng web worker
+                    initialQuality: 0.9, // Chất lượng ban đầu cao (0-1)
+                };
+
+                const compressedFile = await imageCompression(file, options);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setCertificates([reader.result.split(',')[1]]);
+                    toast.success(`Ảnh đã được nén thành công xuống ~300KB! (Kích thước gốc: ${(file.size / 1024).toFixed(2)}KB)`);
+                };
+                reader.readAsDataURL(compressedFile);
+            } catch (error) {
+                toast.error('Lỗi khi nén ảnh: ' + error.message);
+                e.target.value = '';
+            }
+        } else {
+            // Nếu ảnh nhỏ hơn 300KB, không nén
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCertificates([reader.result.split(',')[1]]);
+                toast.success('Ảnh đã được chọn thành công!');
+            };
+            reader.readAsDataURL(file);
+        }
     }, []);
 
     // Form validation
@@ -145,7 +176,7 @@ const Transfer = () => {
                 return;
             }
 
-            setIsLoading(true);
+            setIsLoadin(true);
             const submitData = {
                 transferDate: new Date(formData.transferDate).toISOString(),
                 amount: parseFloat(formData.amount),
@@ -159,10 +190,11 @@ const Transfer = () => {
                 () => {
                     setIsLoading(false);
                     toast.success('Chuyển ao đã được tạo thành công!');
+                    const today = new Date().toISOString().split('T')[0]; // Ngày hiện tại
                     setFormData({
                         transferPondId: '',
                         originPondId: '',
-                        transferDate: '',
+                        transferDate: today, // Reset về ngày hiện tại
                         size: '',
                         amount: '',
                     });
@@ -184,6 +216,25 @@ const Transfer = () => {
     );
 
     const handleCalendarClick = useCallback(() => dateInputRef.current?.focus(), []);
+
+    // Initialize form with location state and current date
+    useEffect(() => {
+        const today = new Date().toISOString().split('T')[0];
+        if (location.state?.pondId) {
+            setFormData((prev) => ({
+                ...prev,
+                originPondId: location.state.pondId,
+                transferDate: today,
+            }));
+            fetchOriginPondOptions();
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                transferDate: today,
+            }));
+            fetchOriginPondOptions();
+        }
+    }, [location.state, fetchOriginPondOptions]);
 
     return (
         <div className="flex max-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
@@ -252,7 +303,7 @@ const Transfer = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="mb-4 sm:mb-6">
+                        <div className="mb-4 sm:mb-6">
                             <label
                                 className="block text-teal-800 font-semibold mb-2"
                                 htmlFor="amount"
@@ -290,7 +341,7 @@ const Transfer = () => {
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 sm:gap-6">
-                    <div className="mb-4 sm:mb-6 relative">
+                        <div className="mb-4 sm:mb-6 relative">
                             <label
                                 className="block text-teal-800 font-semibold mb-2"
                                 htmlFor="transferDate"
@@ -307,12 +358,9 @@ const Transfer = () => {
                                 required
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
                             />
-
                         </div>
-                   </div>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-1 gap-4 sm:gap-6">
-                       
-
                         <div className="mb-4 sm:mb-6">
                             <label
                                 className="block text-teal-800 font-semibold mb-2"
@@ -325,8 +373,12 @@ const Transfer = () => {
                                 id="certificates"
                                 onChange={handleFileChange}
                                 disabled={isLoading}
+                                accept="image/jpeg,image/png" // Chỉ chấp nhận ảnh
                                 className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700"
                             />
+                            <p className="text-gray-600 text-sm mt-1">
+                                Ảnh lớn hơn 300KB sẽ được nén xuống ~300KB. Định dạng: JPEG, PNG.
+                            </p>
                         </div>
                     </div>
 
@@ -378,10 +430,8 @@ const Transfer = () => {
                 </form>
             </main>
 
-            {/* Hiển thị loading */}
             {isLoading && <Loading />}
 
-            {/* ToastContainer */}
             <ToastContainer
                 position="top-right"
                 autoClose={3000}

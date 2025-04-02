@@ -14,7 +14,7 @@ function Harvest() {
     const [formData, setFormData] = useState({
         pondId: '',
         harvestType: '0',
-        harvestDate: '',
+        harvestDate: new Date().toISOString().split('T')[0], // Khởi tạo ngày hiện tại
         size: '',
         harvestTime: '',
         amount: '',
@@ -24,20 +24,11 @@ function Harvest() {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const farmId = Number(localStorage.getItem('farmId'));
-    const farmName = localStorage.getItem('farmName') || '';
-    const username = localStorage.getItem('username') || '';
     const dateInputRef = useRef(null);
     const callApi = useCallApi();
     const location = useLocation();
 
-    // Initialize form with location state
-    useEffect(() => {
-        if (location.state?.pondId) {
-            setFormData((prev) => ({ ...prev, pondId: location.state.pondId }));
-            fetchPondOptions();
-        }
-    }, [location.state]);
-
+   
     // Fetch harvest time
     const fetchHarvestTime = useCallback(() => {
         if (!formData.pondId) return;
@@ -95,12 +86,11 @@ function Harvest() {
         }
     }, []);
 
-    // Handle file upload với kiểm tra và nén ảnh
+    // Handle file upload with validation and compression
     const handleFileChange = useCallback(async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Kiểm tra loại file (chỉ chấp nhận ảnh)
         const allowedTypes = ['image/jpeg', 'image/png'];
         if (!allowedTypes.includes(file.type)) {
             toast.error('Chỉ chấp nhận file ảnh (JPEG, PNG)!');
@@ -108,18 +98,15 @@ function Harvest() {
             return;
         }
 
-        // Kiểm tra kích thước file (300KB = 300 * 1024 bytes)
         const maxSizeBeforeCompression = 300 * 1024; // 300KB
         if (file.size > maxSizeBeforeCompression) {
             try {
-                // Cấu hình nén ảnh xuống khoảng 300KB
                 const options = {
-                    maxSizeMB: 0.3, // Giới hạn kích thước tối đa sau nén là 300KB (0.3MB)
-                    maxWidthOrHeight: 1920, // Giữ độ phân giải cao để chất lượng không giảm quá nhiều
-                    useWebWorker: true, // Tăng hiệu suất bằng web worker
-                    initialQuality: 0.9, // Chất lượng ban đầu cao (0-1)
+                    maxSizeMB: 0.3,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    initialQuality: 0.9,
                 };
-
                 const compressedFile = await imageCompression(file, options);
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -132,7 +119,6 @@ function Harvest() {
                 e.target.value = '';
             }
         } else {
-            // Nếu ảnh nhỏ hơn 300KB, không nén
             const reader = new FileReader();
             reader.onloadend = () => {
                 setCertificates([reader.result.split(',')[1]]);
@@ -175,10 +161,11 @@ function Harvest() {
                 () => {
                     setIsLoading(false);
                     toast.success('Thu hoạch đã được tạo thành công!');
+                    const today = new Date().toISOString().split('T')[0]; // Ngày hiện tại
                     setFormData({
                         pondId: '',
                         harvestType: '0',
-                        harvestDate: '',
+                        harvestDate: today, // Reset về ngày hiện tại
                         size: '',
                         harvestTime: '',
                         amount: '',
@@ -195,6 +182,24 @@ function Harvest() {
         },
         [formData, certificates, callApi, isFormValid]
     );
+ // Initialize form with location state and current date
+ useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (location.state?.pondId) {
+        setFormData((prev) => ({
+            ...prev,
+            pondId: location.state.pondId,
+            harvestDate: today,
+        }));
+        fetchPondOptions();
+    } else {
+        setFormData((prev) => ({
+            ...prev,
+            harvestDate: today,
+        }));
+        fetchPondOptions();
+    }
+}, [location.state, fetchPondOptions]);
 
     const handleCalendarClick = useCallback(() => dateInputRef.current?.focus(), []);
 
@@ -268,6 +273,7 @@ function Harvest() {
                             <input
                                 type="date"
                                 id="harvestDate"
+                                readOnly={true}
                                 ref={dateInputRef}
                                 value={formData.harvestDate}
                                 onChange={handleInputChange('harvestDate')}
@@ -325,7 +331,7 @@ function Harvest() {
                             id="certificates"
                             onChange={handleFileChange}
                             disabled={isLoading}
-                            accept="image/jpeg,image/png" // Chỉ chấp nhận ảnh
+                            accept="image/jpeg,image/png"
                             className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700"
                         />
                         <p className="text-gray-600 text-sm mt-1">
@@ -367,10 +373,8 @@ function Harvest() {
                 </form>
             </main>
 
-            {/* Hiển thị loading */}
             {isLoading && <Loading />}
 
-            {/* ToastContainer */}
             <ToastContainer
                 position="top-right"
                 autoClose={3000}
