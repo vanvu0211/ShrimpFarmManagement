@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Loading from '../../components/Loading';
+import Loading from '../../components/Loading'; // Already imported
 import useCallApi from '../../hooks/useCallApi';
 import { FarmRequestApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,7 @@ function Status() {
   const [farms, setFarms] = useState([]);
   const [farmName, setFarmName] = useState('');
   const [farmAddress, setFarmAddress] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Already defined
 
   const callApi = useCallApi();
   const navigate = useNavigate();
@@ -20,17 +20,17 @@ function Status() {
     (farmName) => {
       if (!window.confirm('Bạn có chắc chắn muốn xóa trang trại này?')) return;
 
-      setIsLoading(true);
+      setIsLoading(true); // Set loading before API call
 
       callApi(
         [FarmRequestApi.farmRequest.deleteFarm(username, farmName)],
         () => {
-          setIsLoading(false);
+          setIsLoading(false); // Unset loading on success
           toast.success('Xóa trang trại thành công!');
           setFarms(farms.filter((farm) => farm.farmName !== farmName));
         },
         (err) => {
-          setIsLoading(false);
+          setIsLoading(false); // Unset loading on error
           if (err?.response?.data?.title === 'PondType is still exits in Farm') {
             toast.error('Vẫn còn khối ao ở farm!');
           } else {
@@ -43,23 +43,29 @@ function Status() {
     [callApi, farms, username]
   );
 
+  // --- MODIFIED fetchFarms ---
   const fetchFarms = useCallback(() => {
     if (!username) {
       toast.error('Không tìm thấy thông tin người dùng!');
       return;
     }
 
+    setIsLoading(true); // <-- ADDED: Set loading before fetching
+
     callApi(
       [FarmRequestApi.farmRequest.getAllFarmByUserName(username)],
       (res) => {
         setFarms(res[0].flat());
+        setIsLoading(false); // <-- ADDED: Unset loading on success
       },
       (err) => {
         toast.error('Không thể tải danh sách trang trại!');
         console.error(err);
+        setIsLoading(false); // <-- ADDED: Unset loading on error
       }
     );
   }, [callApi, username]);
+  // --- END MODIFIED fetchFarms ---
 
   const handleAddFarm = useCallback(
     (e) => {
@@ -76,19 +82,19 @@ function Status() {
         username,
       };
 
-      setIsLoading(true);
+      setIsLoading(true); // Set loading before API call
 
       callApi(
         [FarmRequestApi.farmRequest.createFarm(data)],
         (res) => {
-          setIsLoading(false);
+          setIsLoading(false); // Unset loading on success
           toast.success('Thêm trang trại thành công!');
           setFarms([...farms, res[0]]);
           setFarmName('');
           setFarmAddress('');
         },
         (err) => {
-          setIsLoading(false);
+          setIsLoading(false); // Unset loading on error
           toast.error('Có lỗi xảy ra khi thêm trang trại!');
           console.error(err);
         }
@@ -111,40 +117,41 @@ function Status() {
 
         {/* Form thêm trang trại */}
         <form onSubmit={handleAddFarm} className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-          <div className="mb-4 sm:mb-6">
-            <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
-              Trang trại
-            </label>
-            <input
-              id="farmName"
-              type="text"
-              value={farmName}
-              onChange={(e) => setFarmName(e.target.value)}
-              placeholder="Tên trang trại"
-              className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-            />
-          </div>
+          {/* Form fields... (unchanged) */}
+           <div className="mb-4 sm:mb-6">
+             <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
+               Trang trại
+             </label>
+             <input
+               id="farmName"
+               type="text"
+               value={farmName}
+               onChange={(e) => setFarmName(e.target.value)}
+               placeholder="Tên trang trại"
+               className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+             />
+           </div>
 
-          <div className="mb-4 sm:mb-6">
-            <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmAddress">
-              Địa chỉ
-            </label>
-            <input
-              id="farmAddress"
-              type="text"
-              value={farmAddress}
-              onChange={(e) => setFarmAddress(e.target.value)}
-              placeholder="Địa chỉ trang trại"
-              className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-            />
-          </div>
+           <div className="mb-4 sm:mb-6">
+             <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmAddress">
+               Địa chỉ
+             </label>
+             <input
+               id="farmAddress"
+               type="text"
+               value={farmAddress}
+               onChange={(e) => setFarmAddress(e.target.value)}
+               placeholder="Địa chỉ trang trại"
+               className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+             />
+           </div>
 
-          <button
-            type="submit"
-            className="w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-300"
-          >
-            Thêm trang trại
-          </button>
+           <button
+             type="submit"
+             className="w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-300"
+           >
+             Thêm trang trại
+           </button>
         </form>
 
         {/* Danh sách trang trại */}
@@ -152,43 +159,40 @@ function Status() {
           Danh sách trang trại
         </h2>
         <ul className="space-y-4">
-          {farms.length === 0 ? (
-            <p className="text-gray-500 text-center">Chưa có trang trại nào.</p>
-          ) : (
-            farms.map((farm, index) => (
-              <li
-                key={index}
-                className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-              >
-                <div
-                  className="cursor-pointer text-teal-600 hover:text-teal-800 font-semibold hover:underline mb-2 sm:mb-0"
-                  onClick={() => {
-                    localStorage.setItem('farmName', farm.farmName);
-                    localStorage.setItem('farmId', String(farm.farmId)); // Lưu farmName vào localStorage
-                    navigate('/dashboard');
-                  }}
+          {/* Conditional rendering for no farms or farm list... (unchanged) */}
+           {farms.length === 0 && !isLoading ? ( // Also check isLoading to avoid showing "Chưa có trang trại nào" during load
+              <p className="text-gray-500 text-center">Chưa có trang trại nào.</p>
+            ) : (
+              farms.map((farm, index) => (
+                <li
+                  key={index}
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  <span className="block sm:inline">{farm.farmName}</span>
-                  <span className="block sm:inline sm:ml-2 text-gray-600 font-normal">
-                    - {farm.address}
-                  </span>
-                </div>
-                {/* <button
-                  className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg transition-all duration-300"
-                  onClick={() => handleDeleteFarm(farm.farmName)}
-                >
-                  Xóa
-                </button> */}
-              </li>
-            ))
-          )}
+                  <div
+                    className="cursor-pointer text-teal-600 hover:text-teal-800 font-semibold hover:underline mb-2 sm:mb-0"
+                    onClick={() => {
+                      localStorage.setItem('farmName', farm.farmName);
+                      localStorage.setItem('farmId', String(farm.farmId));
+                      navigate('/dashboard');
+                    }}
+                  >
+                    <span className="block sm:inline">{farm.farmName}</span>
+                    <span className="block sm:inline sm:ml-2 text-gray-600 font-normal">
+                      - {farm.address}
+                    </span>
+                  </div>
+                  {/* Delete button is commented out, leaving as is */}
+                  {/* <button ... onClick={() => handleDeleteFarm(farm.farmName)}> Xóa </button> */}
+                </li>
+              ))
+            )}
         </ul>
       </main>
 
-      {/* Loading */}
+      {/* Loading Indicator - Already correctly implemented */}
       {isLoading && <Loading />}
 
-      {/* ToastContainer */}
+      {/* ToastContainer - Already correctly implemented */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
