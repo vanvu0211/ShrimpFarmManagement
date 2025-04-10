@@ -186,9 +186,9 @@ function Dashboard() {
         {/* Container cho PondSummary */}
         <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
           {ponds.length === 0 ? (
-            <div className="text-center text-gray-500 text-lg font-medium">
+            <p className="text-teal-600 text-center">
               Không có dữ liệu ao
-            </div>
+            </p>
           ) : (
             pondTypes.map((pondType) => {
               const filteredPonds = ponds.filter(

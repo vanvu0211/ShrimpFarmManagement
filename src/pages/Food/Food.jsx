@@ -31,7 +31,7 @@ const Food = () => {
       [FoodRequestApi.foodRequest.getAllFoodByFarmId(farmId)],
       (res) => setFoods(res[0].flat()),
       (err) => console.error(err)
-    );
+    );  
   }, [callApi, farmId]);
 
   const fetchTreatments = useCallback(() => {
