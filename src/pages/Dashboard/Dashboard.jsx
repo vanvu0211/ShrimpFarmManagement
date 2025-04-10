@@ -51,7 +51,6 @@ function Dashboard() {
 
   const fetchData = useCallback(() => {
     if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
-      // toast.error('Vui lòng chọn trang trại!');
       setIsLoading(false);
       return;
     }
@@ -106,6 +105,7 @@ function Dashboard() {
       [
         DashboardRequestApi.timeRequest.postCleaningTime({
           cleanTime: currentTime,
+          farmId: farmId
         }),
       ],
       (res) => {
@@ -134,72 +134,81 @@ function Dashboard() {
             {/* Card 1: Tổng số ao */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Tổng số ao</h1>
-              <span className="text-5xl font-mono  font-bold text-red-500">{ponds?.length || 0}</span>
+              <span className="text-5xl font-mono font-bold text-red-500">{ponds?.length || 0}</span>
             </div>
 
             {/* Card 2: Hoạt động */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Hoạt động</h1>
-              <span className="text-5xl font-mono  font-bold text-red-500">{activePonds}</span>
+              <span className="text-5xl font-mono font-bold text-red-500">{activePonds}</span>
             </div>
           </div>
 
           {/* Card 3: Farm Name & Icons với đồng hồ thời gian thực */}
           <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
-  {/* Phần thông tin chính */}
-  <div className="col-span-2 flex flex-col items-center justify-center gap-2">
-    <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
-      Trang trại: {farmName}
-    </h1>
-    <div className="text-gray-700 space-y-1 text-center">
-      <p className="text-base font-helvetica">Thời gian hiện tại: {currentTime.toLocaleTimeString()}</p>
-      <p className="text-base font-helvetica">Số ngày vận hành: {daysOperated}</p>
-      {needsCleaning ? (
-        <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
-          Cần vệ sinh cảm biến
-        </span>
-      ) : (
-        <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-          Cảm biến: Tốt
-        </span>
-      )}
-    </div>
-  </div>
+            {/* Phần thông tin chính */}
+            <div className="col-span-2 flex flex-col items-center justify-center gap-2">
+              <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
+                Trang trại: {farmName}
+              </h1>
+              <div className="text-gray-700 space-y-1 text-center">
+                <p className="text-base font-helvetica">Thời gian hiện tại: {currentTime.toLocaleTimeString()}</p>
+                <p className="text-base font-helvetica">Số ngày vận hành: {daysOperated}</p>
+                {needsCleaning ? (
+                  <span
+                    onClick={() => setIsConfirmModalOpen(true)}
+                    className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-red-200 transition"
+                  >
+                    Cần vệ sinh cảm biến
+                  </span>
+                ) : (
+                  <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                    Cảm biến: Tốt
+                  </span>
+                )}
+              </div>
+            </div>
 
-  {/* Phần biểu tượng */}
-  <div className="flex flex-col items-center justify-center gap-4">
-    <AiOutlineClockCircle
-      onClick={() => setIsSetTime(true)}
-      className="text-5xl text-gray-600 cursor-pointer hover:text-teal-500 hover:scale-110 transition-transform duration-200"
-    />
-    <FaMapMarkerAlt
-      onClick={() => setShowImage(true)}
-      className="text-5xl text-red-500 cursor-pointer hover:text-red-600 hover:scale-110 transition-transform duration-200"
-    />
-  </div>
-</div>
+            {/* Phần biểu tượng */}
+            <div className="flex flex-col items-center justify-center gap-4">
+              <AiOutlineClockCircle
+                onClick={() => setIsSetTime(true)}
+                className="text-5xl text-gray-600 cursor-pointer hover:text-teal-500 hover:scale-110 transition-transform duration-200"
+              />
+              <FaMapMarkerAlt
+                onClick={() => setShowImage(true)}
+                className="text-5xl text-red-500 cursor-pointer hover:text-red-600 hover:scale-110 transition-transform duration-200"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Container cho PondSummary */}
         <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
-          {pondTypes.map((pondType) => {
-            const filteredPonds = ponds.filter(
-              (pond) => pond.pondTypeName === pondType.pondTypeName
-            );
-            return (
-              <PondSummary
-                onPutSucces={fetchData}
-                key={pondType.pondTypeId}
-                pondTypeName={pondType.pondTypeName}
-                pondTypeId={pondType.pondTypeId}
-                ponds={filteredPonds}
-                setIsDeleteModal={setIsDeleteModal}
-                setIsCreateModal={setIsCreateModal}
-                onSelected={handleSelected}
-                onDeleteCardSuccess={fetchData}
-              />
-            );
-          })}
+          {ponds.length === 0 ? (
+            <div className="text-center text-gray-500 text-lg font-medium">
+              Không có dữ liệu ao
+            </div>
+          ) : (
+            pondTypes.map((pondType) => {
+              const filteredPonds = ponds.filter(
+                (pond) => pond.pondTypeName === pondType.pondTypeName
+              );
+              return (
+                <PondSummary
+                  onPutSucces={fetchData}
+                  key={pondType.pondTypeId}
+                  pondTypeName={pondType.pondTypeName}
+                  pondTypeId={pondType.pondTypeId}
+                  ponds={filteredPonds}
+                  setIsDeleteModal={setIsDeleteModal}
+                  setIsCreateModal={setIsCreateModal}
+                  onSelected={handleSelected}
+                  onDeleteCardSuccess={fetchData}
+                />
+              );
+            })
+          )}
         </div>
 
         <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
