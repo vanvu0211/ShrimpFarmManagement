@@ -451,9 +451,8 @@ function Evista() {
                     type="button"
                     onClick={handleUpdateNH3NO2}
                     className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:opacity-50"
-                    disabled={loading}
                   >
-                    {loading ? 'Đang tải...' : 'Cập nhật NH3, NO2'}
+                    {'Cập nhật NH3, NO2'}
                   </button>
                 </div>
               </div>
