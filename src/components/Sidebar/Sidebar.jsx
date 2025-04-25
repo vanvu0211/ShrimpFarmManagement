@@ -12,7 +12,7 @@ import { MdReportProblem } from "react-icons/md";
 
 function Sidebar({ onMobileMenuToggle }) {
   const menuItems = [
-    { name: "Dashboard", icon: <BsGrid />, lnk: "/dashboard" },
+    { name: "Tổng quan", icon: <BsGrid />, lnk: "/dashboard" },
     { name: "Thông số môi trường", icon: <BsDroplet />, lnk: "/evista" },
     { name: "Thu hoạch", icon: <FaLeaf />, lnk: "/harvest" },
     { name: "Chuyển ao", icon: <FaExchangeAlt />, lnk: "/transfer" },
