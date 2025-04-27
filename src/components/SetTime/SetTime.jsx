@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { IoCloseSharp } from "react-icons/io5";
 import { FaTrashAlt, FaPlus } from 'react-icons/fa';
 import cl from 'classnames';
@@ -12,6 +12,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
   const [errorMessage, setErrorMessage] = useState('');
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
+  const lastTimeFieldRef = useRef(null); // Tham chiếu đến mục thời gian mới nhất
 
   // Tạo danh sách giờ và phút
   const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
@@ -26,7 +27,11 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
         if (Array.isArray(res) && Array.isArray(res[0])) {
           const times = res[0].map(item => {
             const [hour, minute] = item.time.split(':');
-            return { hour, minute };
+            // Đảm bảo phút được làm tròn đến giá trị gần nhất trong minuteOptions
+            const closestMinute = minuteOptions.reduce((prev, curr) =>
+              Math.abs(parseInt(curr) - parseInt(minute)) < Math.abs(parseInt(prev) - parseInt(minute)) ? curr : prev
+            );
+            return { hour, minute: closestMinute };
           });
           setTimeFields(times);
         } else {
@@ -49,6 +54,12 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
   // Thêm một mục thời gian mới
   const handleAddTimeField = () => {
     setTimeFields([...timeFields, { hour: "00", minute: "00" }]);
+    // Cuộn đến mục mới sau khi danh sách được cập nhật
+    setTimeout(() => {
+      if (lastTimeFieldRef.current) {
+        lastTimeFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 0);
   };
 
   // Xóa một mục thời gian
@@ -114,7 +125,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
 
         <form onSubmit={handleSubmit}>
           {/* Danh sách thời gian kiểu to-do list */}
-          <div className="max-h-64 overflow-y-auto mb-6 space-y-3">
+          <div className="max-h-64 overflow-y-auto mb-6 space-y-3 pr-2">
             {timeFields.length === 0 ? (
               <p className="text-center text-gray-500">Chưa có thời gian nào được thiết lập.</p>
             ) : (
@@ -122,6 +133,7 @@ function SetTime({ setIsSetTime, onPostSuccess, isLoading, setIsLoading }) {
                 <div
                   key={index}
                   className="flex items-center justify-between p-3 bg-teal-50 rounded-lg shadow-sm hover:bg-teal-100 transition-all duration-200"
+                  ref={index === timeFields.length - 1 ? lastTimeFieldRef : null} // Gán ref cho mục cuối cùng
                 >
                   <div className="flex items-center space-x-3">
                     <span className="text-sm font-medium text-teal-800">Thời gian {index + 1}</span>
