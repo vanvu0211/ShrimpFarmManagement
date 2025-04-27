@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Thêm useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import axios from 'axios';
-import { FaPlus, FaTrash, FaExpand } from 'react-icons/fa';
+import { FaTrash, FaExpand } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
 import Modal from 'react-modal';
 import { ToastContainer, toast } from 'react-toastify';
@@ -15,7 +15,7 @@ import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field';
 
 function Evista() {
   const navigate = useNavigate();
-  const location = useLocation(); // Thêm useLocation để lấy location.state
+  const location = useLocation();
   const [selectedPondType, setSelectedPondType] = useState(null);
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypes, setPondTypes] = useState([]);
@@ -103,6 +103,16 @@ function Evista() {
     if (selectedPondType) fetchPonds();
   }, [selectedPondType]);
 
+  useEffect(() => {
+    if (selectedPond) {
+      const pondExists = selectedPonds.some((p) => p.value === selectedPond.value);
+      if (!pondExists) {
+        setSelectedPonds([...selectedPonds, selectedPond]);
+      }
+      fetchAllParameters(selectedPond.value, selectedPond.label);
+    }
+  }, [selectedPond, startDate, endDate]);
+
   const fetchPondTypes = useCallback(() => {
     callApi(
       [DashboardRequestApi.pondTypeRequest.getPondTypeRequestByFamrId(farmId)],
@@ -150,7 +160,7 @@ function Evista() {
           setPondOptions(options);
           const selectedPondOption = options.find((option) => option.value === initialPondId);
           if (selectedPondOption) {
-            setSelectedPond(selectedPondOption); // Đặt toàn bộ object thay vì chỉ value
+            setSelectedPond(selectedPondOption);
           }
         },
         null,
@@ -160,7 +170,6 @@ function Evista() {
     [callApi, farmId]
   );
 
-  // Xử lý location.state để đặt giá trị mặc định
   useEffect(() => {
     if (location.state && pondTypes.length > 0) {
       const { pondId, pondTypeId } = location.state;
@@ -218,21 +227,6 @@ function Evista() {
     const value = e.target.value;
     const selectedOption = pondOptions.find((option) => option.value === value) || null;
     setSelectedPond(selectedOption);
-  };
-
-  const addPond = (e) => {
-    e.preventDefault();
-    if (!selectedPond) {
-      toast.warning('Vui lòng chọn một ao!');
-      return;
-    }
-
-    const pondExists = selectedPonds.some((p) => p.value === selectedPond.value);
-    if (!pondExists) {
-      setSelectedPonds([...selectedPonds, selectedPond]);
-    }
-
-    fetchAllParameters(selectedPond.value, selectedPond.label);
   };
 
   const handleUpdateNH3NO2 = () => {
@@ -363,11 +357,10 @@ function Evista() {
             Thông số môi trường
           </h1>
           <div className="max-w-8xl mx-auto z-10">
-            <form
-              onSubmit={addPond}
+            <div
               className="bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-4 sm:space-y-0 hover:shadow-lg transition-all duration-300"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                 <div className="sm:col-span-1">
                   <label className="block text-teal-800 font-semibold mb-2" htmlFor="pondTypeId">
                     Chọn loại ao
@@ -438,16 +431,6 @@ function Evista() {
 
                 <div className="sm:col-span-1 flex items-end">
                   <button
-                    type="submit"
-                    className="w-full bg-teal-600 text-white p-3 rounded-lg hover:bg-teal-700 transition-all duration-300 disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Đang tải...' : 'Xem dữ liệu'}
-                  </button>
-                </div>
-
-                <div className="sm:col-span-1 flex items-end">
-                  <button
                     type="button"
                     onClick={handleUpdateNH3NO2}
                     className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:opacity-50"
@@ -456,7 +439,7 @@ function Evista() {
                   </button>
                 </div>
               </div>
-            </form>
+            </div>
             <div
               className="space-y-6 mt-6 sm:overflow-y-auto"
               style={{ maxHeight: 'calc(100vh - 31vh)' }}
