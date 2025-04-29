@@ -185,7 +185,7 @@ function Evista() {
     const formattedStartDate = formatDateForInput(startDate);
     const formattedEndDate = formatDateForInput(endDate);
 
-    const url = `https://shrimppond.runasp.net/api/Environment?pondId=${pond}&name=${parameter}&startDate=${formattedStartDate}&endDate=${formattedEndDate}&pageSize=200&pageNumber=1`;
+    const url = `https://shrimppond.runasp.net/api/Environment?pondId=${pond}&name=${parameter}&startDate=${formattedStartDate}&endDate=${formattedEndDate}&pageSize=1000&pageNumber=1`;
     try {
       const response = await axios.get(url);
       return response.data.reverse();
