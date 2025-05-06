@@ -10,3 +10,4 @@ export {default as TransferRequestApi} from './Transfer/TransferRequestApi';
 export {default as AccessRequestApi} from './AccessApi/AccessRequest';
 export {default as MachineRequestApi} from './MachineApi/MachineRequest';
 export {default as AlarmRequestApi} from './AlarmApi/alarmRequest';
+export {default as ConfigRequestApi} from './ConfigApi/configRequest';

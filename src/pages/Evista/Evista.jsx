@@ -2,15 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import axios from 'axios';
-import { FaTrash, FaExpand } from 'react-icons/fa';
+import { FaTrash, FaExpand, FaCog } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
 import Modal from 'react-modal';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion } from 'framer-motion';
 import { DashboardRequestApi } from '../../services/api';
+import { ConfigRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
-import { IoCloseSharp } from "react-icons/io5";
+import { IoCloseSharp } from 'react-icons/io5';
 import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field';
 
 function Evista() {
@@ -27,37 +28,17 @@ function Evista() {
   const callApi = useCallApi();
   const farmId = Number(localStorage.getItem('farmId'));
 
-  const [chartData] = useState({
-    series: [],
-    options: {
-      chart: {
-        type: 'line',
-        height: '100%',
-        zoom: { enabled: true, type: 'x' },
-        animations: { enabled: true, easing: 'easeinout', speed: 800 },
-        toolbar: { show: true },
-      },
-      xaxis: {
-        type: 'datetime',
-        labels: {
-          rotate: -45,
-          rotateAlways: true,
-          style: { colors: '#64748b', fontSize: '12px' },
-          trim: true,
-        },
-      },
-      yaxis: {
-        title: { text: '' },
-        labels: { style: { colors: '#64748b', fontSize: '12px' } },
-      },
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
-      stroke: { curve: 'smooth', width: 2 },
-      grid: { borderColor: '#e2e8f0' },
-      annotations: { yaxis: [] },
-      tooltip: { theme: 'dark', x: { show: true } },
-    },
+  // Dynamic parameter limits initialized with default values
+  const [parameterLimits, setParameterLimits] = useState({
+    Ph: { min: 7.0, max: 7.0 },
+    O2: { min: 0, max: 0 },
+    Temperature: { min: 0, max: 0 },
+    NH3: { min: 0, max: 0.1 },
+    NO2: { min: 0, max: 1.0 },
   });
 
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [tempLimits, setTempLimits] = useState(parameterLimits);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNh3No2ModalOpen, setIsNh3No2ModalOpen] = useState(false);
   const [activeChart, setActiveChart] = useState(null);
@@ -82,14 +63,7 @@ function Evista() {
     setEndDate(new Date(e.target.value));
   };
 
-  const parameterLimits = {
-    Ph: { min: 7.5, max: 8.5 },
-    O2: { min: 3.0, max: 7.0 },
-    Temperature: { min: 25, max: 33 },
-    NH3: { min: 0, max: 0.1 },
-    NO2: { min: 0, max: 1.0 },
-  };
-
+  // Fetch configuration on mount
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = '.apexcharts-toolbar { z-index: 0 !important; }';
@@ -97,7 +71,35 @@ function Evista() {
 
     Modal.setAppElement('#root');
     fetchPondTypes();
+    fetchConfig();
   }, []);
+
+  // Fetch configuration from backend
+  const fetchConfig = useCallback(() => {
+    callApi(
+      [ConfigRequestApi.alarmRequest.GetConfig(farmId)],
+      (res) => {
+        const config = res[0];
+        setParameterLimits((prev) => ({
+          ...prev,
+          Ph: { min: config.pHLow, max: config.pHTop },
+          O2: { min: config.oxiLow, max: config.oxiTop },
+          Temperature: { min: config.temperatureLow, max: config.temperatureTop },
+        }));
+        setTempLimits((prev) => ({
+          ...prev,
+          Ph: { min: config.pHLow, max: config.pHTop },
+          O2: { min: config.oxiLow, max: config.oxiTop },
+          Temperature: { min: config.temperatureLow, max: config.temperatureTop },
+        }));
+      },
+      null,
+      (err) => {
+        console.error('Failed to fetch configuration:', err);
+        toast.error('Không thể tải cấu hình thông số.');
+      }
+    );
+  }, [callApi, farmId]);
 
   useEffect(() => {
     if (selectedPondType) fetchPonds();
@@ -195,6 +197,12 @@ function Evista() {
     }
   };
 
+  const meetThreshold = (parameter, value) => {
+    const limits = parameterLimits[parameter];
+    if (!limits) return true; // No limits defined, assume value is within threshold
+    return value >= limits.min && value <= limits.max;
+  };
+
   const fetchAllParameters = async (pondId, pondName) => {
     setLoading(true);
     try {
@@ -203,6 +211,26 @@ function Evista() {
       const tempData = await fetchData('Temperature', pondId);
       const nh3Data = await fetchData('NH3', pondId);
       const no2Data = await fetchData('NO2', pondId);
+
+      // Check thresholds and show toast notifications if values are out of range
+      const parameters = [
+        { name: 'Ph', data: phData },
+        { name: 'O2', data: o2Data },
+        { name: 'Temperature', data: tempData },
+        { name: 'NH3', data: nh3Data },
+        { name: 'NO2', data: no2Data },
+      ];
+
+      parameters.forEach(({ name, data }) => {
+        const latestValue = data.length > 0 ? parseFloat(data[0].value) : null;
+        if (latestValue !== null && !meetThreshold(name, latestValue)) {
+          const limits = parameterLimits[name];
+          const unit = name === 'Temperature' ? '℃' : name === 'O2' || name === 'NH3' || name === 'NO2' ? 'mg/L' : '';
+          toast.warn(
+            `Thông số ${name === 'Ph' ? 'pH' : name} của ao ${pondName} (${latestValue}${unit}) ngoài ngưỡng cho phép (${limits.min} - ${limits.max}${unit}).`
+          );
+        }
+      });
 
       setPondData((prevData) => ({
         ...prevData,
@@ -233,6 +261,58 @@ function Evista() {
     setIsNh3No2ModalOpen(true);
   };
 
+  const handleSettingsClick = () => {
+    setTempLimits(parameterLimits);
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleSettingsSave = () => {
+    // Validate that min < max for each parameter
+    const isValid = ['Ph', 'O2', 'Temperature'].every((param) => {
+      const { min, max } = tempLimits[param];
+      if (min >= max) {
+        toast.error(`Giá trị tối thiểu của ${param === 'Ph' ? 'pH' : param} phải nhỏ hơn giá trị tối đa.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (isValid) {
+      const configData = {
+        pHTop: tempLimits.Ph.max,
+        pHLow: tempLimits.Ph.min,
+        oxiTop: tempLimits.O2.max,
+        oxiLow: tempLimits.O2.min,
+        temperatureTop: tempLimits.Temperature.max,
+        temperatureLow: tempLimits.Temperature.min,
+        farmId: farmId,
+      };
+      callApi(
+        [ConfigRequestApi.alarmRequest.SetConfig(configData)],
+        () => {
+          setParameterLimits(tempLimits);
+          toast.success('Cài đặt giới hạn thông số đã được cập nhật!');
+          setIsSettingsModalOpen(false);
+        },
+        null,
+        (err) => {
+          console.error('Failed to save configuration:', err);
+          toast.error('Không thể lưu cấu hình thông số.');
+        }
+      );
+    }
+  };
+
+  const handleSettingsInputChange = (param, field, value) => {
+    setTempLimits((prev) => ({
+      ...prev,
+      [param]: {
+        ...prev[param],
+        [field]: parseFloat(value) || 0,
+      },
+    }));
+  };
+
   const deletePond = (pond) => {
     setSelectedPonds(selectedPonds.filter((p) => p.value !== pond.value));
     setPondData((prevData) => {
@@ -253,6 +333,37 @@ function Evista() {
         }
       : {};
   };
+
+  const [chartData] = useState({
+    series: [],
+    options: {
+      chart: {
+        type: 'line',
+        height: '100%',
+        zoom: { enabled: true, type: 'x' },
+        animations: { enabled: true, easing: 'easeinout', speed: 800 },
+        toolbar: { show: true },
+      },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          rotate: -45,
+          rotateAlways: true,
+          style: { colors: '#64748b', fontSize: '12px' },
+          trim: true,
+        },
+      },
+      yaxis: {
+        title: { text: '' },
+        labels: { style: { colors: '#64748b', fontSize: '12px' } },
+      },
+      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      stroke: { curve: 'smooth', width: 2 },
+      grid: { borderColor: '#e2e8f0' },
+      annotations: { yaxis: [] },
+      tooltip: { theme: 'dark', x: { show: true } },
+    },
+  });
 
   const renderCharts = () => {
     if (loading) {
@@ -429,13 +540,21 @@ function Evista() {
                   />
                 </div>
 
-                <div className="sm:col-span-1 flex items-end">
+                <div className="sm:col-span-1 flex items-end space-x-2">
                   <button
                     type="button"
                     onClick={handleUpdateNH3NO2}
-                    className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:opacity-50"
+                    className="flex-1 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-all duration-300 disabled:opacity-50"
                   >
-                    {'Cập nhật NH3, NO2'}
+                    Cập nhật NH3, NO2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSettingsClick}
+                    className="p-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-300"
+                    title="Cài đặt giới hạn thông số"
+                  >
+                    <FaCog size={16} />
                   </button>
                 </div>
               </div>
@@ -535,7 +654,7 @@ function Evista() {
             >
               <div className="flex justify-between items-center bg-white mb-2">
                 <h2 className="text-base sm:text-lg font-semibold text-teal-700 truncate">
-                  Cập nhật NH3/NO2 - {selectedPond?.label}
+                  Cập nhật mức cảnh báo {selectedPond?.label}
                 </h2>
                 <button
                   onClick={() => setIsNh3No2ModalOpen(false)}
@@ -545,6 +664,86 @@ function Evista() {
                 </button>
               </div>
               <Nh3No2Field />
+            </Modal>
+
+            <Modal
+              isOpen={isSettingsModalOpen}
+              onRequestClose={() => setIsSettingsModalOpen(false)}
+              style={{
+                content: {
+                  width: '90%',
+                  maxWidth: '600px',
+                  height: 'auto',
+                  maxHeight: '80vh',
+                  margin: 'auto',
+                  marginTop: '100px',
+                  zIndex: 100,
+                  background: 'white',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  overflowY: 'auto',
+                },
+                overlay: {
+                  zIndex: 95,
+                  backgroundColor: 'rgba(75, 85, 99, 0.7)',
+                },
+              }}
+              className="sm:p-4"
+            >
+              <div className="flex justify-between items-center bg-white mb-4">
+                <h2 className="text-base sm:text-lg font-semibold text-teal-700">
+                  Cài đặt giới hạn thông số
+                </h2>
+                <button
+                  onClick={() => setIsSettingsModalOpen(false)}
+                  className="p-1 text-teal-500 hover:text-teal-700 transition-colors"
+                >
+                  <IoCloseSharp size={20} />
+                </button>
+              </div>
+              <div className="space-y-6">
+                {['Ph', 'O2', 'Temperature'].map((param) => (
+                  <div key={param} className="space-y-2">
+                    <h3 className="text-lg font-medium text-teal-800">{param === 'Ph' ? 'pH' : param}</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-teal-700 mb-1">Tối thiểu</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={tempLimits[param].min}
+                          onChange={(e) => handleSettingsInputChange(param, 'min', e.target.value)}
+                          className="w-full p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-teal-700 mb-1">Tối đa</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={tempLimits[param].max}
+                          onChange={(e) => handleSettingsInputChange(param, 'max', e.target.value)}
+                          className="w-full p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end mt-6 space-x-2">
+                <button
+                  onClick={() => setIsSettingsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all duration-300"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSettingsSave}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all duration-300"
+                >
+                  Lưu
+                </button>
+              </div>
             </Modal>
           </div>
         </main>
