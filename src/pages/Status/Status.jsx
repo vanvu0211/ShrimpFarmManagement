@@ -182,12 +182,12 @@ function Status() {
                     </span>
                   </div>
                   {/* Delete button is commented out, leaving as is */}
-                  <button
+                  {/* <button
                                     className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg transition-all duration-300 flex-shrink-0" // Added flex-shrink-0
                                     onClick={() => handleDeleteFarm(farm.farmId)} // Pass farmId
                                 >
                                     Xóa
-                                </button>
+                                </button> */}
                 </li>
               ))
             )}

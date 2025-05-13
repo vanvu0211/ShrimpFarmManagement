@@ -1,7 +1,7 @@
 
 const URLDomain = {
     baseURL: "https://shrimppond.runasp.net" + "/api",
-    // baseURL: "http://103.170.122.142:81" + "/api",
+    // baseURL: "https://localhost:7220" + "/api",
     headers: {
         "Content-Type": "application/json",
     },

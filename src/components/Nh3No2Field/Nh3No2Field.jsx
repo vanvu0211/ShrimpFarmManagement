@@ -124,7 +124,7 @@ function Nh3No2Field() {
             };
 
             callApi(
-                [EvistaRequestApi.TemperatureRequest.createRequest(submitData)],
+                [EvistaRequestApi.evistraRequest.createRequest(submitData)],
                 () => {
                     setIsLoading(false);
                     toast.success('Cập nhật dữ liệu thành công!');

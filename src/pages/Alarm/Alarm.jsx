@@ -10,10 +10,22 @@ import Loading from '../../components/Loading';
 
 function Alarm() {
     const [alarms, setAlarms] = useState([]);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    
+    // Lấy ngày hôm nay và ngày mai
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    // Định dạng ngày thành chuỗi YYYY-MM-DD
+    const formatDateToString = (date) => {
+        return date.toISOString().split('T')[0];
+    };
+
+    const [startDate, setStartDate] = useState(formatDateToString(today));
+    const [endDate, setEndDate] = useState(formatDateToString(tomorrow));
+    
     const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1); // Khởi tạo giá trị ban đầu là 1
+    const [currentPage, setCurrentPage] = useState(1); // Sửa lỗi: dùng useState thay vì use LOCKED_STATE
     const [pageSize] = useState(20);
     const [totalAlarms, setTotalAlarms] = useState(0);
     const farmId = Number(localStorage.getItem('farmId'));
@@ -28,7 +40,7 @@ function Alarm() {
     const startIndex = (currentPage - 1) * pageSize + 1;
 
     // Fetch alarm data
-    const fetchAlarms = useCallback((page = currentPage) => { // Thêm tham số page mặc định là currentPage
+    const fetchAlarms = useCallback((page = currentPage) => {
         if (!startDate || !endDate) {
             if (!isLoading) {
                 toast.error('Vui lòng chọn khoảng thời gian để truy xuất dữ liệu!');
@@ -82,7 +94,7 @@ function Alarm() {
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage);
-            fetchAlarms(newPage); // Truyền trực tiếp newPage vào fetchAlarms
+            fetchAlarms(newPage);
         }
     };
 
@@ -151,7 +163,7 @@ function Alarm() {
 
                     <div className="flex justify-center">
                         <button
-                            onClick={() => fetchAlarms(currentPage)} // Gọi fetchAlarms với currentPage hiện tại
+                            onClick={() => fetchAlarms(currentPage)}
                             className={cl(
                                 'w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg shadow-md transition-all duration-300',
                                 {

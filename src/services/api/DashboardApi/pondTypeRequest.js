@@ -34,7 +34,9 @@ const DashboardRequestApi = {
     },
     authRequest : {
         register: async (data) => await axiosClient.post("/Account/Register", data),
-        login: async (data) => await axiosClient.post("/Account/Login", data)
+        login: async (data) => await axiosClient.post("/Account/Login", data),
+        verifyEmail: async (email, otp,cacheKey) => await axiosClient.post(`/Account/VerifyEmail?email=${email}&OtpCode=${otp}&cacheKey=${cacheKey}`),
+
     }
 
 }

@@ -24,15 +24,13 @@ axiosClient.interceptors.response.use(
     return response.data || response;
   },
   (error) => {
-    const errorData = error.response?.data || error.message || "Unknown error";
-
     if (error.code === "ERR_NETWORK") {
       alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại!");
       localStorage.removeItem("token");
       localStorage.removeItem("username");
       window.location.href = "/";
     }
-    return Promise.reject(errorData);
+    return Promise.reject(error); // Trả về lỗi đầy đủ
   }
 );
 

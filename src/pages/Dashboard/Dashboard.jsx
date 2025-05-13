@@ -35,18 +35,17 @@ function Dashboard() {
   const [daysOperated, setDaysOperated] = useState(0);
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date()); // Thêm state cho thời gian thực
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const farmName = localStorage.getItem('farmName') || '';
   const username = localStorage.getItem('username') || '';
   const farmId = Number(localStorage.getItem('farmId'));
 
-  // Cập nhật thời gian thực mỗi giây
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-    return () => clearInterval(timer); // Dọn dẹp khi component unmount
+    return () => clearInterval(timer);
   }, []);
 
   const fetchData = useCallback(() => {
@@ -65,6 +64,8 @@ function Dashboard() {
         DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
       ],
       (res) => {
+        console.log('API Response - pondTypes:', res[0]);
+        console.log('API Response - ponds:', res[1]);
         setPondTypes(res[0] || []);
         setPonds(res[1] || []);
         setActivePonds(res[2]?.length || 0);
@@ -83,8 +84,7 @@ function Dashboard() {
       },
       (err) => {
         toast.error('Không thể tải dữ liệu từ API!');
-        console.error("Lỗi");
-        console.error(err);
+        console.error("Lỗi", err);
         setIsLoading(false);
       }
     );
@@ -127,26 +127,18 @@ function Dashboard() {
         <Sidebar />
       </aside>
       <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
-        {/* Container cho 3 card trên cùng */}
         <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
-          {/* Container cho Tổng số ao & Hoạt động trên mobile */}
           <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
-            {/* Card 1: Tổng số ao */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Tổng số ao</h1>
               <span className="text-5xl font-mono font-bold text-red-500">{ponds?.length || 0}</span>
             </div>
-
-            {/* Card 2: Hoạt động */}
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Hoạt động</h1>
               <span className="text-5xl font-mono font-bold text-red-500">{activePonds}</span>
             </div>
           </div>
-
-          {/* Card 3: Farm Name & Icons với đồng hồ thời gian thực */}
           <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
-            {/* Phần thông tin chính */}
             <div className="col-span-2 flex flex-col items-center justify-center gap-2">
               <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
                 Trang trại: {farmName}
@@ -168,8 +160,6 @@ function Dashboard() {
                 )}
               </div>
             </div>
-
-            {/* Phần biểu tượng */}
             <div className="flex flex-col items-center justify-center gap-4">
               <AiOutlineClockCircle
                 onClick={() => setIsSetTime(true)}
@@ -182,18 +172,17 @@ function Dashboard() {
             </div>
           </div>
         </div>
-
-        {/* Container cho PondSummary */}
         <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
-          {ponds.length === 0 ? (
+          {pondTypes.length === 0 ? (
             <p className="text-teal-600 text-center">
-              Không có dữ liệu ao
+              Không có loại ao nào
             </p>
           ) : (
             pondTypes.map((pondType) => {
               const filteredPonds = ponds.filter(
                 (pond) => pond.pondTypeName === pondType.pondTypeName
               );
+              console.log('Rendering PondSummary for', pondType.pondTypeName, 'with ponds:', filteredPonds);
               return (
                 <PondSummary
                   onPutSucces={fetchData}
@@ -210,14 +199,12 @@ function Dashboard() {
             })
           )}
         </div>
-
         <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
           <IoMdAddCircle
             onClick={() => setIsModal(true)}
             className="h-12 text-4xl text-black"
           />
         </button>
-
         {isSetTime && (
           <SetTime
             setIsSetTime={setIsSetTime}
@@ -277,5 +264,6 @@ function Dashboard() {
     </div>
   );
 }
+
 
 export default memo(Dashboard);
