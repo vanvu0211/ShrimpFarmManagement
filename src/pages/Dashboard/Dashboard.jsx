@@ -37,9 +37,7 @@ function Dashboard() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const farmName = localStorage.getItem('farmName') || '';
-  const username = localStorage.getItem('username') || '';
-  const farmId = Number(localStorage.getItem('farmId'));
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -48,10 +46,13 @@ function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  const farmName = localStorage.getItem('farmName') || '';
+  const farmId = Number(localStorage.getItem('farmId'));
+
   const fetchData = useCallback(() => {
-    if (!farmName || farmName.trim() === '' || !username || username.trim() === '') {
+    if (!farmName || farmName.trim() === '') {
       setIsLoading(false);
-      return;
+      toast.error('Vui lòng chọn một trang trại!');
     }
 
     setIsLoading(true);
@@ -64,8 +65,6 @@ function Dashboard() {
         DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
       ],
       (res) => {
-        console.log('API Response - pondTypes:', res[0]);
-        console.log('API Response - ponds:', res[1]);
         setPondTypes(res[0] || []);
         setPonds(res[1] || []);
         setActivePonds(res[2]?.length || 0);
@@ -116,7 +115,6 @@ function Dashboard() {
       },
       (err) => {
         toast.error("Không thể cập nhật thời gian vệ sinh!");
-        console.error("API Error:", err);
       }
     );
   };

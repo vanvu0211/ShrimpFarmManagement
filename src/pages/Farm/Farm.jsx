@@ -17,7 +17,7 @@ function Farm() {
   const callApi = useCallApi();
   const navigate = useNavigate();
 
-  const username = localStorage.getItem("username");
+  const email = localStorage.getItem("email");
 
   const handleDeleteFarm = useCallback(
     (farmId) => {
@@ -94,7 +94,7 @@ function Farm() {
   );
 
   const fetchFarms = useCallback(() => {
-    if (!username) {
+    if (!email) {
       toast.error("Không tìm thấy thông tin người dùng!");
       return;
     }
@@ -102,7 +102,7 @@ function Farm() {
     setIsLoading(true);
 
     callApi(
-      [FarmRequestApi.farmRequest.getAllFarmByUserName(username)],
+      [FarmRequestApi.farmRequest.getAllFarmByEmail(email)],
       (res) => {
         console.log("fetchFarms: Success response", res);
         const farmData = res[0] && Array.isArray(res[0]) ? res[0].flat() : [];
@@ -123,7 +123,7 @@ function Farm() {
         setIsLoading(false);
       }
     );
-  }, [callApi, username, currentFarmId]);
+  }, [callApi, email, currentFarmId]);
 
   const handleAddFarm = useCallback(
     (e) => {
@@ -137,7 +137,7 @@ function Farm() {
       const data = {
         farmName: farmName.trim(),
         address: farmAddress.trim(),
-        username,
+        email,
       };
 
       setIsLoading(true);
@@ -178,7 +178,7 @@ function Farm() {
         }
       );
     },
-    [farmName, farmAddress, farms, username, callApi, fetchFarms]
+    [farmName, farmAddress, farms, email, callApi, fetchFarms]
   );
 
   useEffect(() => {

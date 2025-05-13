@@ -133,7 +133,7 @@ function Sidebar({ onMobileMenuToggle }) {
           </ul>
 
           <div className="border-t border-teal-500 p-4">
-            <div className={`${expanded ? "flex items-center justify-between" : "flex flex-col items-center space-y-2"}`}>
+            <div className={`${expanded ? "flex-1 items-center justify-between" : "flex flex-col items-center space-y-2"}`}>
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-teal-300 rounded-full flex items-center justify-center text-white text-lg font-bold transition-all duration-300 hover:scale-105">
                   {username ? username[0].toUpperCase() : "A"}
@@ -142,11 +142,11 @@ function Sidebar({ onMobileMenuToggle }) {
                   <span className="text-white text-sm font-medium truncate ml-3 max-w-[120px]">
                     {username || "Admin"}
                   </span>
-                )}
+                )} 
               </div>
               <button
                 onClick={handleLogout}
-                className={`flex items-center text-white bg-teal-700 rounded-lg hover:bg-teal-900 transition-all duration-200 shadow-md 
+                className={`flex mx-auto items-center text-white bg-teal-700 rounded-lg hover:bg-teal-900 transition-all duration-200 shadow-md 
                   ${expanded ? "py-2 px-3" : "p-2 w-10 h-10 justify-center"}`}
               >
                 <FiLogOut size={20} />

@@ -29,7 +29,6 @@ axiosClient.interceptors.response.use(
     if (error.code === "ERR_NETWORK") {
       alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại!");
       localStorage.removeItem("token");
-      localStorage.removeItem("username");
       window.location.href = "/";
     }
     return Promise.reject(errorData);

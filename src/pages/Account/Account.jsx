@@ -1,24 +1,22 @@
-import React, { useState, useCallback } from "react"; // Xóa useEffect
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Register from "../../components/Register";
 import useCallApi from "../../hooks/useCallApi";
 import { DashboardRequestApi } from "../../services/api";
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import cl from 'classnames';
+import cl from "classnames";
 
 function Account() {
   const navigate = useNavigate();
   const callApi = useCallApi();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); // Thay username bằng email
   const [password, setPassword] = useState("");
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const isLoginEnabled = username.trim() !== "" && password.trim() !== "";
-
-
+  const isLoginEnabled = email.trim() !== "" && password.trim() !== "";
 
   const handleLogin = useCallback(() => {
     if (!isLoginEnabled) return;
@@ -27,7 +25,7 @@ function Account() {
     setErrorMessage("");
 
     const loginData = {
-      username: username.trim(),
+      email: email.trim(), // Thay username bằng email
       password: password.trim(),
     };
 
@@ -36,31 +34,31 @@ function Account() {
       (res) => {
         if (res && res[0] && res[0].token) {
           localStorage.setItem("token", res[0].token);
-          localStorage.setItem("username", loginData.username);
+          localStorage.setItem("email", loginData.email); // Lưu email vào localStorage
+          localStorage.setItem("username", loginData.email); // Lưu email vào localStorage
           navigate("/status");
         } else {
-          setErrorMessage("Tài khoản hoặc mật khẩu không đúng!");
+          setErrorMessage("Email hoặc mật khẩu không đúng!");
         }
         setIsLoading(false);
       },
       (error) => {
         if (error.response?.status === 401) {
-          setErrorMessage("Sai tên đăng nhập hoặc mật khẩu!");
+          setErrorMessage("Sai email hoặc mật khẩu!");
         } else {
           setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại sau!");
         }
         setIsLoading(false);
       }
     );
-  }, [callApi, username, password, isLoginEnabled, navigate]);
+  }, [callApi, email, password, isLoginEnabled, navigate]);
 
   const handleRegisterSuccess = () => {
     alert("Tài khoản đã được tạo thành công!");
   };
 
   return (
-    // Giữ nguyên phần JSX
-    <div className="flex justify-center items-center  min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full mx-10 max-w-md border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
         {/* Tiêu đề */}
         <div className="flex justify-center items-center mb-6">
@@ -76,16 +74,16 @@ function Account() {
         </div>
 
         {/* Form đăng nhập */}
-        <div className=" mb-5">
-          <label htmlFor="username" className="block text-left font-medium text-teal-800 mb-2">
-            Tên đăng nhập
+        <div className="mb-5">
+          <label htmlFor="email" className="block text-left font-medium text-teal-800 mb-2">
+            Email
           </label>
           <input
-            type="text"
-            id="username"
-            placeholder="Nhập tên đăng nhập"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            id="email"
+            placeholder="Nhập email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
           />
         </div>
