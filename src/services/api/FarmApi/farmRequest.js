@@ -7,7 +7,8 @@ const FarmRequestApi = {
         createFarm: async (data) => await axiosClient.post(`/Farm`, data),
         deleteFarm: async (farmId,email) => await axiosClient.delete(`/Farm?farmId=${farmId}&email=${email}`),
         invite: async (data) => await axiosClient.put(`/Farm/InviteMember`,data),
-        remove: async (data) => await axiosClient.put(`/Farm/RemoveMember`,data)
+        remove: async (data) => await axiosClient.put(`/Farm/RemoveMember`,data),
+        updateRole: async (data) => await axiosClient.put(`/Farm/UpdateMember`,data),
     },
 }
 
