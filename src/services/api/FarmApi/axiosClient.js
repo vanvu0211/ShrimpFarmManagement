@@ -21,15 +21,25 @@ axiosClient.interceptors.request.use(
 // Response Interceptor
 axiosClient.interceptors.response.use(
   (response) => {
-    return response.data || response;
+    return response.data;
   },
   (error) => {
+    // Xử lý lỗi mạng
     if (error.code === "ERR_NETWORK") {
       alert("Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại!");
       localStorage.removeItem("token");
       window.location.href = "/";
+      return Promise.reject(error);
     }
-    return Promise.reject(error); // Trả về lỗi đầy đủ
+
+    // Xử lý các lỗi HTTP (400, 500, v.v.)
+    if (error.response) {
+      const { status, data } = error.response;
+      error.responseData = data; // Lưu dữ liệu lỗi
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(error);
   }
 );
 

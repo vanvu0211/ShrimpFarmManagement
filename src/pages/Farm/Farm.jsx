@@ -6,18 +6,61 @@ import Loading from "../../components/Loading";
 import useCallApi from "../../hooks/useCallApi";
 import { FarmRequestApi } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import MemberModal from "../../components/MemberModal";
+import { Users, Trash2 } from "lucide-react"; // Add Trash2 for delete icon
 
 function Farm() {
   const [farms, setFarms] = useState([]);
   const [farmName, setFarmName] = useState("");
   const [farmAddress, setFarmAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [currentFarmId, setCurrentFarmId] = useState(localStorage.getItem("farmId")); // Quản lý currentFarmId trong state
+  const [currentFarmId, setCurrentFarmId] = useState(localStorage.getItem("farmId"));
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [selectedFarm, setSelectedFarm] = useState(null);
+  const [members, setMembers] = useState([]);
 
   const callApi = useCallApi();
   const navigate = useNavigate();
-
   const email = localStorage.getItem("email");
+
+  const fetchMembers = useCallback(
+    (farmId) => {
+      setIsLoading(true);
+      callApi(
+        [FarmRequestApi.farmRequest.getMember(farmId)],
+        (res) => {
+          setMembers(res[0] || []);
+          setIsLoading(false);
+        },
+        (err) => {
+          toast.error("Không thể tải danh sách thành viên!");
+          setIsLoading(false);
+        }
+      );
+    },
+    [callApi]
+  );
+
+  const handleOpenMemberModal = useCallback(
+    (farm) => {
+      setSelectedFarm(farm);
+      fetchMembers(farm.farmId);
+      setIsMemberModalOpen(true);
+    },
+    [fetchMembers]
+  );
+
+  const handleCloseMemberModal = useCallback(
+    (refresh = false) => {
+      setIsMemberModalOpen(false);
+      setSelectedFarm(null);
+      setMembers([]);
+      if (refresh) {
+        fetchMembers(selectedFarm?.farmId);
+      }
+    },
+    [selectedFarm, fetchMembers]
+  );
 
   const handleDeleteFarm = useCallback(
     (farmId) => {
@@ -34,14 +77,13 @@ function Farm() {
       }, 5000);
 
       callApi(
-        [FarmRequestApi.farmRequest.deleteFarm(farmId)],
+        [FarmRequestApi.farmRequest.deleteFarm(farmId, email)],
         (res) => {
           console.log("handleDeleteFarm: Success response", res);
           clearTimeout(timeout);
           setIsLoading(false);
 
           if (res[0] && res[0].success === false) {
-            toast.error(res[0].message || "Xóa trang trại không thành công!");
             return;
           }
 
@@ -54,12 +96,12 @@ function Farm() {
               const firstFarm = updatedFarms[0];
               localStorage.setItem("farmId", String(firstFarm.farmId));
               localStorage.setItem("farmName", firstFarm.farmName);
-              setCurrentFarmId(String(firstFarm.farmId)); // Cập nhật state
+              setCurrentFarmId(String(firstFarm.farmId));
             }
           } else {
             localStorage.removeItem("farmId");
             localStorage.removeItem("farmName");
-            setCurrentFarmId(null); // Xóa currentFarmId
+            setCurrentFarmId(null);
             toast.info("Không còn trang trại nào, chuyển về trang đăng nhập.");
             navigate("/login");
           }
@@ -85,12 +127,11 @@ function Farm() {
             errorMessage = err.message;
           }
 
-          toast.error(errorMessage);
           console.error("Lỗi khi xóa trang trại:", err);
         }
       );
     },
-    [callApi, farms, currentFarmId, navigate]
+    [callApi, farms, email, currentFarmId, navigate]
   );
 
   const fetchFarms = useCallback(() => {
@@ -113,7 +154,7 @@ function Farm() {
           const firstFarm = farmData[0];
           localStorage.setItem("farmId", String(firstFarm.farmId));
           localStorage.setItem("farmName", firstFarm.farmName);
-          setCurrentFarmId(String(firstFarm.farmId)); // Cập nhật state
+          setCurrentFarmId(String(firstFarm.farmId));
         }
       },
       (err) => {
@@ -142,10 +183,17 @@ function Farm() {
 
       setIsLoading(true);
 
+      const timeout = setTimeout(() => {
+        setIsLoading(false);
+        toast.error("Yêu cầu tạo trang trại mất quá nhiều thời gian!");
+        console.error("useCallApi timeout for createFarm");
+      }, 5000);
+
       callApi(
         [FarmRequestApi.farmRequest.createFarm(data)],
         (res) => {
           console.log("handleAddFarm: Success response", res);
+          clearTimeout(timeout);
           setIsLoading(false);
 
           if (res[0] && res[0].success === false) {
@@ -155,7 +203,7 @@ function Farm() {
 
           const newFarm = res[0];
           if (!newFarm.farmId) {
-            fetchFarms(); // Làm mới danh sách trang trại
+            fetchFarms();
             return;
           }
 
@@ -164,16 +212,15 @@ function Farm() {
           setFarmName("");
           setFarmAddress("");
 
-          // Cập nhật farmId mới nếu không có currentFarmId hoặc muốn chọn farm mới
           localStorage.setItem("farmId", String(newFarm.farmId));
           localStorage.setItem("farmName", newFarm.farmName);
-          setCurrentFarmId(String(newFarm.farmId)); // Cập nhật state
+          setCurrentFarmId(String(newFarm.farmId));
         },
         (err) => {
           console.log("handleAddFarm: Error", err);
+          clearTimeout(timeout);
           setIsLoading(false);
-          const errorMsg = err?.response?.data?.title || "Có lỗi xảy ra khi thêm trang trại!";
-          toast.error(errorMsg);
+          const errorMsg = err?.responseData?.title || err?.responseData?.message || "Có lỗi xảy ra khi thêm trang trại!";
           console.error(err);
         }
       );
@@ -246,7 +293,7 @@ function Farm() {
             farms.map((farm, index) => (
               <li
                 key={farm.farmId || index}
-                className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4  rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ${
+                className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ${
                   String(farm.farmId) === currentFarmId
                     ? "border-2 border-teal-500 bg-teal-100"
                     : "bg-white"
@@ -261,7 +308,7 @@ function Farm() {
                     }
                     localStorage.setItem("farmName", farm.farmName);
                     localStorage.setItem("farmId", String(farm.farmId));
-                    setCurrentFarmId(String(farm.farmId)); // Cập nhật state
+                    setCurrentFarmId(String(farm.farmId));
                     navigate("/dashboard");
                   }}
                 >
@@ -270,12 +317,23 @@ function Farm() {
                     - {farm.address}
                   </span>
                 </div>
-                <button
-                  className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 shadow-md hover:shadow-lg transition-all duration-300 flex-shrink-0"
-                  onClick={() => handleDeleteFarm(farm.farmId)}
-                >
-                  Xóa
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => handleOpenMemberModal(farm)}
+                    className="p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
+                    title="Xem thành viên"
+                  >
+                    <Users size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteFarm(farm.farmId, email)}
+                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 sm:px-4 sm:py-2"
+                    title="Xóa trang trại"
+                  >
+                    <Trash2 size={20} className="sm:hidden" /> {/* Icon only on mobile */}
+                    <span className="hidden sm:inline">Xóa</span> {/* Text only on larger screens */}
+                  </button>
+                </div>
               </li>
             ))
           )}
@@ -283,6 +341,15 @@ function Farm() {
       </main>
 
       {isLoading && <Loading />}
+
+      <MemberModal
+        isOpen={isMemberModalOpen}
+        onClose={handleCloseMemberModal}
+        members={members}
+        farmId={selectedFarm?.farmId}
+        callApi={callApi}
+        FarmRequestApi={FarmRequestApi}
+      />
 
       <ToastContainer
         position="top-right"

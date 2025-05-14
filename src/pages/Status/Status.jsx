@@ -24,7 +24,7 @@ function Status() {
       setIsLoading(true); // Set loading before API call
 
       callApi(
-        [FarmRequestApi.farmRequest.deleteFarm(username, farmName)],
+        [FarmRequestApi.farmRequest.deleteFarm(email, farmName)],
         () => {
           setIsLoading(false); // Unset loading on success
           toast.success('Xóa trang trại thành công!');
@@ -80,7 +80,7 @@ function Status() {
       const data = {
         farmName: farmName.trim(),
         address: farmAddress.trim(),
-        username,
+        email,
       };
 
       setIsLoading(true); // Set loading before API call
