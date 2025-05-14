@@ -70,17 +70,11 @@ function Farm() {
 
       setIsLoading(true);
 
-      const timeout = setTimeout(() => {
-        setIsLoading(false);
-        toast.error("Vẫn còn ao trong trang trại!");
-        console.error("useCallApi timeout for deleteFarm");
-      }, 5000);
 
       callApi(
         [FarmRequestApi.farmRequest.deleteFarm(farmId, email)],
         (res) => {
           console.log("handleDeleteFarm: Success response", res);
-          clearTimeout(timeout);
           setIsLoading(false);
 
           if (res[0] && res[0].success === false) {
@@ -108,7 +102,6 @@ function Farm() {
         },
         (err) => {
           console.log("handleDeleteFarm: Error", err);
-          clearTimeout(timeout);
           setIsLoading(false);
           let errorMessage = "Có lỗi xảy ra khi xóa trang trại!";
 

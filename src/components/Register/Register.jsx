@@ -30,9 +30,11 @@ function Register({ setIsRegister, onRegisterSuccess }) {
 
   const isPasswordValid = (password) => {
     const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return hasUppercase && hasNumber && hasSpecialChar;
+    const isLengthValid = password.length >= 8 && password.length <= 64;
+    return hasUppercase && hasLowercase && hasNumber && hasSpecialChar && isLengthValid;
   };
 
   const handleSubmit = (e) => {
@@ -44,7 +46,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
     }
 
     if (!isPasswordValid(password)) {
-      setErrorMessage("Mật khẩu cần chữ cái in hoa, số và ký tự đặc biệt.");
+      setErrorMessage("Mật khẩu cần ít nhất 8 ký tự, tối đa 64 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
       return;
     }
 
@@ -57,16 +59,15 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       setIsLoading(true);
 
       // Gọi API đăng ký (backend tự động gửi OTP)
-      const data = { email: email.trim(), password: password.trim() }; // Xóa username
+      const data = { email: email.trim(), password: password.trim() };
       callApi(
         () => DashboardRequestApi.authRequest.register(data),
         (res) => {
           setIsLoading(false);
-          setShowOtpInput(true); // Chuyển sang giao diện nhập OTP
+          setShowOtpInput(true);
           setErrorMessage("Vui lòng kiểm tra email để lấy mã OTP (6 chữ số)!");
           setCacheKey(res.cacheKey);
         },
-        null, // Không hiển thị thông báo mặc định
         (err) => {
           setIsLoading(false);
           const apiError = err?.response?.data?.[0];
@@ -79,6 +80,31 @@ function Register({ setIsRegister, onRegisterSuccess }) {
     }
   };
 
+  const handleResendOtp = () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    // Gọi lại API đăng ký để gửi OTP mới
+    const data = { email: email.trim(), password: password.trim() };
+    callApi(
+      () => DashboardRequestApi.authRequest.register(data),
+      (res) => {
+        setIsLoading(false);
+        setErrorMessage("OTP mới đã được gửi, vui lòng kiểm tra email!");
+        setCacheKey(res.cacheKey);
+        setOtp(""); // Xóa OTP cũ
+      },
+      (err) => {
+        setIsLoading(false);
+        const apiError = err?.response?.data?.[0];
+        setErrorMessage(apiError?.description || "Không thể gửi lại OTP, vui lòng thử lại!");
+        console.error("Error resending OTP:", err);
+      }
+    );
+  };
+
   const handleOtpSubmit = (e) => {
     e.preventDefault();
 
@@ -87,15 +113,14 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       return;
     }
 
-    setIsLoading(true);
+
 
     // Gọi API xác thực OTP
     callApi(
       () => DashboardRequestApi.authRequest.verifyEmail(email.trim(), otp.trim(), cacheKey),
       () => {
-        setIsLoading(false);
-        onRegisterSuccess(); // Đăng ký thành công
-        setIsRegister(false); // Đóng form
+        onRegisterSuccess();
+        setIsRegister(false);
         setEmail("");
         setPassword("");
         setConfirmPassword("");
@@ -105,7 +130,6 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       },
       "Đăng ký thành công!",
       (err) => {
-        setIsLoading(false);
         const apiError = err?.response?.data?.[0];
         setErrorMessage(apiError?.description || "Mã OTP không hợp lệ, vui lòng thử lại!");
         console.error("Error verifying OTP:", err);
@@ -261,7 +285,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
             )}
 
             {/* Nút xác thực OTP */}
-            <div className="flex justify-center">
+            <div className="flex justify-center mb-4">
               <button
                 type="submit"
                 className={cl(
@@ -275,6 +299,25 @@ function Register({ setIsRegister, onRegisterSuccess }) {
                 {isLoading ? "Đang xác thực..." : "Xác thực OTP"}
               </button>
             </div>
+
+            {/* Nút gửi lại OTP */}
+            {errorMessage.includes("không hợp lệ") && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className={cl(
+                    "bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-lg shadow-md w-full transition duration-200",
+                    {
+                      "opacity-50 cursor-not-allowed": isLoading,
+                    }
+                  )}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Đang gửi..." : "Gửi lại OTP"}
+                </button>
+              </div>
+            )}
           </form>
         )}
 
