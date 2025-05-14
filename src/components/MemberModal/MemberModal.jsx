@@ -3,8 +3,8 @@ import { toast } from 'react-toastify';
 
 const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi }) => {
   const [inviteEmail, setInviteEmail] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
-  const userEmail = localStorage.getItem('email'); // Get the logged-in user's email
+  const [loading, setLoading] = useState(false);
+  const userEmail = localStorage.getItem('email');
 
   const handleInvite = (e) => {
     e.preventDefault();
@@ -13,10 +13,11 @@ const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi
       return;
     }
 
-    setLoading(true); // Set loading to true when the invite starts
+    setLoading(true);
 
     const data = {
-      email: inviteEmail.trim(),
+      inviteEmail: inviteEmail.trim(),
+      email:userEmail,
       farmId,
     };
 
@@ -27,11 +28,11 @@ const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi
         setInviteEmail('');
         console.log(res);
         onClose(true);
-        setLoading(false); // Reset loading state on success
+        setLoading(false);
       },
       (err) => {
         console.error('Invite error:', err);
-        setLoading(false); // Reset loading state on error
+        setLoading(false);
       }
     );
   };
@@ -40,7 +41,8 @@ const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi
     if (!window.confirm(`Bạn có chắc chắn muốn xóa thành viên ${email}?`)) return;
 
     const data = {
-      email,
+      email: userEmail,
+      removeEmail:email,
       farmId,
     };
 
@@ -71,14 +73,14 @@ const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="Nhập email để mời"
               className="flex-grow p-2 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              disabled={loading} // Disable input during loading
+              disabled={loading}
             />
             <button
               type="submit"
               className={`px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 flex items-center justify-center ${
                 loading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
-              disabled={loading} // Disable button during loading
+              disabled={loading}
             >
               {loading ? (
                 <>
@@ -118,7 +120,9 @@ const MemberModal = ({ isOpen, onClose, members, farmId, callApi, FarmRequestApi
             members.map((member) => (
               <li
                 key={member.email}
-                className="flex justify-between items-center p-2 bg-teal-50 rounded-lg"
+                className={`flex justify-between items-center p-2 rounded-lg ${
+                  member.email === userEmail ? 'bg-teal-200 font-semibold' : 'bg-teal-50'
+                }`}
               >
                 <div>
                   <span className="font-medium">{member.email}</span>

@@ -63,16 +63,16 @@ const Food = () => {
             setFoods([...foods, res[0]]);
             setNewFood('');
           } else {
-            toast.error('Thức ăn đã tồn tại!');
+            // toast.error('Thức ăn đã tồn tại!');
           }
         },
         (err) => {
           setIsLoading(false);
-          toast.error(
-            err?.response?.data?.title === 'Food already exist'
-              ? 'Thức ăn đã tồn tại!'
-              : 'Có lỗi xảy ra khi thêm thức ăn!'
-          );
+          // toast.error(
+          //   err?.response?.data?.title === 'Food already exist'
+          //     ? 'Thức ăn đã tồn tại!'
+          //     : 'Có lỗi xảy ra khi thêm thức ăn!'
+          // );
         }
       );
     },
@@ -97,16 +97,16 @@ const Food = () => {
             setTreatments([...treatments, res[0]]);
             setNewTreatment('');
           } else {
-            toast.error('Thuốc đã tồn tại!');
+            // toast.error('Thuốc đã tồn tại!');
           }
         },
         (err) => {
           setIsLoading(false);
-          toast.error(
-            err?.response?.data?.title === 'Medicine already exist'
-              ? 'Thuốc đã tồn tại!'
-              : 'Có lỗi xảy ra khi thêm thuốc!'
-          );
+          // toast.error(
+          //   err?.response?.data?.title === 'Medicine already exist'
+          //     ? 'Thuốc đã tồn tại!'
+          //     : 'Có lỗi xảy ra khi thêm thuốc!'
+          // );
         }
       );
     },
