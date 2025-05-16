@@ -9,7 +9,7 @@ import cl from "classnames";
 function Account() {
   const navigate = useNavigate();
   const callApi = useCallApi();
-  const [email, setEmail] = useState(""); // Thay username bằng email
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +25,7 @@ function Account() {
     setErrorMessage("");
 
     const loginData = {
-      email: email.trim(), // Thay username bằng email
+      email: email.trim(),
       password: password.trim(),
     };
 
@@ -34,8 +34,8 @@ function Account() {
       (res) => {
         if (res && res[0] && res[0].token) {
           localStorage.setItem("token", res[0].token);
-          localStorage.setItem("email", loginData.email); // Lưu email vào localStorage
-          localStorage.setItem("username", loginData.email); // Lưu email vào localStorage
+          localStorage.setItem("email", loginData.email);
+          localStorage.setItem("username", loginData.email);
           navigate("/status");
         } else {
           setErrorMessage("Email hoặc mật khẩu không đúng!");
@@ -58,8 +58,13 @@ function Account() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full mx-10 max-w-md border border-teal-200 transform transition-all duration-300 hover:shadow-2xl">
+    <div
+      className="flex justify-center items-center min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url('https://lms.hcmut.edu.vn/pluginfile.php/3/theme_academi/slide2image/1743086606/slbktv.jpg')`,
+      }}
+    >
+      <div className="bg-white bg-opacity-80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-2xl w-full mx-4 sm:mx-10 max-w-md border border-teal-300 transform transition-all duration-300 hover:shadow-3xl">
         {/* Tiêu đề */}
         <div className="flex justify-center items-center mb-6">
           <img
@@ -68,14 +73,14 @@ function Account() {
             alt="Logo"
           />
           <div className="ml-3 text-2xl sm:text-3xl font-bold tracking-tight">
-            <span className="text-teal-700">Shrimp</span>
+            <span className="text-teal-800">Shrimp</span>
             <span className="text-teal-600">Pond</span>
           </div>
         </div>
 
         {/* Form đăng nhập */}
         <div className="mb-5">
-          <label htmlFor="email" className="block text-left font-medium text-teal-800 mb-2">
+          <label htmlFor="email" className="block text-left font-semibold text-teal-900 mb-2">
             Email
           </label>
           <input
@@ -84,12 +89,12 @@ function Account() {
             placeholder="Nhập email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+            className="w-full p-3 sm:p-4 border-2 border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-teal-50 text-teal-900 placeholder-teal-500 text-sm sm:text-base transition-all duration-200"
           />
         </div>
 
         <div className="mb-6 relative">
-          <label htmlFor="password" className="block text-left font-medium text-teal-800 mb-2">
+          <label htmlFor="password" className="block text-left font-semibold text-teal-900 mb-2">
             Mật khẩu
           </label>
           <input
@@ -98,10 +103,10 @@ function Account() {
             placeholder="Nhập mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+            className="w-full p-3 sm:p-4 border-2 border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-teal-50 text-teal-900 placeholder-teal-500 text-sm sm:text-base transition-all duration-200"
           />
           <span
-            className="absolute top-2/3 right-3 transform -translate-y-1/2 text-teal-600 cursor-pointer text-xl sm:text-2xl"
+            className="absolute top-2/3 right-3 transform -translate-y-1/2 text-teal-700 cursor-pointer text-xl sm:text-2xl"
             onClick={() => setIsPasswordVisible(!isPasswordVisible)}
           >
             {isPasswordVisible ? <IoEyeOff /> : <IoEye />}
@@ -110,7 +115,7 @@ function Account() {
 
         {/* Thông báo lỗi */}
         {errorMessage && (
-          <p className="text-red-500 text-sm text-center mb-4">{errorMessage}</p>
+          <p className="text-red-600 font-medium text-sm text-center mb-4">{errorMessage}</p>
         )}
 
         {/* Nút đăng nhập */}
@@ -118,10 +123,10 @@ function Account() {
           onClick={handleLogin}
           disabled={!isLoginEnabled || isLoading}
           className={cl(
-            "w-full py-3 sm:py-4 text-white font-semibold rounded-lg shadow-md transition-all duration-300",
+            "w-full py-3 sm:py-4 text-white font-semibold rounded-lg shadow-lg transition-all duration-300",
             {
-              "bg-teal-600 hover:bg-teal-700 hover:shadow-lg": isLoginEnabled && !isLoading,
-              "bg-gray-300 cursor-not-allowed": !isLoginEnabled || isLoading,
+              "bg-teal-700 hover:bg-teal-800 hover:shadow-xl": isLoginEnabled && !isLoading,
+              "bg-gray-400 cursor-not-allowed": !isLoginEnabled || isLoading,
             }
           )}
         >
@@ -129,7 +134,7 @@ function Account() {
         </button>
 
         {/* Link đăng ký */}
-        <p className="text-center text-teal-700 mt-4 text-sm sm:text-base">
+        <p className="text-center text-teal-800 mt-4 text-sm sm:text-base">
           Chưa có tài khoản?{" "}
           <span
             onClick={() => setIsRegisterOpen(true)}
