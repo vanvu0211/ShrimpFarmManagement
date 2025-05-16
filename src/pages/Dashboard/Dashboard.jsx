@@ -7,7 +7,7 @@ import SetTime from '../../components/SetTime';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 import useCallApi from '../../hooks/useCallApi';
 import { useSelector } from 'react-redux';
-import { IoMdAddCircle } from "react-icons/io";
+import { IoMdAddCircle } from 'react-icons/io';
 import { DashboardRequestApi } from '../../services/api';
 import CreateModal from '../../components/CreateModal';
 import ImageModal from '../../components/ImageModal';
@@ -15,7 +15,7 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import Loading from '../../components/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { IoMdAdd } from "react-icons/io";
+import Footer from '../../components/Footer/Footer'; // Import the Footer component
 
 function Dashboard() {
   const callApi = useCallApi();
@@ -36,8 +36,6 @@ function Dashboard() {
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -83,7 +81,7 @@ function Dashboard() {
       },
       (err) => {
         toast.error('Không thể tải dữ liệu từ API!');
-        console.error("Lỗi", err);
+        console.error('Lỗi', err);
         setIsLoading(false);
       }
     );
@@ -104,130 +102,133 @@ function Dashboard() {
       [
         DashboardRequestApi.timeRequest.postCleaningTime({
           cleanTime: currentTime,
-          farmId: farmId
+          farmId: farmId,
         }),
       ],
       (res) => {
-        toast.success("Vệ sinh cảm biến thành công!");
+        toast.success('Vệ sinh cảm biến thành công!');
         setDaysOperated(0);
         setNeedsCleaning(false);
         setIsConfirmModalOpen(false);
       },
       (err) => {
-        toast.error("Không thể cập nhật thời gian vệ sinh!");
+        toast.error('Không thể cập nhật thời gian vệ sinh!');
       }
     );
   };
 
   return (
-    <div className="flex max-h-screen bg-gradient-to-br z-[100] from-teal-100 to-gray-100/40">
+    <div className="flex min-h-screen bg-gradient-to-br from-teal-100 to-gray-100/40">
       <aside className="h-screen sticky top-0 sm:w-auto">
         <Sidebar />
       </aside>
-      <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
-        <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
-          <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
-            <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Tổng số ao</h1>
-              <span className="text-5xl font-mono font-bold text-red-500">{ponds?.length || 0}</span>
-            </div>
-            <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
-              <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Hoạt động</h1>
-              <span className="text-5xl font-mono font-bold text-red-500">{activePonds}</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
-            <div className="col-span-2 flex flex-col items-center justify-center gap-2">
-              <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
-                Trang trại: {farmName}
-              </h1>
-              <div className="text-gray-700 space-y-1 text-center">
-                <p className="text-base font-helvetica">Thời gian hiện tại: {currentTime.toLocaleTimeString()}</p>
-                <p className="text-base font-helvetica">Số ngày vận hành: {daysOperated}</p>
-                {needsCleaning ? (
-                  <span
-                    onClick={() => setIsConfirmModalOpen(true)}
-                    className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-red-200 transition"
-                  >
-                    Cần vệ sinh cảm biến
-                  </span>
-                ) : (
-                  <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                    Cảm biến: Tốt
-                  </span>
-                )}
+      <div className="flex-1 flex flex-col w-full">
+        <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center mr-2 overflow-y-auto mb-2">
+          <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
+            <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
+              <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
+                <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">
+                  Tổng số ao
+                </h1>
+                <span className="text-5xl font-mono font-bold text-red-500">{ponds?.length || 0}</span>
+              </div>
+              <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
+                <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">
+                  Hoạt động
+                </h1>
+                <span className="text-5xl font-mono font-bold text-red-500">{activePonds}</span>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center gap-4">
-              <AiOutlineClockCircle
-                onClick={() => setIsSetTime(true)}
-                className="text-5xl text-gray-600 cursor-pointer hover:text-teal-500 hover:scale-110 transition-transform duration-200"
-              />
-              <FaMapMarkerAlt
-                onClick={() => setShowImage(true)}
-                className="text-5xl text-red-500 cursor-pointer hover:text-red-600 hover:scale-110 transition-transform duration-200"
-              />
+            <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
+              <div className="col-span-2 flex flex-col items-center justify-center gap-2">
+                <h1 className="text-xl font-bold font-helvetica bg-gradient-to-r from-teal-600 to-teal-500 text-transparent bg-clip-text">
+                  Trang trại: {farmName}
+                </h1>
+                <div className="text-gray-700 space-y-1 text-center">
+                  <p className="text-base font-helvetica">Thời gian hiện tại: {currentTime.toLocaleTimeString()}</p>
+                  <p className="text-base font-helvetica">Số ngày vận hành: {daysOperated}</p>
+                  {needsCleaning ? (
+                    <span
+                      onClick={() => setIsConfirmModalOpen(true)}
+                      className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full cursor-pointer hover:bg-red-200 transition"
+                    >
+                      Cần vệ sinh cảm biến
+                    </span>
+                  ) : (
+                    <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      Cảm biến: Tốt
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4">
+                <AiOutlineClockCircle
+                  onClick={() => setIsSetTime(true)}
+                  className="text-5xl text-gray-600 cursor-pointer hover:text-teal-500 hover:scale-110 transition-transform duration-200"
+                />
+                <FaMapMarkerAlt
+                  onClick={() => setShowImage(true)}
+                  className="text-5xl text-red-500 cursor-pointer hover:text-red-600 hover:scale-110 transition-transform duration-200"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
-          {pondTypes.length === 0 ? (
-            <p className="text-teal-600 text-center">
-              Không có loại ao nào
-            </p>
-          ) : (
-            pondTypes.map((pondType) => {
-              const filteredPonds = ponds.filter(
-                (pond) => pond.pondTypeName === pondType.pondTypeName
-              );
-              console.log('Rendering PondSummary for', pondType.pondTypeName, 'with ponds:', filteredPonds);
-              return (
-                <PondSummary
-                  onPutSucces={fetchData}
-                  key={pondType.pondTypeId}
-                  pondTypeName={pondType.pondTypeName}
-                  pondTypeId={pondType.pondTypeId}
-                  ponds={filteredPonds}
-                  setIsDeleteModal={setIsDeleteModal}
-                  setIsCreateModal={setIsCreateModal}
-                  onSelected={handleSelected}
-                  onDeleteCardSuccess={fetchData}
-                />
-              );
-            })
+          <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
+            {pondTypes.length === 0 ? (
+              <p className="text-teal-600 text-center">Không có loại ao nào</p>
+            ) : (
+              pondTypes.map((pondType) => {
+                const filteredPonds = ponds.filter((pond) => pond.pondTypeName === pondType.pondTypeName);
+                console.log('Rendering PondSummary for', pondType.pondTypeName, 'with ponds:', filteredPonds);
+                return (
+                  <PondSummary
+                    onPutSucces={fetchData}
+                    key={pondType.pondTypeId}
+                    pondTypeName={pondType.pondTypeName}
+                    pondTypeId={pondType.pondTypeId}
+                    ponds={filteredPonds}
+                    setIsDeleteModal={setIsDeleteModal}
+                    setIsCreateModal={setIsCreateModal}
+                    onSelected={handleSelected}
+                    onDeleteCardSuccess={fetchData}
+                  />
+                );
+              })
+            )}
+          </div>
+          <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
+            <IoMdAddCircle
+              onClick={() => setIsModal(true)}
+              className="h-12 text-4xl text-black"
+            />
+          </button>
+          {isSetTime && (
+            <SetTime
+              setIsSetTime={setIsSetTime}
+              onPostSuccess={fetchData}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+            />
           )}
+          {isModal && <Modal setIsModal={setIsModal} onPostSuccess={fetchData} />}
+          {isDeleteModal && (
+            <DeleteModal
+              setIsDeleteModal={setIsDeleteModal}
+              pondTypeId={selectedPondTypeId}
+              pondTypeName={selectedPondTypeName}
+              onDeleteSuccess={fetchData}
+            />
+          )}
+          {isCreateModal && (
+            <CreateModal
+              setIsCreateModal={setIsCreateModal}
+              onPostSuccess={fetchData}
+              pondTypeId={selectedPondTypeId}
+            />
+          )}
+          {showImage && <ImageModal setShowImage={setShowImage} />}
         </div>
-        <button className="h-10 w-10 right-4 items-center rounded-2xl -mr-3 bottom-5 fixed flex justify-center">
-          <IoMdAddCircle
-            onClick={() => setIsModal(true)}
-            className="h-12 text-4xl text-black"
-          />
-        </button>
-        {isSetTime && (
-          <SetTime
-            setIsSetTime={setIsSetTime}
-            onPostSuccess={fetchData}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-        )}
-        {isModal && <Modal setIsModal={setIsModal} onPostSuccess={fetchData} />}
-        {isDeleteModal && (
-          <DeleteModal
-            setIsDeleteModal={setIsDeleteModal}
-            pondTypeId={selectedPondTypeId}
-            pondTypeName={selectedPondTypeName}
-            onDeleteSuccess={fetchData}
-          />
-        )}
-        {isCreateModal && (
-          <CreateModal
-            setIsCreateModal={setIsCreateModal}
-            onPostSuccess={fetchData}
-            pondTypeId={selectedPondTypeId}
-          />
-        )}
-        {showImage && <ImageModal setShowImage={setShowImage} />}
+        {/* <Footer /> Add the Footer here */}
       </div>
       {isLoading && <Loading />}
       <ToastContainer
@@ -262,6 +263,5 @@ function Dashboard() {
     </div>
   );
 }
-
 
 export default memo(Dashboard);
