@@ -7,7 +7,6 @@ import { FarmRequestApi } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import MemberModal from "../../components/MemberModal";
 import { Users, Trash2 } from "lucide-react"; // Add Trash2 for delete icon
-import Footer from '../../components/Footer/Footer'; // Import the Footer component
 
 function Status() {
   const [farms, setFarms] = useState([]);
@@ -234,8 +233,7 @@ function Status() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-gray-100 flex justify-center">
-      <div className="flex-1 flex flex-col w-full">
-<main className="w-full mx-auto mt-16 sm:mt-0 max-w-4xl overflow-y-auto overflow-hidden no-scrollbar p-4 sm:p-6 lg:p-8 transition-all duration-300">
+      <main className="w-full mx-auto mt-16 sm:mt-0 max-w-4xl overflow-y-auto overflow-hidden no-scrollbar p-4 sm:p-6 lg:p-8 transition-all duration-300">
         <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
           Thông tin trang trại
         </h1>
@@ -335,13 +333,7 @@ function Status() {
             ))
           )}
         </ul>
-        
       </main>
-        <Footer />
-
-      </div>
-      
-       
 
       {isLoading && <Loading />}
 
