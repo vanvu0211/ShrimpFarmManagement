@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar/Sidebar';
 import axios from 'axios';
 import { FaTrash, FaExpand, FaCog } from 'react-icons/fa';
 import Chart from 'react-apexcharts';
@@ -13,6 +12,8 @@ import { ConfigRequestApi } from '../../services/api';
 import useCallApi from '../../hooks/useCallApi';
 import { IoCloseSharp } from 'react-icons/io5';
 import Nh3No2Field from '../../components/Nh3No2Field/Nh3No2Field';
+import Footer from '../../components/Footer/Footer';
+import Sidebar from '../../components/Sidebar/Sidebar';
 
 function Evista() {
   const navigate = useNavigate();
@@ -458,10 +459,6 @@ function Evista() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-gray-100">
-      <aside className="h-screen sticky top-0 sm:w-auto">
-        <Sidebar onMobileMenuToggle={handleMobileMenuToggle} className="z-[1000]" />
-      </aside>
-
       <div className="flex-1 mt-16 sm:mt-0 overflow-y-auto overflow-hidden max-h-screen flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-all duration-300">
           <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 sm:mb-2 mx-auto max-w-6xl">
@@ -561,7 +558,7 @@ function Evista() {
             </div>
             <div
               className="space-y-6 mt-6 sm:overflow-y-auto"
-              style={{ maxHeight: 'calc(100vh - 31vh)' }}
+              // style={{ maxHeight: 'calc(100vh - 31vh)' }}
             >
               {renderCharts()}
             </div>
@@ -747,6 +744,7 @@ function Evista() {
             </Modal>
           </div>
         </main>
+        <Footer />
       </div>
       <ToastContainer
         position="top-right"

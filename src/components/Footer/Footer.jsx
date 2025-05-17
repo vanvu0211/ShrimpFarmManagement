@@ -73,9 +73,7 @@ const Footer = () => {
         <p>
           © {new Date().getFullYear()} Farm Management System – FMS. All rights reserved.
         </p>
-        <p>
-          Page Views: <span className="font-semibold">55,297,488</span>
-        </p>
+       
       </div>
     </footer>
   );

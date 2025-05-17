@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect, memo } from 'react';
-import Sidebar from '../../components/Sidebar/Sidebar';
 import PondSummary from '../../components/PondSummary/PondSummary';
 import Modal from '../../components/Modal';
 import DeleteModal from '../../components/DeleteModal';
@@ -15,8 +14,8 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import Loading from '../../components/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Footer from '../../components/Footer/Footer'; // Import the Footer component
-
+import Footer from '../../components/Footer/Footer';
+import Sidebar from '../../components/Sidebar/Sidebar';
 function Dashboard() {
   const callApi = useCallApi();
   const expanded = useSelector((state) => state.sidebar.expanded);
@@ -118,10 +117,8 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-teal-100 to-gray-100/40">
-      <aside className="h-screen sticky top-0 sm:w-auto">
-        <Sidebar />
-      </aside>
+    <div className="flex min-h-screen bg-gradient-to-br from-teal-100 to-gray-100/40 flex-col">
+      <Sidebar />
       <div className="flex-1 flex flex-col w-full">
         <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center mr-2 overflow-y-auto mb-2">
           <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
@@ -228,7 +225,7 @@ function Dashboard() {
           )}
           {showImage && <ImageModal setShowImage={setShowImage} />}
         </div>
-        {/* <Footer /> Add the Footer here */}
+        <Footer />
       </div>
       {isLoading && <Loading />}
       <ToastContainer
