@@ -1,3 +1,4 @@
+import { data } from "autoprefixer";
 import axiosClient from "./axiosClient"
 
 const DashboardRequestApi = {
@@ -36,6 +37,8 @@ const DashboardRequestApi = {
         register: async (data) => await axiosClient.post("/Account/Register", data),
         login: async (data) => await axiosClient.post("/Account/Login", data),
         verifyEmail: async (email, otp,cacheKey) => await axiosClient.post(`/Account/VerifyEmail?email=${email}&OtpCode=${otp}&cacheKey=${cacheKey}`),
+        requestPasswordReset: async (email) => await axiosClient.post(`/Account/RequestPasswordReset?Email=${email}`),
+        resetPassword: async (data) => await axiosClient.post(`/Account/ResetPassword`,data),
 
     }
 
