@@ -6,6 +6,7 @@ import DeleteModal from '../../components/DeleteModal';
 import SetTime from '../../components/SetTime';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 import useCallApi from '../../hooks/useCallApi';
+import useSignalR from '../../hooks/useSignalR';
 import { useSelector } from 'react-redux';
 import { IoMdAddCircle } from "react-icons/io";
 import { DashboardRequestApi } from '../../services/api';
@@ -15,12 +16,12 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import Loading from '../../components/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { IoMdAdd } from "react-icons/io";
+import { motion } from 'framer-motion';
+import { AlarmRequestApi } from '../../services/api';
 
 function Dashboard() {
   const callApi = useCallApi();
   const expanded = useSelector((state) => state.sidebar.expanded);
-
   const [isModal, setIsModal] = useState(false);
   const [isCreateModal, setIsCreateModal] = useState(false);
   const [isSetTime, setIsSetTime] = useState(false);
@@ -30,14 +31,16 @@ function Dashboard() {
   const [activePonds, setActivePonds] = useState(0);
   const [pondTypes, setPondTypes] = useState([]);
   const [ponds, setPonds] = useState([]);
-  const [selectedPondTypeId, setselectedPondTypeId] = useState('');
-  const [selectedPondTypeName, setselectedPondTypeName] = useState('');
+  const [selectedPondTypeId, setSelectedPondTypeId] = useState('');
+  const [selectedPondTypeName, setSelectedPondTypeName] = useState('');
   const [daysOperated, setDaysOperated] = useState(0);
   const [needsCleaning, setNeedsCleaning] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-
+  const [cabinData, setCabinData] = useState([
+    { name: 'Tủ điện 1', status: 'Tắt', updated: false },
+    { name: 'Tủ điện 2', status: 'Tắt', updated: false }
+  ]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -49,10 +52,52 @@ function Dashboard() {
   const farmName = localStorage.getItem('farmName') || '';
   const farmId = Number(localStorage.getItem('farmId'));
 
+  const cabinStatusMapping = {
+    'Tủ điện 1': {
+      'GOOD': 'Bật',
+      'BAD': 'Tắt',
+      'Measuring': 'Đang đo'
+    },
+    'Tủ điện 2': {
+      'GOOD': 'Bật',
+      'BAD': 'Tắt'
+    }
+  };
+
+  const handleCabinStatusChanged = useCallback((data) => {
+    setCabinData(prevData => {
+      const updatedData = [...prevData];
+      // Map "Cabin 1" to "Tủ điện 1" and "Cabin 2" to "Tủ điện 2"
+      const displayName = data.Name === 'Cabin 1' ? 'Tủ điện 1' : data.Name === 'Cabin 2' ? 'Tủ điện 2' : null;
+      if (!displayName) return updatedData; // Skip if no valid displayName
+
+      const cabinIndex = updatedData.findIndex(c => c.name === displayName);
+      if (cabinIndex !== -1) {
+        const mappedStatus = cabinStatusMapping[displayName]?.[data.Value] || 'Tắt';
+        updatedData[cabinIndex] = {
+          ...updatedData[cabinIndex],
+          status: mappedStatus,
+          updated: true
+        };
+        setTimeout(() => {
+          setCabinData(current => {
+            const resetData = [...current];
+            resetData[cabinIndex] = { ...resetData[cabinIndex], updated: false };
+            return resetData;
+          });
+        }, 1000);
+      }
+      return updatedData;
+    });
+  }, []);
+
+  useSignalR(handleCabinStatusChanged);
+
   const fetchData = useCallback(() => {
     if (!farmName || farmName.trim() === '') {
       setIsLoading(false);
       toast.error('Vui lòng chọn một trang trại!');
+      return;
     }
 
     setIsLoading(true);
@@ -63,6 +108,8 @@ function Dashboard() {
         DashboardRequestApi.pondRequest.getPondRequestByFarmId(farmId),
         DashboardRequestApi.pondRequest.getPondRequestByStatus(farmId, 1),
         DashboardRequestApi.timeRequest.getTimeCleaning(farmId),
+        AlarmRequestApi.alarmRequest.getStatusCabin(farmId, 'Tình trạng kết nối ESP tủ điện 1'),
+        AlarmRequestApi.alarmRequest.getStatusCabin(farmId, 'Tình trạng kết nối ESP tủ điện 2')
       ],
       (res) => {
         setPondTypes(res[0] || []);
@@ -79,6 +126,16 @@ function Dashboard() {
         } else {
           setNeedsCleaning(false);
         }
+
+        setCabinData(prevData => {
+          const updatedData = [...prevData];
+          const cabin1Status = cabinStatusMapping['Tủ điện 1'][res[4].status] || 'Tắt';
+          updatedData[0] = { ...updatedData[0], status: cabin1Status };
+          const cabin2Status = cabinStatusMapping['Tủ điện 2'][res[5].status] || 'Tắt';
+          updatedData[1] = { ...updatedData[1], status: cabin2Status };
+          return updatedData;
+        });
+
         setIsLoading(false);
       },
       (err) => {
@@ -94,8 +151,8 @@ function Dashboard() {
   }, [fetchData]);
 
   const handleSelected = (pondTypeId, pondTypeName) => {
-    setselectedPondTypeId(pondTypeId);
-    setselectedPondTypeName(pondTypeName);
+    setSelectedPondTypeId(pondTypeId);
+    setSelectedPondTypeName(pondTypeName);
   };
 
   const handleCleanSensor = () => {
@@ -119,6 +176,34 @@ function Dashboard() {
     );
   };
 
+  const renderCabinStatus = () => {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
+        <h2 className="text-xl font-bold text-teal-800 mb-3">Trạng thái tủ điện</h2>
+        <div className="grid grid-cols-1 gap-2">
+          {cabinData.map((cabin, index) => (
+            <motion.div
+              key={cabin.name}
+              className="text-center py-2 p-10 text-sm font-medium rounded-md"
+              animate={{
+                backgroundColor: cabin.status === 'Bật' ? '#DCFCE7' : cabin.status === 'Đang đo' ? '#FFEDD5' : '#FEE2E2',
+                color: cabin.status === 'Bật' ? '#166534' : cabin.status === 'Đang đo' ? '#C2410C' : '#991B1B',
+                scale: cabin.updated ? [1, 1.05, 1] : 1
+              }}
+              transition={{
+                color: { duration: 0.3 },
+                backgroundColor: { duration: 0.3 },
+                scale: { duration: 0.5 }
+              }}
+            >
+              {cabin.name}: {cabin.status}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex max-h-screen bg-gradient-to-br z-[100] from-teal-100 to-gray-100/40">
       <aside className="h-screen sticky top-0 sm:w-auto">
@@ -134,7 +219,7 @@ function Dashboard() {
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Hoạt động</h1>
               <span className="text-5xl font-mono font-bold text-red-500">{activePonds}</span>
-            </div>
+            </div>  
           </div>
           <div className="grid grid-cols-3 items-center rounded-xl bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 w-full sm:flex-1">
             <div className="col-span-2 flex flex-col items-center justify-center gap-2">
@@ -169,7 +254,9 @@ function Dashboard() {
               />
             </div>
           </div>
+           {renderCabinStatus()}
         </div>
+       
         <div className="w-[90%] max-h-[90%] flex-1 sm:overflow-y-auto rounded-lg p-4 gap-y-3">
           {pondTypes.length === 0 ? (
             <p className="text-teal-600 text-center">
@@ -262,6 +349,5 @@ function Dashboard() {
     </div>
   );
 }
-
 
 export default memo(Dashboard);
