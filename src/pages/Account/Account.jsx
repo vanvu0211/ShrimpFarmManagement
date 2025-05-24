@@ -5,6 +5,9 @@ import useCallApi from "../../hooks/useCallApi";
 import { DashboardRequestApi } from "../../services/api";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import cl from "classnames";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 function Account() {
   const navigate = useNavigate();
@@ -13,6 +16,7 @@ function Account() {
   const [password, setPassword] = useState("");
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [isOtpFormOpen, setIsOtpFormOpen] = useState(false); // Added missing state
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -26,14 +30,26 @@ function Account() {
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
-  const [isOtpFormOpen, setIsOtpFormOpen] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+
+   const isPasswordValid = (password) => {
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const isLengthValid = password.length >= 8 && password.length <= 64;
+    return hasUppercase && hasLowercase && hasNumber && hasSpecialChar && isLengthValid;
+  };
 
   const isLoginEnabled = email.trim() !== "" && password.trim() !== "";
-  const isResetEnabled = resetEmail.trim() !== "" && newPassword.trim() !== "" &&
-    confirmPassword.trim() !== "" && newPassword === confirmPassword &&
-    newPassword.length >= 8;
+  const isResetEnabled =
+    resetEmail.trim() !== "" &&
+    newPassword.trim() !== "" &&
+    confirmPassword.trim() !== "" &&
+    newPassword === confirmPassword &&
+    isPasswordValid(newPassword); // Use isPasswordValid
   const isOtpEnabled = otp.trim() !== "";
+
+ 
 
   const handleLogin = useCallback(() => {
     if (!isLoginEnabled) return;
@@ -72,7 +88,11 @@ function Account() {
 
   const handleRequestPasswordReset = useCallback(() => {
     if (!isResetEnabled) {
-      setResetError("Vui lòng điền đầy đủ thông tin và kiểm tra mật khẩu!");
+      setResetError(
+        isPasswordValid(newPassword)
+          ? "Vui lòng điền đầy đủ thông tin và kiểm tra mật khẩu!"
+          : "Mật khẩu cần ít nhất 8 ký tự, tối đa 64 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
+      );
       return;
     }
 
@@ -120,7 +140,13 @@ function Account() {
       [DashboardRequestApi.authRequest.resetPassword(resetData)],
       (res) => {
         setResetSuccess("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
-        setShowSuccessToast(true);
+        toast.success("Đặt lại mật khẩu thành công!", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+        });
         setIsForgotPasswordOpen(false);
         setIsOtpFormOpen(false);
         setResetEmail("");
@@ -129,8 +155,6 @@ function Account() {
         setOtp("");
         setCacheKey("");
         setIsLoading(false);
-        // Auto-dismiss toast after 5 seconds
-        setTimeout(() => setShowSuccessToast(false), 5000);
       },
       (error) => {
         setResetError("Mã OTP không hợp lệ hoặc có lỗi xảy ra!");
@@ -140,7 +164,13 @@ function Account() {
   }, [callApi, resetEmail, otp, newPassword, cacheKey, isOtpEnabled]);
 
   const handleRegisterSuccess = () => {
-    alert("Tài khoản đã được tạo thành công!");
+    toast.success("Tài khoản đã được tạo thành công!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
   };
 
   return (
@@ -151,19 +181,6 @@ function Account() {
       }}
     >
       <div className="relative bg-white bg-opacity-80 backdrop-blur-lg p-6 sm:p-8 rounded-2xl shadow-2xl w-full mx-4 sm:mx-10 max-w-md border border-teal-300 transform transition-all duration-300 hover:shadow-3xl">
-        {/* Success Toast Notification */}
-        {showSuccessToast && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center justify-between max-w-xs w-full">
-            <p className="text-sm font-medium">Đặt lại mật khẩu thành công!</p>
-            <button
-              onClick={() => setShowSuccessToast(false)}
-              className="text-white hover:text-gray-200 focus:outline-none"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
         {/* Tiêu đề */}
         <div className="flex justify-center items-center mb-6">
           <img
@@ -326,12 +343,12 @@ function Account() {
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={handleRequestPasswordReset}
-                    disabled={!isResetEnabled || isLoading}
+                    disabled={ isLoading}
                     className={cl(
                       "w-full py-3 sm:py-4 text-white font-semibold rounded-lg shadow-lg transition-all duration-300",
                       {
-                        "bg-teal-700 hover:bg-teal-800 hover:shadow-xl": isResetEnabled && !isLoading,
-                        "bg-gray-400 cursor-not-allowed": !isResetEnabled || isLoading,
+                        "bg-teal-700 hover:bg-teal-800 hover:shadow-xl":  !isLoading,
+                        "bg-gray-400 cursor-not-allowed":  isLoading,
                       }
                     )}
                   >
@@ -415,6 +432,15 @@ function Account() {
         {isRegisterOpen && (
           <Register setIsRegister={setIsRegisterOpen} onRegisterSuccess={handleRegisterSuccess} />
         )}
+
+        {/* ToastContainer */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+        />
       </div>
     </div>
   );
