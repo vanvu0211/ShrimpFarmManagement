@@ -5,11 +5,9 @@ import cl from "classnames";
 import useCallApi from "../../hooks/useCallApi";
 import { DashboardRequestApi } from "../../services/api";
 
-
-
-function Register({ setIsRegister, onRegisterSuccess }) {
+function ResetPassword({ setIsResetPassword }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [cacheKey, setCacheKey] = useState("");
@@ -39,7 +37,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
     return hasUppercase && hasLowercase && hasNumber && hasSpecialChar && isLengthValid;
   };
 
-  const handleSubmit = (e) => {
+  const handleRequestReset = (e) => {
     e.preventDefault();
 
     if (!isEmailValid(email)) {
@@ -47,24 +45,24 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       return;
     }
 
-    if (!isPasswordValid(password)) {
+    if (!isPasswordValid(newPassword)) {
       setErrorMessage(
         "Mật khẩu cần ít nhất 8 ký tự, tối đa 64 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt."
       );
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (newPassword !== confirmPassword) {
       setErrorMessage("Mật khẩu nhập lại không khớp.");
       return;
     }
 
-    if (email.trim() && password.trim()) {
+    if (email.trim() && newPassword.trim()) {
       setIsLoading(true);
+      setErrorMessage("");
 
-      const data = { email: email.trim(), password: password.trim() };
       callApi(
-        () => DashboardRequestApi.authRequest.register(data),
+        () => DashboardRequestApi.authRequest.requestPasswordReset(email.trim()),
         (res) => {
           setIsLoading(false);
           setShowOtpInput(true);
@@ -74,8 +72,8 @@ function Register({ setIsRegister, onRegisterSuccess }) {
         (err) => {
           setIsLoading(false);
           const apiError = err?.response?.data?.[0];
-          setErrorMessage(apiError?.description || "Không thể đăng ký hoặc gửi OTP, vui lòng thử lại!");
-          console.error("Error registering:", err);
+          setErrorMessage(apiError?.description || "Không thể gửi yêu cầu đặt lại mật khẩu, vui lòng thử lại!");
+          console.error("Error requesting password reset:", err);
         }
       );
     } else {
@@ -89,9 +87,8 @@ function Register({ setIsRegister, onRegisterSuccess }) {
     setIsLoading(true);
     setErrorMessage("");
 
-    const data = { email: email.trim(), password: password.trim() };
     callApi(
-      () => DashboardRequestApi.authRequest.register(data),
+      () => DashboardRequestApi.authRequest.requestPasswordReset(email.trim()),
       (res) => {
         setIsLoading(false);
         setErrorMessage("OTP mới đã được gửi, vui lòng kiểm tra email!");
@@ -107,7 +104,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
     );
   };
 
-  const handleOtpSubmit = (e) => {
+  const handleResetPassword = (e) => {
     e.preventDefault();
 
     if (!otp.trim() || otp.length !== 6 || !/^\d+$/.test(otp)) {
@@ -115,23 +112,30 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       return;
     }
 
+    const resetData = {
+      email: email.trim(),
+      otpCode: otp.trim(),
+      newPassword: newPassword.trim(),
+      cacheKey: cacheKey
+    };
+
     callApi(
-      () => DashboardRequestApi.authRequest.verifyEmail(email.trim(), otp.trim(), cacheKey),
+      () => DashboardRequestApi.authRequest.resetPassword(resetData),
       () => {
-        onRegisterSuccess();
-        setIsRegister(false);
+        setIsResetPassword(false);
         setEmail("");
-        setPassword("");
+        setNewPassword("");
         setConfirmPassword("");
         setOtp("");
         setShowOtpInput(false);
         setErrorMessage("");
+        alert("Mật khẩu đã được đặt lại thành công!");
       },
-      "Đăng ký thành công!",
+      "Đặt lại mật khẩu thành công!",
       (err) => {
         const apiError = err?.response?.data?.[0];
         setErrorMessage(apiError?.description || "Mã OTP không hợp lệ, vui lòng thử lại!");
-        console.error("Error verifying OTP:", err);
+        console.error("Error resetting password:", err);
       }
     );
   };
@@ -144,30 +148,30 @@ function Register({ setIsRegister, onRegisterSuccess }) {
       }}
     >
       <div className="relative bg-white bg-opacity-80 backdrop-blur-lg p-6 rounded-2xl shadow-2xl w-full mx-4 sm:mx-10 max-w-md border border-teal-300 transform transition-all duration-300 hover:shadow-3xl">
-        {/* Nút đóng */}
+        {/* Close button */}
         <i
           className="absolute top-2 right-2 text-2xl p-2 cursor-pointer hover:bg-teal-100 rounded-full text-teal-700 transition-all duration-200"
-          onClick={() => setIsRegister(false)}
+          onClick={() => setIsResetPassword(false)}
         >
           <IoCloseSharp />
         </i>
 
-        {/* Logo hoặc tiêu đề */}
+        {/* Logo and title */}
         <div className="flex justify-center items-center mb-6">
           <img
             src="https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoatoi.png"
             className="w-12 sm:w-16 transition-all duration-300"
             alt="Logo"
           />
-          <div className="text-2xl sm:text-3xl font-bold mr-8 tracking-tight">
-            <span className="text-teal-800">Đăng </span>
-            <span className="text-teal-600">kí</span>
+          <div className="text-2xl sm:text-3xl mr-8 font-bold tracking-tight">
+            <span className="text-teal-800">Đặt lại </span>
+            <span className="text-teal-600">mật khẩu</span>
           </div>
         </div>
 
         {/* Form */}
         {!showOtpInput ? (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleRequestReset}>
             {/* Email */}
             <div className="mb-5">
               <label htmlFor="email" className="block text-left font-semibold text-teal-900 mb-2">
@@ -184,18 +188,18 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               />
             </div>
 
-            {/* Mật khẩu */}
+            {/* New Password */}
             <div className="mb-5 relative">
-              <label htmlFor="password" className="block text-left font-semibold text-teal-900 mb-2">
-                Mật khẩu
+              <label htmlFor="newPassword" className="block text-left font-semibold text-teal-900 mb-2">
+                Mật khẩu mới
               </label>
               <input
                 type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                placeholder="Nhập mật khẩu"
-                value={password}
-                onChange={(e) => handleInputChange(e, setPassword)}
+                id="newPassword"
+                name="newPassword"
+                placeholder="Nhập mật khẩu mới"
+                value={newPassword}
+                onChange={(e) => handleInputChange(e, setNewPassword)}
                 className="w-full p-3 sm:p-4 border-2 border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-teal-50 text-teal-900 placeholder-teal-500 text-sm sm:text-base transition-all duration-200"
               />
               <span
@@ -206,19 +210,19 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               </span>
             </div>
 
-            {/* Nhập lại mật khẩu */}
+            {/* Confirm Password */}
             <div className="mb-6 relative">
               <label
                 htmlFor="confirmPassword"
                 className="block text-left font-semibold text-teal-900 mb-2"
               >
-                Xác nhận mật khẩu
+                Xác nhận mật khẩu mới
               </label>
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 name="confirmPassword"
-                placeholder="Nhập lại mật khẩu"
+                placeholder="Nhập lại mật khẩu mới"
                 value={confirmPassword}
                 onChange={(e) => handleInputChange(e, setConfirmPassword)}
                 className="w-full p-3 sm:p-4 border-2 border-teal-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-teal-50 text-teal-900 placeholder-teal-500 text-sm sm:text-base transition-all duration-200"
@@ -231,7 +235,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               </span>
             </div>
 
-            {/* Hiển thị lỗi hoặc thông báo */}
+            {/* Error or success message */}
             {errorMessage && (
               <p
                 className={cl("text-center mb-4 text-sm", {
@@ -243,26 +247,26 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               </p>
             )}
 
-            {/* Nút đăng ký */}
+            {/* Reset Password Button */}
             <div className="flex justify-center">
               <button
                 type="submit"
                 className={cl(
                   "w-full py-3 sm:py-4 text-white font-semibold rounded-lg shadow-lg transition-all duration-300",
                   {
-                    "bg-teal-700 hover:bg-teal-800 hover:shadow-xl": email && password && confirmPassword && !isLoading,
-                    "bg-gray-400 cursor-not-allowed": !email || !password || !confirmPassword || isLoading,
+                    "bg-teal-700 hover:bg-teal-800 hover:shadow-xl": email && newPassword && confirmPassword && !isLoading,
+                    "bg-gray-400 cursor-not-allowed": !email || !newPassword || !confirmPassword || isLoading,
                   }
                 )}
-                disabled={!email || !password || !confirmPassword || isLoading}
+                disabled={!email || !newPassword || !confirmPassword || isLoading}
               >
-                {isLoading ? "Đang xử lý..." : "Đăng ký ngay"}
+                {isLoading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
               </button>
             </div>
           </form>
         ) : (
-          <form onSubmit={handleOtpSubmit}>
-            {/* Nhập OTP */}
+          <form onSubmit={handleResetPassword}>
+            {/* OTP Input */}
             <div className="mb-5">
               <label htmlFor="otp" className="block text-left font-semibold text-teal-900 mb-2">
                 Mã OTP (6 chữ số)
@@ -280,7 +284,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               />
             </div>
 
-            {/* Hiển thị lỗi hoặc thông báo */}
+            {/* Error or success message */}
             {errorMessage && (
               <p
                 className={cl("text-center mb-4 text-sm", {
@@ -292,7 +296,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               </p>
             )}
 
-            {/* Nút xác thực OTP */}
+            {/* Verify OTP Button */}
             <div className="flex justify-center mb-4">
               <button
                 type="submit"
@@ -309,7 +313,7 @@ function Register({ setIsRegister, onRegisterSuccess }) {
               </button>
             </div>
 
-            {/* Nút gửi lại OTP */}
+            {/* Resend OTP Button */}
             {errorMessage.includes("không hợp lệ") && (
               <div className="flex justify-center">
                 <button
@@ -331,12 +335,12 @@ function Register({ setIsRegister, onRegisterSuccess }) {
           </form>
         )}
 
-        {/* Link chuyển sang đăng nhập */}
+        {/* Back to Login Link */}
         <p className="text-center text-teal-800 mt-4 text-sm sm:text-base">
           Đã có tài khoản?{" "}
           <span
             className="underline cursor-pointer hover:text-teal-900 font-semibold transition-colors duration-200"
-            onClick={() => setIsRegister(false)}
+            onClick={() => setIsResetPassword(false)}
           >
             Đăng nhập
           </span>
@@ -346,4 +350,4 @@ function Register({ setIsRegister, onRegisterSuccess }) {
   );
 }
 
-export default memo(Register);
+export default memo(ResetPassword);
