@@ -9,6 +9,7 @@ const FarmRequestApi = {
         invite: async (data) => await axiosClient.put(`/Farm/InviteMember`,data),
         remove: async (data) => await axiosClient.put(`/Farm/RemoveMember`,data),
         updateRole: async (data) => await axiosClient.put(`/Farm/UpdateMember`,data),
+        updateFarm: async (data) => await axiosClient.put(`/Farm`,data),
     },
 }
 
