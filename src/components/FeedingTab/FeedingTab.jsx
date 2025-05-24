@@ -12,7 +12,10 @@ const FeedingTab = () => {
   const dateInputRef = useRef(null);
   const location = useLocation();
 
-  const [formData, setFormData] = useState({ pondId: '', feedingDate: '' });
+const [formData, setFormData] = useState({
+  pondId: '',
+  feedingDate: new Date().toISOString().split('T')[0], // Automatically set to today's date
+});
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
   const [pondFindOptions, setPondFindOptions] = useState([]);

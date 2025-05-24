@@ -10,7 +10,10 @@ const TreatmentTab = () => {
   const callApi = useCallApi();
   const dateInputRef = useRef(null);
 
-  const [formData, setFormData] = useState({ pondId: '', treatmentDate: '' });
+  const [formData, setFormData] = useState({
+  pondId: '',
+  treatmentDate: new Date().toISOString().split('T')[0], // Automatically set to today's date
+});
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
   const [pondFindOptions, setPondFindOptions] = useState([]);

@@ -13,8 +13,10 @@ const ShrimpTab = () => {
 
   const [formData, setFormData] = useState({
     pondId: '',
-    updateDate: '',
+    updateDate: new Date().toISOString().split('T')[0],
   });
+
+
   const [pondOptions, setPondOptions] = useState([]);
   const [pondTypeOptions, setPondTypeOptions] = useState([]);
   const [pondFindOptions, setPondFindOptions] = useState([]);
