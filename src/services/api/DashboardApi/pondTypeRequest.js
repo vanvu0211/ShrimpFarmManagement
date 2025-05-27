@@ -39,6 +39,7 @@ const DashboardRequestApi = {
         verifyEmail: async (email, otp,cacheKey) => await axiosClient.post(`/Account/VerifyEmail?email=${email}&OtpCode=${otp}&cacheKey=${cacheKey}`),
         requestPasswordReset: async (email) => await axiosClient.post(`/Account/RequestPasswordReset?Email=${email}`),
         resetPassword: async (data) => await axiosClient.post(`/Account/ResetPassword`,data),
+        isAdmin: async () => await axiosClient.get(`/Account/IsAdmin`),
 
     }
 

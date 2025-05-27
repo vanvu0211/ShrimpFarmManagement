@@ -62,6 +62,10 @@ function Sidebar({ onMobileMenuToggle }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    localStorage.removeItem("farmId");
+    localStorage.removeItem("farmName");
+    localStorage.removeItem("role");
     navigate("/");
   };
 

@@ -3,13 +3,12 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "../../components/Loading";
 import useCallApi from "../../hooks/useCallApi";
-import { FarmRequestApi } from "../../services/api";
+import { FarmRequestApi, DashboardRequestApi } from "../../services/api"; // Import DashboardRequestApi
 import { useNavigate } from "react-router-dom";
 import MemberModal from "../../components/MemberModal";
-import { Users, Trash2, Edit2 } from "lucide-react"; // Add Edit2 for edit icon
-import Modal from "react-modal"; // Import react-modal for edit modal
+import { Users, Trash2, Edit2 } from "lucide-react";
+import Modal from "react-modal";
 
-// Set the app element for accessibility
 Modal.setAppElement("#root");
 
 function Status() {
@@ -21,13 +20,31 @@ function Status() {
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [selectedFarm, setSelectedFarm] = useState(null);
   const [members, setMembers] = useState([]);
-  // New state for edit modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFarm, setEditFarm] = useState({ farmId: null, farmName: "", address: "" });
+  const [isAdmin, setIsAdmin] = useState(false); // New state to track admin status
 
   const callApi = useCallApi();
   const navigate = useNavigate();
   const email = localStorage.getItem("email");
+
+  // Check if user is admin
+  const checkAdminStatus = useCallback(() => {
+    setIsLoading(true);
+    callApi(
+      [DashboardRequestApi.authRequest.isAdmin()],
+      (res) => {
+        setIsAdmin(res[0]?.isAdmin || false);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error("Error checking admin status:", err);
+        toast.error("Không thể kiểm tra quyền Admin!");
+        setIsAdmin(false);
+        setIsLoading(false);
+      }
+    );
+  }, [callApi]);
 
   const fetchMembers = useCallback(
     (farmId) => {
@@ -68,67 +85,61 @@ function Status() {
     [selectedFarm, fetchMembers]
   );
 
-  // New function to open edit modal
-  const handleOpenEditModal = useCallback((farm) => {
-    setEditFarm({
-      farmId: farm.farmId,
-      farmName: farm.farmName,
-      address: farm.address,
-    });
-    setIsEditModalOpen(true);
-  }, []);
+  const handleOpenEditModal = useCallback(
+    (farm) => {
+      if (!isAdmin) {
+        toast.error("Bạn không có quyền sửa trang trại!");
+        return;
+      }
+      setEditFarm({
+        farmId: farm.farmId,
+        farmName: farm.farmName,
+        address: farm.address,
+      });
+      setIsEditModalOpen(true);
+    },
+    [isAdmin]
+  );
 
-  // New function to close edit modal
   const handleCloseEditModal = useCallback(() => {
     setIsEditModalOpen(false);
     setEditFarm({ farmId: null, farmName: "", address: "" });
   }, []);
 
-  // New function to handle farm update
   const handleUpdateFarm = useCallback(
     (e) => {
       e.preventDefault();
-
       if (!editFarm.farmName.trim() || !editFarm.address.trim()) {
         toast.error("Tên trang trại và địa chỉ không được để trống!");
         return;
       }
-
       const data = {
         farmId: editFarm.farmId,
         farmName: editFarm.farmName.trim(),
         address: editFarm.address.trim(),
       };
-
       setIsLoading(true);
-
       callApi(
         [FarmRequestApi.farmRequest.updateFarm(data)],
         (res) => {
           console.log("handleUpdateFarm: Success response", res);
           setIsLoading(false);
           toast.success("Cập nhật trang trại thành công!");
-
-          // Update the farms list with the updated farm
           const updatedFarms = farms.map((farm) =>
             farm.farmId === editFarm.farmId
               ? { ...farm, farmName: editFarm.farmName, address: editFarm.address }
               : farm
           );
           setFarms(updatedFarms);
-
-          // Update localStorage if the updated farm is the current farm
           if (String(editFarm.farmId) === currentFarmId) {
             localStorage.setItem("farmName", editFarm.farmName);
           }
-
           handleCloseEditModal();
         },
         (err) => {
           console.log("handleUpdateFarm: Error", err);
           setIsLoading(false);
           let errorMessage = "Có lỗi xảy ra khi cập nhật trang trại!";
-
           if (err.response) {
             const { status, data } = err.response;
             if (status === 400) {
@@ -143,7 +154,6 @@ function Status() {
           } else if (err.message) {
             errorMessage = err.message;
           }
-
           toast.error(errorMessage);
           console.error("Lỗi khi cập nhật trang trại:", err);
         }
@@ -154,33 +164,31 @@ function Status() {
 
   const handleDeleteFarm = useCallback(
     (farmId) => {
+      if (!isAdmin) {
+        toast.error("Bạn không có quyền xóa trang trại!");
+        return;
+      }
       if (!window.confirm("Bạn có chắc chắn muốn xóa trang trại này?")) {
         return;
       }
-
       setIsLoading(true);
-
       const timeout = setTimeout(() => {
         setIsLoading(false);
         toast.error("Vẫn còn ao trong trang trại!");
         console.error("useCallApi timeout for deleteFarm");
       }, 5000);
-
       callApi(
         [FarmRequestApi.farmRequest.deleteFarm(farmId, email)],
         (res) => {
           console.log("handleDeleteFarm: Success response", res);
           clearTimeout(timeout);
           setIsLoading(false);
-
           if (res[0] && res[0].success === false) {
             return;
           }
-
           toast.success("Xóa trang trại thành công!");
           const updatedFarms = farms.filter((farm) => farm.farmId !== farmId);
           setFarms(updatedFarms);
-
           if (updatedFarms.length > 0) {
             if (String(farmId) === currentFarmId) {
               const firstFarm = updatedFarms[0];
@@ -201,7 +209,6 @@ function Status() {
           clearTimeout(timeout);
           setIsLoading(false);
           let errorMessage = "Có lỗi xảy ra khi xóa trang trại!";
-
           if (err.response) {
             const { status, data } = err.response;
             if (status === 400) {
@@ -216,13 +223,12 @@ function Status() {
           } else if (err.message) {
             errorMessage = err.message;
           }
-
           console.error("Lỗi khi xóa trang trại:", err);
           toast.error(errorMessage);
         }
       );
     },
-    [callApi, farms, email, currentFarmId, navigate]
+    [callApi, farms, email, currentFarmId, navigate, isAdmin]
   );
 
   const fetchFarms = useCallback(() => {
@@ -230,9 +236,7 @@ function Status() {
       toast.error("Không tìm thấy thông tin người dùng!");
       return;
     }
-
     setIsLoading(true);
-
     callApi(
       [FarmRequestApi.farmRequest.getAllFarmByEmail(email)],
       (res) => {
@@ -240,7 +244,6 @@ function Status() {
         const farmData = res[0] && Array.isArray(res[0]) ? res[0].flat() : [];
         setFarms(farmData);
         setIsLoading(false);
-
         if (!currentFarmId && farmData.length > 0) {
           const firstFarm = farmData[0];
           localStorage.setItem("farmId", String(firstFarm.farmId));
@@ -260,49 +263,44 @@ function Status() {
   const handleAddFarm = useCallback(
     (e) => {
       e.preventDefault();
-
+      if (!isAdmin) {
+        toast.error("Bạn không có quyền tạo trang trại!");
+        return;
+      }
       if (!farmName.trim() || !farmAddress.trim()) {
         toast.error("Tên trang trại và địa chỉ không được để trống!");
         return;
       }
-
       const data = {
         farmName: farmName.trim(),
         address: farmAddress.trim(),
         email,
       };
-
       setIsLoading(true);
-
       const timeout = setTimeout(() => {
         setIsLoading(false);
         toast.error("Yêu cầu tạo trang trại mất quá nhiều thời gian!");
         console.error("useCallApi timeout for createFarm");
       }, 5000);
-
       callApi(
         [FarmRequestApi.farmRequest.createFarm(data)],
         (res) => {
           console.log("handleAddFarm: Success response", res);
           clearTimeout(timeout);
           setIsLoading(false);
-
           if (res[0] && res[0].success === false) {
             toast.error(res[0].message || "Thêm trang trại không thành công!");
             return;
           }
-
           const newFarm = res[0];
           if (!newFarm.farmId) {
             fetchFarms();
             return;
           }
-
           toast.success("Thêm trang trại thành công!");
           setFarms([...farms, newFarm]);
           setFarmName("");
           setFarmAddress("");
-
           localStorage.setItem("farmId", String(newFarm.farmId));
           localStorage.setItem("farmName", newFarm.farmName);
           setCurrentFarmId(String(newFarm.farmId));
@@ -317,59 +315,66 @@ function Status() {
         }
       );
     },
-    [farmName, farmAddress, farms, email, callApi, fetchFarms]
+    [farmName, farmAddress, farms, email, callApi, fetchFarms, isAdmin]
   );
 
   useEffect(() => {
     fetchFarms();
-  }, [fetchFarms]);
+    checkAdminStatus(); // Call API to check admin status
+  }, [fetchFarms, checkAdminStatus]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-gray-100 flex justify-center">
+    <div className="min-h-screen bg-gradient-to-br  from-teal-100 to-gray-100/40 flex justify-center">
       <main className="w-full mx-auto mt-16 sm:mt-0 max-w-4xl overflow-y-auto overflow-hidden no-scrollbar p-4 sm:p-6 lg:p-8 transition-all duration-300">
         <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 mb-6 sm:mb-8">
           Thông tin trang trại
         </h1>
 
-        <form
-          onSubmit={handleAddFarm}
-          className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-        >
-          <div className="mb-4 sm:mb-6">
-            <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
-              Trang trại
-            </label>
-            <input
-              id="farmName"
-              type="text"
-              value={farmName}
-              onChange={(e) => setFarmName(e.target.value)}
-              placeholder="Tên trang trại"
-              className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-            />
-          </div>
-
-          <div className="mb-4 sm:mb-6">
-            <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmAddress">
-              Địa chỉ
-            </label>
-            <input
-              id="farmAddress"
-              type="text"
-              value={farmAddress}
-              onChange={(e) => setFarmAddress(e.target.value)}
-              placeholder="Địa chỉ trang trại"
-              className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-300"
+        {isAdmin ? (
+          <form
+            onSubmit={handleAddFarm}
+            className="mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
           >
-            Thêm trang trại
-          </button>
-        </form>
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmName">
+                Trang trại
+              </label>
+              <input
+                id="farmName"
+                type="text"
+                value={farmName}
+                onChange={(e) => setFarmName(e.target.value)}
+                placeholder="Tên trang trại"
+                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+              />
+            </div>
+
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-teal-800 font-semibold mb-2" htmlFor="farmAddress">
+                Địa chỉ
+              </label>
+              <input
+                id="farmAddress"
+                type="text"
+                value={farmAddress}
+                onChange={(e) => setFarmAddress(e.target.value)}
+                placeholder="Địa chỉ trang trại"
+                className="w-full p-3 sm:p-4 border border-teal-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50 text-sm sm:text-base transition-all duration-200"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full sm:w-auto px-6 py-2 sm:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Thêm trang trại
+            </button>
+          </form>
+        ) : (
+          <p className="text-red-500 mb-6 sm:mb-8">
+            Chỉ Admin mới có quyền tạo trang trại.
+          </p>
+        )}
 
         <h2 className="text-lg sm:text-xl font-bold text-teal-700 mb-4 sm:mb-6">
           Danh sách trang trại
@@ -415,15 +420,25 @@ function Status() {
                   </button>
                   <button
                     onClick={() => handleOpenEditModal(farm)}
-                    className="p-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                    className={`p-2 rounded-lg ${
+                      isAdmin
+                        ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
                     title="Sửa trang trại"
+                    disabled={!isAdmin}
                   >
                     <Edit2 size={20} />
                   </button>
                   <button
                     onClick={() => handleDeleteFarm(farm.farmId)}
-                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 sm:px-4 sm:py-2"
+                    className={`p-2 rounded-lg sm:px-4 sm:py-2 ${
+                      isAdmin
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
                     title="Xóa trang trại"
+                    disabled={!isAdmin}
                   >
                     <Trash2 size={20} className="sm:hidden" />
                     <span className="hidden sm:inline">Xóa</span>
@@ -444,9 +459,9 @@ function Status() {
         farmId={selectedFarm?.farmId}
         callApi={callApi}
         FarmRequestApi={FarmRequestApi}
+        isAdmin={isAdmin} // Pass isAdmin to MemberModal
       />
 
-      {/* Edit Farm Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={handleCloseEditModal}

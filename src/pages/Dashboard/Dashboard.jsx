@@ -38,8 +38,8 @@ function Dashboard() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [cabinData, setCabinData] = useState([
-    { name: 'Tủ điện 1', status: 'Tắt', updated: false },
-    { name: 'Tủ điện 2', status: 'Tắt', updated: false }
+    { name: 'Tủ điện 1', status: 'Offline', updated: false },
+    { name: 'Tủ điện 2', status: 'Offline', updated: false }
   ]);
 
   useEffect(() => {
@@ -54,13 +54,13 @@ function Dashboard() {
 
   const cabinStatusMapping = {
     'Tủ điện 1': {
-      'GOOD': 'Bật',
-      'BAD': 'Tắt',
+      'GOOD': 'Online',
+      'BAD': 'Offline',
       'Measuring': 'Đang đo'
     },
     'Tủ điện 2': {
-      'GOOD': 'Bật',
-      'BAD': 'Tắt'
+      'GOOD': 'Online',
+      'BAD': 'Offline'
     }
   };
 
@@ -73,7 +73,7 @@ function Dashboard() {
 
       const cabinIndex = updatedData.findIndex(c => c.name === displayName);
       if (cabinIndex !== -1) {
-        const mappedStatus = cabinStatusMapping[displayName]?.[data.Value] || 'Tắt';
+        const mappedStatus = cabinStatusMapping[displayName]?.[data.Value] || 'Offline';
         updatedData[cabinIndex] = {
           ...updatedData[cabinIndex],
           status: mappedStatus,
@@ -129,9 +129,9 @@ function Dashboard() {
 
         setCabinData(prevData => {
           const updatedData = [...prevData];
-          const cabin1Status = cabinStatusMapping['Tủ điện 1'][res[4].status] || 'Tắt';
+          const cabin1Status = cabinStatusMapping['Tủ điện 1'][res[4].status] || 'Offline';
           updatedData[0] = { ...updatedData[0], status: cabin1Status };
-          const cabin2Status = cabinStatusMapping['Tủ điện 2'][res[5].status] || 'Tắt';
+          const cabin2Status = cabinStatusMapping['Tủ điện 2'][res[5].status] || 'Offline';
           updatedData[1] = { ...updatedData[1], status: cabin2Status };
           return updatedData;
         });
@@ -186,8 +186,8 @@ function Dashboard() {
               key={cabin.name}
               className="text-center py-2 p-10 text-sm font-medium rounded-md"
               animate={{
-                backgroundColor: cabin.status === 'Bật' ? '#DCFCE7' : cabin.status === 'Đang đo' ? '#FFEDD5' : '#FEE2E2',
-                color: cabin.status === 'Bật' ? '#166534' : cabin.status === 'Đang đo' ? '#C2410C' : '#991B1B',
+                backgroundColor: cabin.status === 'Online' ? '#DCFCE7' : cabin.status === 'Đang đo' ? '#FFEDD5' : '#FEE2E2',
+                color: cabin.status === 'Online' ? '#166534' : cabin.status === 'Đang đo' ? '#C2410C' : '#991B1B',
                 scale: cabin.updated ? [1, 1.05, 1] : 1
               }}
               transition={{
@@ -210,8 +210,8 @@ function Dashboard() {
         <Sidebar />
       </aside>
       <div className="flex-1 flex flex-col mt-16 sm:mt-0 transition-all m-2 rounded-xl items-center w-full mr-2 overflow-y-auto overflow-hidden max-h-screen mb-2">
-        <div className="w-[90%] h-auto rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
-          <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 w-full sm:w-auto">
+        <div className="w-[90%] h-auto sm:h-1/5 rounded-xl flex flex-col sm:flex-row p-4 gap-y-3 gap-x-4">
+          <div className="flex flex-row  flex-wrap sm:flex-nowrap gap-3 w-full sm:w-1/3">
             <div className="flex-1 flex flex-col items-center justify-center rounded-xl shadow-md bg-white p-4 min-w-0">
               <h1 className="uppercase min-w-96 sm:text-3xl font-sans text-xl font-bold text-teal-800 text-center">Tổng số ao</h1>
               <span className="text-5xl font-mono font-bold text-red-500">{ponds?.length || 0}</span>
