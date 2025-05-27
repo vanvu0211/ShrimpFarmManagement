@@ -176,7 +176,7 @@ const Transfer = () => {
                 return;
             }
 
-            setIsLoadin(true);
+            setIsLoading(true);
             const submitData = {
                 transferDate: new Date(formData.transferDate).toISOString(),
                 amount: parseFloat(formData.amount),
