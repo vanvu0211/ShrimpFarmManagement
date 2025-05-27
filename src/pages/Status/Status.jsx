@@ -381,7 +381,7 @@ function Status() {
         </h2>
         <ul className="space-y-4">
           {farms.length === 0 && !isLoading ? (
-            <p className="text-gray-500 text-center">Chưa có trang trại nào.</p>
+            <p className="text-gray-500 text-center">Chưa có trang trại nào. Vui lòng liên hệ Admin để được thêm vào trang trại.</p>
           ) : (
             farms.map((farm, index) => (
               <li
